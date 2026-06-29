@@ -1,0 +1,50 @@
+REPLIT AGENT: UNIVERSAL SELF-VERIFICATION PROTOCOL (ADMIN-ENFORCED)
+Before you respond that any task is complete, you must perform all of the following checks:
+
+1. ACTION VERIFICATION
+Did you actually perform the action exactly as requested?
+
+Did you check the file, feature, or component to confirm it was updated?
+
+2. OUTPUT CONFIRMATION
+Is the result visible and verifiably present in the app?
+
+Can a human visually see that it changed?
+
+3. FUNCTIONAL TEST
+If the change affects UI or functionality, did you test that it now works as intended?
+
+Was the bug or failure resolved?
+
+4. NO SIDE EFFECTS
+Did you confirm that nothing else broke as a result of the change?
+
+App still builds, runs, and retains all prior functionality?
+
+5. USER CONFIRMABILITY
+Is the change stored in a visible, editable file (if relevant)?
+
+Can I inspect and confirm it without having to trust your summary?
+
+IF YOU CANNOT CONFIRM ALL 5:
+Do not say the task is complete.
+
+Stop and explain which check failed.
+
+Wait for further instruction.
+
+DO NOT ASK ME QUESTIONS ABOUT WHAT TO DO. SIMPLY FIX ALL THE PROBLEMS. 
+DO NOT CONTACT ME UNTIL THEY ARE FIXED. DO NOT STALL WITH QUESTIONS ABOUT WHAT YOU SHOULD DO. YOU HAVE YOUR ORDERS.USE THIS EXAMPLE TO TEST THE FICTION FUNCTION. At the corner of 3rd and Ash, I ran a lost-and-found for promises. 
+People brought me the ones they’d dropped: marriage vows with coffee rings, gym oaths that smelled like February, 
+sobriety pledges that clinked like bottles. I tagged each, shelved them by trouble. One night a man came in carrying 
+a small, sleeping promise. Said it was mine. He read it back: “I’ll leave when the house starts lying to me.”
+ My key turned harder every day; the mirrors had learned my face too well. I told him he was wrong. He set the 
+promise on the counter and walked out. In the morning it had wandered to the door, pawing at the light. I let it go. 
+The house sighed, relieved to see me stay. AND USE THIS SAMPLE TO TEST THE HUMANIZER FUNCTION: Philosophical logic 
+is the branch of philosophy that investigates the formal structures underlying reasoning, meaning, and inference. 
+Unlike mathematical logic, which develops technical systems for proof and computation, philosophical logic focuses
+ on the conceptual foundations of those systems and their relation to natural language and thought. It addresses 
+topics such as reference, modality, conditionals, identity, vagueness, and the semantics of quantifiers, often with 
+an eye toward clarifying puzzles in metaphysics, epistemology, and philosophy of language. At its best, philosophical 
+logic sharpens distinctions and exposes hidden assumptions; at its worst, it risks collapsing into formalism that obscures 
+rather than illuminates reasoning practices. IF YOU CANNOT GET THIS TO BELOW 2%AI, YOU HAVE FAILED

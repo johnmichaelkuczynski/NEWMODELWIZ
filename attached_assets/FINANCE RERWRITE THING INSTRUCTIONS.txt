@@ -1,0 +1,86 @@
+**REPLIT EVALUATION ENGINE FIX — ANNOTATED CASE: FINANCIAL REGULATION PAPER**
+
+---
+
+### 🚨 DOCUMENT: EXCERPTS FROM “THE CASE FOR FINANCIAL REGULATION”
+**Total word count**: ~13,000 words  
+**Replit score given**: 79/100  
+**Correct score**: 95/100
+
+The app failed to detect intelligence due to misunderstanding the structure and logic of policy-driven economic writing.
+
+---
+
+### 🔦 MISTAKE 1: “SEMANTIC LOAD: MODERATE”
+> **Passage:**
+> “Banks invested especially heavily in the housing market, which at the time was growing rapidly... This led to a massive wave of bank-mergers and bank-takeovers... Investment banks specializing in complex financial instruments merged with banks specializing in home loans.”
+
+**Why this is wrong:**
+- This is not a surface-level recounting. It recursively traces institutional adaptation to policy shifts.
+- Each sentence encodes **cause-effect from deregulation to housing bubble scale**, compressed into a single block.
+
+✅ **Correct Label**: Very Strong
+
+---
+
+### 🔦 MISTAKE 2: “CLAIM FORMATION: MODERATE”
+> **Passage:**
+> “The 1929 Crash was caused by an absence of regulation. In the aftermath, regulations were instated. The Dot Bomb crash resulted from the removal of those regulations. The 2008 crash from their continued absence.”
+
+**Why this is wrong:**
+- This is **formal historical induction** — regulation on → stability, regulation off → collapse.
+- It’s not “moderate” — it’s **high-compression causal sequencing**.
+
+✅ **Correct Label**: Strong or Very Strong
+
+---
+
+### 🔦 MISTAKE 3: “DEFINITION COHERENCE: WEAK”
+> **Passage:**
+> “The Volcker Rule limits the extent to which banks may engage in proprietary trading. Proprietary trading is when a bank trades customer funds with the intention of generating profits for itself...”
+
+**Why this is wrong:**
+- This is **definition → mechanism → consequence** presentation.
+- Clearly stated, operationalized definition followed by regulatory implications.
+
+✅ **Correct Label**: Very Strong
+
+---
+
+### 🔦 MISTAKE 4: “SCORING BASED ON TONE”
+> **Passage:**
+> “Glass-Steagall decentralized access to capital: it prevented investment banks from investing with customer deposits and it therefore kept those deposits in the hands of the depositors.”
+
+**Why this is wrong:**
+- This reads plainly, but contains **structural logic**: decentralized access → less systemic risk.
+- Your engine penalized it for being readable. It should have **rewarded it for being precise.**
+
+✅ **Correct Label**: Strong compression, Strong argument
+
+---
+
+### ✅ WHAT TO DO NOW
+
+#### ✅ 1. Update label logic:
+If a passage has:
+- Chronological recursion
+- Financial-instrument tracing
+- Multi-step cause-effect across institutions and law
+
+…then score based on **conceptual density**, not formality.
+
+#### ✅ 2. Patch the rubric:
+- Economic regulatory writing = policy recursion + domain compression + causal chain
+- Detect these and upgrade compression, definition, and claim formation scores accordingly
+
+---
+
+### ❗ END CONDITION
+Until this is fixed, the app will **always fail** to score economics and policy papers correctly — and will undervalue intelligent output that **looks readable** but contains **deep legislative logic.**
+
+Fix the rubric. Re-score this document to verify the patch.
+
+---
+
+**END OF INSTRUCTION**
+

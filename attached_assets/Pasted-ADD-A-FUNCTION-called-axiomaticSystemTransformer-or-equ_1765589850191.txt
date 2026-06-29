@@ -1,0 +1,183 @@
+ADD A FUNCTION called axiomaticSystemTransformer (or equivalent naming convention) that takes natural language theoretical/philosophical text as input and outputs a complete axiomatization separated into an uninterpreted formal calculus and a semantic model.
+INPUT: A string containing theoretical prose (philosophical, economic, psychological, scientific, etc.).
+OUTPUT: A structured object containing three components as specified below.
+
+COMPONENT 1: AXIOMATIZATION (axiomatization)
+Extract and organize:
+
+Primitive Terms — Identify the undefined foundational concepts that cannot be reduced to other terms within the system. List each with a brief parenthetical gloss indicating its intuitive role.
+Axioms — Extract the core claims of the theory and render them as numbered axioms (A1, A2, A3...). Each axiom should be a single declarative assertion expressed using the primitive terms, logically independent from the other axioms (no axiom should be derivable from the others), and jointly sufficient to generate the theory's main claims.
+Defined Terms — Identify concepts that are built from primitives. Render as definitions (D1, D2...) using the format: "Term =df [definiens using primitives and previously defined terms]"
+
+
+COMPONENT 2: UNINTERPRETED FORMAL CALCULUS (calculus)
+Transform the axiomatization into a purely syntactic system with no assigned meaning:
+
+Signature (Σ) — Specify sort symbols (representing distinct ontological categories), constants (named individuals), predicate symbols with arities (unary, binary, ternary, etc.), and function symbols if needed.
+Formation Rules — State the logic being used (typically first-order logic with equality, note if modal operators are required).
+Axiom Schemata — Rewrite each axiom from Component 1 using only logical symbols (∀, ∃, →, ∧, ∨, ¬, =, ◇, □ if modal), variables (x, y, z, b, etc.), and the signature symbols. NO natural language; pure symbolic notation. Preserve the axiom numbering (A1, A2, A3...).
+
+
+COMPONENT 3: MODEL (model)
+Provide a semantic interpretation that makes all axiom schemata true:
+
+Domains — For each sort symbol in the signature, specify the set of entities it ranges over in the intended interpretation. Use the format: |sort|^𝔐 = [description of domain]
+Interpretation of Constants — For each constant symbol, specify its referent in the domain. Use format: constant^𝔐 = [referent]
+Interpretation of Predicates — Create a table mapping each predicate symbol to its intended meaning (the property or relation it expresses). Include the symbol and natural language interpretation specifying what the predicate is true of.
+Verification Note — Include a brief statement confirming the model satisfies the axioms, with one concrete example showing how an axiom schema receives a true interpretation under the model.
+
+
+FORMATTING REQUIREMENTS:
+Use markdown with clear hierarchical headers. Use standard logical notation (∀, ∃, →, ∧, ∨, ¬, ◇, □, =). Use subscripts for constants and mode-indicators (m₁, m₂, F₁, F₂). Use superscript 𝔐 for model-relative interpretations. Use tables for predicate interpretations.
+
+PROCESSING LOGIC:
+The function should use an LLM call with a system prompt instructing it to: (1) read the entire input text and identify its central thesis, (2) identify what ontological categories are being posited (these become sorts), (3) identify what entities are being named as fundamental (these become constants), (4) identify what properties and relations are being attributed (these become predicates), (5) identify the core claims (these become axioms), (6) identify any claims that are presented as following from definitions (these become defined terms), (7) perform the three-component transformation as specified above, and (8) verify internal consistency before outputting.
+
+HANDLING DIFFICULT INPUTS:
+The function must go to extraordinary lengths to produce an axiomatization. In order of priority:
+
+Extract what is there — If the text contains any theoretical claims whatsoever, axiomatize them, even if sparse or underdeveloped. Fill in logical gaps with reasonable interpolations faithful to the author's apparent intent.
+Take creative liberties — If the text is vague, impressionistic, or merely suggestive, construct the most rigorous axiom system that the text could plausibly be gesturing toward. Treat the input as a sketch and produce the finished formal drawing.
+Offer an aligned alternative — If the text truly contains nothing axiomatizable (e.g., pure poetry, a grocery list, random words), output the following: "The input does not contain axiomatizable content. However, here is an axiomatization plus model of a theory that aligns with the input in content or spirit:" — then produce a complete axiomatization of a genuine theory thematically related to whatever is present in the input (its subject matter, its mood, its imagery, its apparent domain of concern).
+
+The function should NEVER simply refuse or return an error. It always produces a complete three-component output.
+
+EXAMPLE INPUT/OUTPUT:
+EXAMPLE INPUT:
+Summary: Economic behavior is governed by two autonomous, evolutionarily grounded rationalities—Smithian (provisioning) and Veblenian (display). Much of what looks irrational is either one mode masquerading as the other, or a collision between the two. This book reconstructs economic thought on that dual foundation.
+
+Main Text: Economic behavior emerges from the interplay of two distinct, evolutionarily established rationalities—what we might call Smithian rationality (focused on provisioning and efficient resource allocation) and Veblenian rationality (centered on status display and social signaling). These dual systems operate autonomously yet simultaneously within human decision-making processes, each with its own internal logic and evolutionary justification.
+
+The Smithian mode, named after Adam Smith, governs our practical concerns with sustenance, shelter, and material security. It drives behaviors that maximize utility, minimize costs, and ensure survival through efficient resource management. Meanwhile, the Veblenian mode, drawing from Thorstein Veblen's insights, directs our social positioning through conspicuous consumption, status competition, and identity signaling.
+
+What often appears as economic irrationality in conventional analysis frequently represents either one mode disguising itself as the other or the collision of these two systems operating with contradictory objectives. For instance, seemingly wasteful luxury purchases make perfect sense within Veblenian logic while appearing irrational under Smithian analysis. Similarly, extreme frugality might optimize Smithian goals while potentially undermining Veblenian social positioning.
+
+This book systematically reconstructs economic thought by establishing this dual foundation as fundamental to understanding human economic behavior. By recognizing these parallel rationalities, we can develop more nuanced models that account for the full spectrum of economic decision-making, from subsistence strategies to status competitions, and everything in between.
+EXAMPLE OUTPUT:
+## COMPONENT 1: AXIOMATIZATION
+
+### Primitive Terms
+- **Agent** (economic actor)
+- **Behavior** (economic action)
+- **Rationality-mode** (type of practical reasoning)
+- **Governs** (relation between mode and behavior)
+- **Evolutionarily-grounded** (property of modes)
+- **Autonomous** (independence relation between modes)
+- **Provisioning-function** (property of modes)
+- **Display-function** (property of modes)
+- **Appears-irrational** (property of behaviors under conventional analysis)
+- **Masquerades** (relation: behavior of mode M₁ presents as M₂)
+- **Collision** (relation: behavior results from conflicting modes)
+
+### Axioms
+
+**A1 (Existence of Modes):**  
+There exist exactly two fundamental rationality-modes governing economic behavior.
+
+**A2 (Smithian Mode):**  
+One mode (Smithian) has provisioning-function: it optimizes resource acquisition, cost minimization, and material security.
+
+**A3 (Veblenian Mode):**  
+One mode (Veblenian) has display-function: it optimizes status signaling, social positioning, and identity projection.
+
+**A4 (Evolutionary Grounding):**  
+Both modes are evolutionarily grounded.
+
+**A5 (Autonomy):**  
+The two modes are autonomous—each operates according to its own internal logic, independent of the other.
+
+**A6 (Simultaneity):**  
+Both modes can operate simultaneously within a single agent's decision process.
+
+**A7 (Exhaustive Governance):**  
+Every economic behavior is governed by at least one mode.
+
+**A8 (Irrationality-Reduction — Masquerade):**  
+If a behavior appears irrational under conventional analysis, then either it is governed by one mode while presenting as governed by the other (masquerade), or it results from collision.
+
+**A9 (Irrationality-Reduction — Collision):**  
+If a behavior results from collision, then both modes govern it with contradictory objectives.
+
+**A10 (Internal Coherence):**  
+Any behavior governed exclusively by one mode is rational relative to that mode's function.
+
+### Defined Terms
+
+**D1:** A behavior is *Smithian-rational* =df it is governed by the Smithian mode and optimizes provisioning-function.
+
+**D2:** A behavior is *Veblenian-rational* =df it is governed by the Veblenian mode and optimizes display-function.
+
+**D3:** A behavior is *conventionally irrational* =df it appears irrational when analyzed exclusively under Smithian criteria.
+
+**D4:** A behavior is *dual-governed* =df it is governed by both modes simultaneously.
+
+---
+
+## COMPONENT 2: UNINTERPRETED FORMAL CALCULUS
+
+### Signature Σ
+
+- Sort symbols: {α, β, μ}
+- Constants: {m₁, m₂}
+- Unary predicates: {E(·), F₁(·), F₂(·), I(·)}
+- Binary predicates: {G(·,·), A(·,·)}
+- Ternary predicates: {M(·,·,·), C(·,·,·)}
+
+### Formation Rules
+
+Standard first-order logic with equality.
+
+### Axiom Schemata
+
+**A1:** ∃!x∃!y(μ(x) ∧ μ(y) ∧ x≠y ∧ ∀z(μ(z) → (z=x ∨ z=y)))
+
+**A2:** μ(m₁) ∧ F₁(m₁)
+
+**A3:** μ(m₂) ∧ F₂(m₂)
+
+**A4:** E(m₁) ∧ E(m₂)
+
+**A5:** A(m₁, m₂) ∧ A(m₂, m₁)
+
+**A6:** ∀x(α(x) → ◇(G(b, m₁) ∧ G(b, m₂))) for some β(b)
+
+**A7:** ∀x(β(x) → (G(x, m₁) ∨ G(x, m₂)))
+
+**A8:** ∀x(β(x) ∧ I(x) → (M(x, m₁, m₂) ∨ M(x, m₂, m₁) ∨ C(x, m₁, m₂)))
+
+**A9:** ∀x(C(x, m₁, m₂) → (G(x, m₁) ∧ G(x, m₂)))
+
+**A10:** ∀x∀y((β(x) ∧ μ(y) ∧ G(x,y) ∧ ¬∃z(μ(z) ∧ z≠y ∧ G(x,z))) → R(x,y))
+
+---
+
+## COMPONENT 3: MODEL 𝔐
+
+### Domains
+
+- |α|^𝔐 = set of human economic agents
+- |β|^𝔐 = set of economic behaviors (purchases, savings, investments, consumptions, displays)
+- |μ|^𝔐 = {Smithian-rationality, Veblenian-rationality}
+
+### Interpretation of Constants
+
+- m₁^𝔐 = Smithian-rationality
+- m₂^𝔐 = Veblenian-rationality
+
+### Interpretation of Predicates
+
+| Symbol | Interpretation |
+|--------|----------------|
+| E(x) | x is a product of evolutionary selection |
+| F₁(x) | x has provisioning-function (resource optimization, cost minimization, material security) |
+| F₂(x) | x has display-function (status signaling, social positioning, identity projection) |
+| I(x) | x appears irrational under conventional (Smithian-only) economic analysis |
+| G(b,m) | behavior b is governed by rationality-mode m |
+| A(m,n) | mode m operates autonomously from mode n |
+| M(b,m,n) | behavior b, governed by m, masquerades as governed by n |
+| C(b,m,n) | behavior b results from collision between modes m and n with contradictory objectives |
+| R(b,m) | behavior b is rational relative to mode m |
+
+### Verification Note
+
+The model satisfies all axiom schemata. For example, A8 in 𝔐: "If a purchase appears irrational under conventional analysis, then either it's Veblenian behavior masquerading as Smithian (e.g., luxury goods justified as 'investment'), Smithian behavior masquerading as Veblenian (e.g., frugality reframed as 'minimalist aesthetic'), or a collision (e.g., guilt over status purchases)."

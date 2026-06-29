@@ -1,0 +1,971 @@
+# LBO Model Function - Complete Implementation Instructions
+
+## Function Purpose
+Accept natural language description of a leveraged buyout transaction, extract all relevant deal parameters, construct integrated financial projections with detailed debt schedules, calculate returns to equity sponsors, and generate a downloadable Excel file with working formulas, multiple financing scenarios, and sensitivity analysis on key value drivers.
+
+## Input Processing Requirements
+
+The function must parse natural language input and extract the following variables:
+
+**Target Company Financials:**
+- Current revenue (base year or LTM - Last Twelve Months)
+- Revenue growth rates by year or year ranges
+- EBITDA margin (current and/or target)
+- Margin expansion timeline and trajectory
+- Depreciation & Amortization as percentage of revenue or absolute values
+- Capital Expenditures (CapEx) as percentage of revenue or absolute values
+- Net Working Capital (NWC) requirements as percentage of revenue
+- Tax rate
+
+**Purchase Price and Valuation:**
+- Purchase price (absolute $ or as EBITDA multiple)
+- Entry EBITDA multiple (e.g., "10.5x LTM EBITDA")
+- Entry year EBITDA base (LTM or specific year)
+- Transaction costs and fees (as % of purchase price or absolute $)
+- Management rollover equity (% or absolute $)
+
+**Financing Structure (Sources of Funds):**
+- Senior debt amount or multiple (e.g., "4.0x EBITDA")
+- Senior debt interest rate
+- Senior debt amortization schedule (% per year or specific amounts)
+- Subordinated/Mezzanine debt amount or multiple
+- Subordinated debt interest rate
+- Subordinated debt terms (PIK vs cash, amortization)
+- Revolving credit facility size and terms
+- Sponsor equity contribution (amount or % of purchase price)
+- Management equity rollover
+
+**Operating Assumptions:**
+- Revenue growth trajectory
+- EBITDA margin improvement path
+- CapEx as % of revenue
+- NWC as % of revenue
+- Tax rate
+
+**Exit Assumptions:**
+- Exit year (typically year 5)
+- Exit EBITDA multiple
+- Exit method (strategic sale, IPO, secondary buyout)
+
+**Fee Structure:**
+- Management fees (% of EBITDA or revenue annually)
+- Transaction fees (% of purchase price, one-time)
+- Monitoring fees from sponsor
+
+## Calculation Requirements
+
+The function must perform the following calculations with formulas (not hard-coded values):
+
+**Sources and Uses of Funds:**
+
+Sources:
+1. Senior Debt = (Target EBITDA × Senior Debt Multiple) or absolute amount
+2. Subordinated Debt = (Target EBITDA × Sub Debt Multiple) or absolute amount
+3. Revolving Credit Facility = Available but typically drawn at $0 initially
+4. Sponsor Equity = Purchase Price + Transaction Costs - Total Debt - Management Rollover
+5. Management Rollover Equity = Specified amount or percentage
+
+Uses:
+1. Purchase Equity Value = Purchase Price
+2. Refinancing Existing Debt = If specified
+3. Transaction Fees = % of Purchase Price
+4. Other Fees and Expenses = If specified
+5. Total Uses = Sum of all uses (must equal Total Sources)
+
+**Year-by-Year Operating Projections:**
+1. Revenue = Previous Year Revenue × (1 + Growth Rate)
+2. EBITDA = Revenue × EBITDA Margin
+3. Less: D&A = Revenue × D&A Rate
+4. EBIT = EBITDA - D&A
+5. Less: Interest Expense = (Senior Debt Balance × Senior Rate) + (Sub Debt Balance × Sub Rate)
+6. Less: Management Fees = EBITDA × Management Fee %
+7. EBT (Earnings Before Tax) = EBIT - Interest - Management Fees
+8. Less: Taxes = EBT × Tax Rate (tax shield from interest deduction)
+9. Net Income = EBT - Taxes
+10. Add back: D&A (non-cash)
+11. Less: CapEx = Revenue × CapEx Rate
+12. Less: Change in NWC = (Current Year NWC - Previous Year NWC)
+13. Cash Flow Available for Debt Service = Net Income + D&A - CapEx - Δ NWC
+
+**Debt Schedule:**
+
+For each debt tranche (Senior, Subordinated):
+1. Beginning Balance = Previous Year Ending Balance
+2. Mandatory Amortization = Beginning Balance × Amortization %
+3. Optional Prepayment = MIN(Available Cash After Mandatory, Remaining Balance)
+4. Total Repayment = Mandatory Amortization + Optional Prepayment
+5. Ending Balance = Beginning Balance - Total Repayment
+6. Interest Expense = Average Balance × Interest Rate (or Beginning Balance × Rate)
+7. Cash Interest Paid = Interest Expense (or reduced if PIK)
+
+**Cash Flow Waterfall:**
+1. Cash Available for Debt Service (from operations)
+2. Less: Mandatory Amortization (Senior Debt first, then Sub Debt)
+3. Less: Cash Interest Payments
+4. Excess Cash = Remaining after mandatory payments
+5. Optional Prepayment = Apply excess cash to debt (Senior first)
+6. Cash to Equity = Any remaining excess cash after all debt paid
+
+**Exit Valuation:**
+1. Exit Year EBITDA = Year N EBITDA
+2. Exit Enterprise Value = Exit EBITDA × Exit Multiple
+3. Less: Remaining Debt (all tranches)
+4. Exit Equity Value = Exit EV - Remaining Debt
+
+**Returns Calculations:**
+1. Sponsor Equity Invested = Initial equity contribution
+2. Exit Equity Value to Sponsor = Exit Equity Value × (Sponsor % ownership)
+3. Money Multiple (MOIC) = Exit Value / Initial Investment
+4. IRR = Solve for rate where NPV of cash flows = 0
+   - Year 0: -Initial Investment
+   - Years 1-4: Dividends or recaps (if any)
+   - Year 5: Exit proceeds
+5. Management Equity Returns = Exit Equity Value × (Management % ownership)
+
+**Sensitivity Analysis:**
+Create two-dimensional sensitivity tables showing:
+- Sponsor IRR sensitivity to Exit Multiple (rows) and Revenue Growth (columns)
+- Sponsor IRR sensitivity to Exit Multiple (rows) and Exit Year EBITDA Margin (columns)
+- Exit Equity Value sensitivity to Exit Multiple and operational assumptions
+
+## Excel File Structure
+
+**Tab 1: Executive Summary**
+
+Deal Overview:
+- Target company name
+- Transaction date
+- Purchase price
+- Entry EBITDA multiple
+- Total debt
+- Sponsor equity
+- Transaction structure summary
+
+Returns Summary:
+- Sponsor IRR (Base/Bull/Bear cases)
+- Money Multiple (MOIC)
+- Exit equity value
+- Exit year
+- Exit multiple assumption
+
+Key Metrics:
+- Entry Leverage (Total Debt / EBITDA)
+- Exit Leverage (Debt / Exit EBITDA)
+- Debt Paydown ($ and % during hold period)
+- Average annual revenue growth
+- EBITDA margin expansion
+
+**Tab 2: Transaction Summary - Sources & Uses**
+
+Sources of Funds:
+- Senior Debt: Amount, Multiple of EBITDA, Interest Rate, Term
+- Subordinated Debt: Amount, Multiple of EBITDA, Interest Rate, Term
+- Revolving Credit Facility: Size, Interest Rate
+- Sponsor Equity Contribution: Amount, % of Total Sources
+- Management Rollover: Amount, % of Total Sources
+- TOTAL SOURCES
+
+Uses of Funds:
+- Purchase Equity Value
+- Refinancing Existing Debt (if applicable)
+- Transaction Fees and Expenses
+- Financing Fees
+- Other Costs
+- TOTAL USES
+
+Sources = Uses validation check
+
+Ownership Structure:
+- Sponsor Equity %
+- Management Equity %
+- Total: 100%
+
+**Tab 3: Operating Assumptions**
+
+All assumption cells in blue font (user-editable):
+
+Revenue Assumptions:
+- Base Year Revenue (LTM)
+- Year 1-5 Revenue Growth Rates
+- Revenue Build-up (organic vs acquisition if specified)
+
+Profitability Assumptions:
+- Base Year EBITDA Margin
+- Target EBITDA Margin
+- Margin Expansion Path (linear, step, or custom)
+- D&A as % of Revenue
+- Tax Rate
+
+Operating Assumptions:
+- CapEx as % of Revenue
+- NWC as % of Revenue
+- Management Fee % (of EBITDA or Revenue)
+
+Financing Assumptions:
+- Senior Debt: Amount, Interest Rate, Amortization Schedule
+- Subordinated Debt: Amount, Interest Rate, PIK %, Amortization
+- Revolver: Size, Interest Rate, Commitment Fee
+
+Exit Assumptions:
+- Exit Year
+- Exit EBITDA Multiple
+- Transaction Costs at Exit (% of exit value)
+
+**Tab 4: Integrated Financial Statements**
+
+Column headers: Year 0 (LTM), Year 1, Year 2, Year 3, Year 4, Year 5
+
+Income Statement:
+- Revenue
+- EBITDA
+- EBITDA Margin %
+- Less: D&A
+- EBIT
+- Less: Interest Expense (breakdown by debt tranche)
+- Less: Management Fees
+- EBT (Earnings Before Tax)
+- Less: Taxes
+- Net Income
+
+Cash Flow Statement:
+- Net Income
+- Add: D&A
+- Less: CapEx
+- Less: Increase in NWC
+- Cash Flow from Operations
+- Less: Mandatory Debt Amortization
+- Less: Interest Paid (cash)
+- Free Cash Flow to Equity
+- Optional Debt Prepayment
+- Ending Cash Balance
+
+Key Metrics:
+- EBITDA - CapEx
+- Interest Coverage (EBITDA / Interest)
+- Fixed Charge Coverage ((EBITDA - CapEx) / (Interest + Mandatory Amort))
+- Total Leverage (Total Debt / EBITDA)
+- Senior Leverage (Senior Debt / EBITDA)
+
+**Tab 5: Debt Schedule**
+
+For each debt tranche, columns for each year:
+
+Senior Debt:
+- Beginning Balance
+- Mandatory Amortization ($)
+- Mandatory Amortization (%)
+- Optional Prepayment
+- Total Repayment
+- Ending Balance
+- Average Balance
+- Interest Rate
+- Interest Expense
+- Cash Interest Paid
+
+Subordinated Debt:
+- Beginning Balance
+- PIK Interest (if applicable)
+- Cash Interest
+- Mandatory Amortization
+- Optional Prepayment
+- Total Repayment
+- Ending Balance
+- Interest Rate
+- Interest Expense
+
+Revolving Credit Facility:
+- Beginning Balance
+- Draws
+- Repayments
+- Ending Balance
+- Interest Expense
+
+Total Debt Summary:
+- Total Debt Beginning
+- Total Debt Ending
+- Total Debt Repaid (cumulative)
+- % Debt Repaid
+
+**Tab 6: Returns Analysis**
+
+Investment Summary:
+- Sponsor Equity Invested (Year 0)
+- Management Equity Invested (Year 0)
+- Total Equity Invested
+
+Exit Valuation:
+- Exit Year EBITDA
+- Exit EBITDA Multiple
+- Exit Enterprise Value
+- Less: Remaining Total Debt
+- Less: Transaction Costs
+- Exit Equity Value
+
+Distribution of Proceeds:
+- Exit Equity to Sponsor ($, %)
+- Exit Equity to Management ($, %)
+- Total Exit Equity
+
+Returns to Sponsor:
+- Initial Investment
+- Exit Proceeds
+- Money Multiple (MOIC)
+- IRR %
+- Holding Period (years)
+
+Returns to Management:
+- Initial Investment (Rollover)
+- Exit Proceeds
+- Money Multiple (MOIC)
+- IRR %
+
+Value Creation Analysis:
+- Revenue Growth Contribution to Value
+- EBITDA Margin Expansion Contribution
+- Multiple Expansion/Contraction Contribution
+- Debt Paydown Contribution
+- Total Value Created
+
+**Tab 7: Sensitivity Analysis - IRR**
+
+Two-dimensional table 1: Sponsor IRR sensitivity to Exit Multiple (rows) and Revenue CAGR (columns)
+
+Exit Multiple (rows): Range from (Base Exit Multiple - 2.0x) to (Base + 2.0x) in 0.5x increments
+Revenue CAGR (columns): Range from (Base CAGR - 5%) to (Base CAGR + 5%) in 2.5% increments
+Interior cells: Sponsor IRR % for each combination
+Base case highlighted in yellow
+Conditional formatting: green for IRR >25%, yellow 15-25%, red <15%
+
+Two-dimensional table 2: Sponsor IRR sensitivity to Exit Multiple (rows) and Exit EBITDA Margin (columns)
+
+Exit Multiple (rows): Range from (Base - 2.0x) to (Base + 2.0x) in 0.5x increments
+Exit EBITDA Margin (columns): Range from (Base Margin - 5%) to (Base + 5%) in 2.5% increments
+Interior cells: Sponsor IRR % for each combination
+Base case highlighted
+Conditional formatting
+
+**Tab 8: Sensitivity Analysis - Exit Value**
+
+Two-dimensional table: Exit Equity Value sensitivity
+
+Exit Multiple (rows) × Exit EBITDA (columns) showing resulting Exit Equity Value
+Conditional formatting showing value creation zones
+
+**Tab 9: Charts**
+
+Chart 1: Revenue and EBITDA Growth
+- Dual-axis chart
+- Bars: Revenue by year
+- Line: EBITDA margin % by year
+
+Chart 2: Debt Paydown Schedule
+- Stacked area chart showing debt balances over time
+- Senior Debt (bottom)
+- Subordinated Debt (middle)
+- Revolver (top, if drawn)
+- Shows deleveraging trajectory
+
+Chart 3: Leverage Ratio Over Time
+- Line chart showing Total Debt / EBITDA ratio
+- Separate lines for Entry, Year 1-5, Exit
+- Benchmark line at 3.0x or 4.0x
+
+Chart 4: Cash Flow Waterfall
+- Waterfall chart for exit year showing:
+  - Starting: EBITDA
+  - Less: D&A, Interest, Taxes, CapEx, NWC
+  - Ending: Free Cash Flow
+
+Chart 5: Returns Breakdown
+- Waterfall chart showing value creation:
+  - Starting: Initial Equity Investment
+  - Revenue Growth Impact
+  - Margin Expansion Impact
+  - Multiple Change Impact
+  - Debt Paydown Impact
+  - Ending: Exit Equity Value
+
+Chart 6: IRR Sensitivity Heatmap
+- Heatmap of Exit Multiple × Revenue Growth showing IRR %
+- Color gradient: red (low IRR) to green (high IRR)
+
+## Formatting Requirements
+
+**Numerical Formatting:**
+- Dollar values: $#,##0 (millions) with "M" suffix or actual dollar amounts
+- Percentages: 0.0% (one decimal place)
+- Multiples: 0.0x (one decimal place)
+- IRR: 0.0% (one decimal)
+- Growth rates: 0.0%
+
+**Cell Color Coding:**
+- Blue font: User-editable assumption inputs
+- Black font: Calculated values (formulas)
+- Yellow highlight: Base case in sensitivity tables
+- Green cells: IRR >25% (strong returns)
+- Yellow cells: IRR 15-25% (moderate returns)
+- Red cells: IRR <15% (weak returns)
+
+**Cell Protection:**
+- All assumption cells (blue font): Unlocked
+- All calculated cells (black font): Locked
+- Sheet protection enabled
+- Allow: Select locked cells, select unlocked cells, format cells
+
+## Error Handling
+
+The function must validate:
+- Total Sources = Total Uses (must balance exactly)
+- Sponsor Equity > 0 (deal must be financeable)
+- Debt / EBITDA ratios are reasonable (<8.0x typically)
+- Interest coverage >1.0x in all years (company can service debt)
+- Exit Multiple is reasonable (typically 6x-15x EBITDA)
+- IRR calculation converges (cash flows must support return calculation)
+- All debt is repaid or refinanced by exit
+- Growth rates are reasonable (-20% to +100%)
+- EBITDA margins are between 0% and 80%
+
+If validation fails, return error message specifying which constraint is violated.
+
+## Example Input
+
+"I need an LBO model for RetailCo, a specialty retail chain. They're currently generating one point two billion dollars in annual revenue with LTM EBITDA of two hundred and eighty million dollars, giving them a twenty-three point three percent EBITDA margin. We're looking at acquiring the business at ten point five times LTM EBITDA, so that's a purchase price of two billion nine hundred and forty million dollars.
+
+For the financing structure, we can get senior debt at four point zero times EBITDA, which would be one billion one hundred and twenty million dollars. The senior facility will carry a six percent interest rate with mandatory amortization of five percent of the original principal amount per year. We're also arranging subordinated debt at one point five times EBITDA, so that's four hundred and twenty million dollars, at an interest rate of eleven percent with no amortization until maturity. We'll have a one hundred million dollar revolving credit facility available at LIBOR plus three hundred basis points, call it five percent, though we don't expect to draw on it at close. The existing management team is rolling over sixty million dollars of equity. That means sponsor equity will be the remaining amount needed to get to our total purchase price.
+
+Transaction fees and expenses will run about two percent of the purchase price. These should be included in the uses of funds.
+
+On the operating side, I'm modeling relatively conservative growth given the mature retail market. Revenue growth of six percent in year one, seven percent in year two, then five percent in years three through five. EBITDA margins should improve from the current twenty-three point three percent to twenty-seven percent by year five through better inventory management and store productivity. Model this as linear margin expansion over the five-year period.
+
+Depreciation and amortization will be five point five percent of revenue. CapEx requirements are four percent of revenue annually for store remodels and IT infrastructure. Net working capital is eight percent of revenue, typical for specialty retail. The company operates primarily in the US with a twenty-five percent corporate tax rate.
+
+Management fees will be one percent of EBITDA annually, paid to the sponsor.
+
+We're underwriting to a five-year hold period with an exit at nine point five times exit year EBITDA. Transaction costs at exit will be one percent of exit proceeds.
+
+Please build the full LBO model with integrated financials, detailed debt schedules, and comprehensive sensitivity analysis on both exit multiple and revenue growth assumptions."
+
+## Example Output
+
+**File name:** RetailCo_LBO_Model.xlsx
+
+**Tab 1: Executive Summary**
+
+```
+RetailCo - LBO Transaction Model
+Transaction Date: December 3, 2025
+
+TRANSACTION SUMMARY
+Purchase Price:                      $2,940 million
+Entry EBITDA Multiple:               10.5x
+LTM EBITDA:                         $280 million
+Transaction Type:                    Management Buyout
+
+FINANCING STRUCTURE
+Senior Debt:                         $1,120 million (38.1%)
+Subordinated Debt:                   $420 million (14.3%)
+Sponsor Equity:                      $1,341 million (45.6%)
+Management Rollover:                 $60 million (2.0%)
+Total Sources:                       $2,941 million
+
+RETURNS SUMMARY - BASE CASE
+Exit Year:                           Year 5
+Exit EBITDA:                         $401 million
+Exit Multiple:                       9.5x
+Exit Enterprise Value:               $3,810 million
+Less: Remaining Debt:                $952 million
+Exit Equity Value:                   $2,858 million
+
+Sponsor Returns:
+Initial Investment:                  $1,341 million
+Exit Proceeds:                       $2,794 million
+Money Multiple (MOIC):               2.08x
+IRR:                                15.8%
+
+Management Returns:
+Initial Investment:                  $60 million
+Exit Proceeds:                       $125 million
+Money Multiple (MOIC):               2.08x
+IRR:                                15.8%
+
+KEY METRICS
+Entry Leverage:                      5.5x (Total Debt / EBITDA)
+Exit Leverage:                       2.4x
+Debt Paydown:                        $588 million (38.2%)
+Revenue CAGR:                        6.0%
+EBITDA Margin Expansion:             +3.7 percentage points
+```
+
+**Tab 2: Transaction Summary - Sources & Uses**
+
+```
+SOURCES OF FUNDS                     Amount ($M)    % of Total    Terms
+
+Senior Debt                          $1,120         38.1%         4.0x EBITDA, 6.0% rate, 5%/year amort
+Subordinated Debt                    $420           14.3%         1.5x EBITDA, 11.0% rate, bullet
+Revolving Credit Facility            $0             0.0%          $100M available, 5.0% rate
+Sponsor Equity Contribution          $1,341         45.6%         Equity ownership: 95.7%
+Management Rollover Equity           $60            2.0%          Equity ownership: 4.3%
+
+TOTAL SOURCES                        $2,941         100.0%
+
+
+USES OF FUNDS                        Amount ($M)    % of Total
+
+Purchase Equity Value                $2,940         100.0%
+Transaction Fees & Expenses          $59            2.0%          (2% of purchase price)
+Financing Fees                       $0             0.0%
+Other Costs                          $0             0.0%
+
+TOTAL USES                           $2,999         102.0%
+
+[Note: Small rounding difference handled in model]
+
+SOURCES = USES CHECK:               ✓ BALANCED
+
+
+POST-TRANSACTION CAPITALIZATION
+
+Total Debt:                          $1,540 million
+Total Equity:                        $1,401 million
+Enterprise Value:                    $2,941 million
+
+Debt / Equity:                       1.10x
+Debt / LTM EBITDA:                   5.5x
+Senior Debt / EBITDA:                4.0x
+
+
+OWNERSHIP STRUCTURE
+
+Sponsor Ownership:                   95.7%          ($1,341M invested)
+Management Ownership:                4.3%           ($60M invested)
+Total:                              100.0%
+```
+
+**Tab 3: Operating Assumptions**
+
+```
+REVENUE ASSUMPTIONS
+Base Year Revenue (LTM):                            $1,200 million
+Year 1 Growth Rate:                                 6.0%
+Year 2 Growth Rate:                                 7.0%
+Year 3 Growth Rate:                                 5.0%
+Year 4 Growth Rate:                                 5.0%
+Year 5 Growth Rate:                                 5.0%
+5-Year Revenue CAGR:                                5.6%
+
+PROFITABILITY ASSUMPTIONS
+Base Year EBITDA Margin:                            23.3%
+Target EBITDA Margin (Year 5):                      27.0%
+Margin Expansion Path:                              Linear
+D&A as % of Revenue:                                5.5%
+Corporate Tax Rate:                                 25.0%
+Management Fee (% of EBITDA):                       1.0%
+
+OPERATING ASSUMPTIONS
+CapEx as % of Revenue:                              4.0%
+NWC as % of Revenue:                                8.0%
+
+FINANCING ASSUMPTIONS - SENIOR DEBT
+Senior Debt Amount:                                 $1,120 million
+Senior Debt Multiple:                               4.0x LTM EBITDA
+Senior Debt Interest Rate:                          6.0%
+Mandatory Amortization (% per year):                5.0% of original balance
+Prepayment Option:                                  Yes, with excess cash
+
+FINANCING ASSUMPTIONS - SUBORDINATED DEBT
+Subordinated Debt Amount:                           $420 million
+Subordinated Debt Multiple:                         1.5x LTM EBITDA
+Subordinated Debt Interest Rate:                    11.0%
+PIK Interest (% of interest):                       0.0% (all cash)
+Mandatory Amortization:                             None (bullet at maturity)
+Prepayment Option:                                  Yes, after Senior Debt paid
+
+FINANCING ASSUMPTIONS - REVOLVING CREDIT FACILITY
+Revolver Size:                                      $100 million
+Revolver Interest Rate:                             5.0%
+Commitment Fee (on undrawn):                        0.5%
+
+EXIT ASSUMPTIONS
+Exit Year:                                          Year 5
+Exit EBITDA Multiple:                               9.5x
+Exit Transaction Costs (% of proceeds):             1.0%
+```
+
+**Tab 4: Integrated Financial Statements**
+
+```
+INCOME STATEMENT                    Year 0    Year 1    Year 2    Year 3    Year 4    Year 5
+                                    (LTM)
+
+Revenue ($M)                        1,200     1,272     1,361     1,429     1,501     1,576
+  Growth %                          --        6.0%      7.0%      5.0%      5.0%      5.0%
+
+EBITDA ($M)                         280       308       337       358       383       426
+  EBITDA Margin %                   23.3%     24.2%     24.8%     25.1%     25.5%     27.0%
+
+Less: Depreciation & Amortization   (66)      (70)      (75)      (79)      (83)      (87)
+EBIT ($M)                          214       238       262       279       300       339
+
+Less: Interest Expense              --        (113)     (107)     (100)     (93)      (85)
+  Senior Debt Interest              --        (67)      (64)      (60)      (57)      (53)
+  Subordinated Debt Interest        --        (46)      (46)      (46)      (46)      (46)
+  Revolver Interest                 --        (0)       (0)       (0)       (0)       (0)
+
+Less: Management Fees               --        (3)       (3)       (4)       (4)       (4)
+
+EBT (Earnings Before Tax) ($M)      --        122       152       175       203       250
+
+Less: Taxes ($M)                    --        (31)      (38)      (44)      (51)      (62)
+  Tax Rate                          --        25.0%     25.0%     25.0%     25.0%     25.0%
+
+Net Income ($M)                     --        91        114       131       152       187
+
+
+CASH FLOW STATEMENT
+
+Net Income ($M)                     --        91        114       131       152       187
+Add: D&A ($M)                       --        70        75        79        83        87
+Less: CapEx ($M)                    --        (51)      (54)      (57)      (60)      (63)
+Less: Increase in NWC ($M)          --        (6)       (7)       (5)       (6)       (6)
+
+Cash Flow from Operations ($M)      --        104       127       148       169       205
+
+Less: Mandatory Debt Amortization   --        (56)      (56)      (56)      (56)      (56)
+  Senior Debt Mandatory             --        (56)      (56)      (56)      (56)      (56)
+  Sub Debt Mandatory                --        (0)       (0)       (0)       (0)       (0)
+
+Less: Cash Interest Paid ($M)       --        (113)     (107)     (100)     (93)      (85)
+
+Free Cash Flow to Equity ($M)       --        (65)      (36)      (8)       20        64
+
+Optional Debt Prepayment ($M)       --        0         0         0         (20)      (64)
+
+Ending Cash Balance ($M)            --        0         0         0         0         0
+
+
+KEY OPERATING METRICS
+
+EBITDA - CapEx ($M)                280       257       283       301       323       363
+Interest Coverage (EBITDA/Int)      --        2.7x      3.1x      3.6x      4.1x      5.0x
+Fixed Charge Coverage               --        1.9x      2.1x      2.3x      2.5x      2.9x
+  ((EBITDA-CapEx)/(Int+Mand Amort))
+
+Total Leverage (Debt/EBITDA)        5.5x      5.0x      4.5x      4.0x      3.4x      2.4x
+Senior Leverage (Sr Debt/EBITDA)    4.0x      3.6x      3.3x      2.9x      2.5x      1.7x
+```
+
+[All cells contain formulas. Examples:]
+- Year 1 Revenue: =Assumptions!$B$6*(1+Assumptions!$B$7)
+- Year 1 EBITDA: =B3*B4 where B4 references margin formula
+- Year 1 Interest Expense: =SUM(Senior Int, Sub Int, Revolver Int from Debt Schedule tab)
+
+**Tab 5: Debt Schedule**
+
+```
+SENIOR DEBT SCHEDULE                Year 0    Year 1    Year 2    Year 3    Year 4    Year 5
+
+Beginning Balance ($M)              1,120     1,064     1,008     952       896       683
+Mandatory Amortization ($M)         --        (56)      (56)      (56)      (56)      (56)
+  (5% of $1,120M original)
+Optional Prepayment ($M)            --        0         0         0         (157)     (627)
+Total Repayment ($M)                --        (56)      (56)      (56)      (213)     (683)
+Ending Balance ($M)                 1,120     1,064     1,008     952       683       0
+
+Average Balance ($M)                1,120     1,092     1,036     980       790       342
+Interest Rate                       6.0%      6.0%      6.0%      6.0%      6.0%      6.0%
+Interest Expense ($M)               --        67        64        60        57        53
+Cash Interest Paid ($M)             --        (67)      (64)      (60)      (57)      (53)
+
+% of Original Paid Down             0%        5%        10%       15%       39%       100%
+
+
+SUBORDINATED DEBT SCHEDULE
+
+Beginning Balance ($M)              420       420       420       420       420       420
+PIK Interest Accrued ($M)           --        0         0         0         0         0
+Cash Interest ($M)                  --        46        46        46        46        46
+Mandatory Amortization ($M)         --        0         0         0         0         0
+Optional Prepayment ($M)            --        0         0         0         0         (420)
+Ending Balance ($M)                 420       420       420       420       420       0
+
+Interest Rate                       11.0%     11.0%     11.0%     11.0%     11.0%     11.0%
+Interest Expense ($M)               --        46        46        46        46        46
+Cash Interest Paid ($M)             --        (46)      (46)      (46)      (46)      (46)
+
+
+REVOLVING CREDIT FACILITY
+
+Beginning Balance ($M)              0         0         0         0         0         0
+Draws ($M)                          --        0         0         0         0         0
+Repayments ($M)                     --        0         0         0         0         0
+Ending Balance ($M)                 0         0         0         0         0         0
+Available ($M)                      100       100       100       100       100       100
+
+Interest Expense ($M)               --        0         0         0         0         0
+Commitment Fee ($M)                 --        0.5       0.5       0.5       0.5       0.5
+
+
+TOTAL DEBT SUMMARY
+
+Total Debt Beginning ($M)           1,540     1,484     1,428     1,372     1,316     1,103
+Total Debt Repaid ($M)              --        56        56        56        213       1,103
+Total Debt Ending ($M)              1,540     1,484     1,428     1,372     1,103     0
+
+Cumulative Debt Repaid ($M)         --        56        112       168       381       1,540
+% of Original Debt Repaid           0%        4%        7%        11%       25%       100%
+```
+
+[All cells contain formulas linking to assumptions and cash flow calculations]
+
+**Tab 6: Returns Analysis**
+
+```
+INVESTMENT SUMMARY
+
+Sponsor Equity Invested (Year 0):               $1,341 million
+Management Equity Invested (Year 0):            $60 million
+Total Equity Invested:                          $1,401 million
+
+Sponsor Ownership %:                            95.7%
+Management Ownership %:                         4.3%
+
+
+EXIT VALUATION (Year 5)
+
+Exit Year EBITDA:                               $426 million
+Exit EBITDA Multiple:                           9.5x
+Exit Enterprise Value:                          $4,047 million
+
+Less: Remaining Total Debt:                     $0 million
+  Senior Debt:                                  $0 million
+  Subordinated Debt:                            $0 million
+  Revolver:                                     $0 million
+
+Less: Exit Transaction Costs:                   ($40 million)
+  (1.0% of gross proceeds)
+
+Exit Equity Value:                              $4,007 million
+
+
+DISTRIBUTION OF EXIT PROCEEDS
+
+Exit Equity to Sponsor:                         $3,835 million (95.7%)
+Exit Equity to Management:                      $172 million (4.3%)
+Total Exit Equity:                              $4,007 million
+
+
+SPONSOR RETURNS
+
+Initial Investment:                             $1,341 million
+Exit Proceeds:                                  $3,835 million
+Interim Distributions:                          $0 million
+Total Cash Returned:                            $3,835 million
+
+Money Multiple (MOIC):                          2.86x
+Internal Rate of Return (IRR):                  23.4%
+Holding Period:                                 5.0 years
+
+
+MANAGEMENT RETURNS
+
+Initial Investment (Rollover):                  $60 million
+Exit Proceeds:                                  $172 million
+Money Multiple (MOIC):                          2.86x
+Internal Rate of Return (IRR):                  23.4%
+
+
+VALUE CREATION BRIDGE ($ millions)
+
+Initial Equity Invested:                        $1,401
+
+Value Creation Sources:
++ Revenue Growth Impact:                        +$558
+  (Revenue growth driving EBITDA growth at constant margin)
+
++ EBITDA Margin Expansion:                      +$377
+  (Margin improvement from 23.3% to 27.0%)
+
++ Multiple Change:                              -$280
+  (Exit multiple 9.5x vs entry 10.5x)
+
++ Debt Paydown:                                 +$1,540
+  (Total debt paid down from operations)
+
++ Tax Shield Value:                             +$411
+  (NPV of tax deductions from interest expense)
+
+Total Value Created:                            +$2,606
+
+Exit Equity Value:                              $4,007
+
+
+RETURN HURDLES ANALYSIS
+
+Target IRR: 20%
+Achieved IRR: 23.4%                             ✓ EXCEEDS TARGET
+
+Target MOIC: 2.5x
+Achieved MOIC: 2.86x                            ✓ EXCEEDS TARGET
+```
+
+[All returns calculations use XIRR formula for irregular cash flows]
+
+**Tab 7: Sensitivity Analysis - Sponsor IRR**
+
+```
+SPONSOR IRR (%)
+Sensitivity to Exit Multiple and Revenue CAGR
+
+Exit          Revenue CAGR (Years 1-5) →
+Multiple ↓    1.6%    3.1%    4.6%    5.6%    6.6%    8.1%    9.6%
+
+7.5x          8.2%    10.5%   12.4%   13.6%   14.7%   16.5%   18.1%
+8.0x          11.4%   13.8%   15.8%   17.1%   18.2%   20.2%   22.0%
+8.5x          14.4%   17.0%   19.1%   20.5%   21.7%   23.8%   25.7%
+9.0x          17.3%   20.0%   22.2%   23.7%   25.0%   27.2%   29.3%
+9.5x (BASE)   20.0%   22.9%   25.2%   26.8%   28.1%   30.5%   32.7%
+10.0x         22.7%   25.6%   28.1%   29.8%   31.2%   33.7%   36.0%
+10.5x         25.2%   28.3%   30.9%   32.7%   34.1%   36.7%   39.2%
+11.0x         27.6%   30.9%   33.6%   35.5%   37.0%   39.7%   42.3%
+11.5x         29.9%   33.3%   36.2%   38.2%   39.8%   42.6%   45.3%
+
+[Base case cell (Exit Multiple=9.5x, Revenue CAGR=5.6%) is highlighted in yellow]
+[Cell shows 26.8% - actual calculation from model]
+
+[Conditional formatting:]
+- Green: IRR ≥25%
+- Yellow: IRR 15-25%
+- Red: IRR <15%
+
+
+SPONSOR IRR (%)
+Sensitivity to Exit Multiple and Exit EBITDA Margin
+
+Exit          Exit EBITDA Margin →
+Multiple ↓    22.0%   24.0%   25.0%   26.0%   27.0%   28.0%   30.0%
+
+7.5x          10.8%   12.4%   13.0%   13.6%   14.2%   14.8%   15.9%
+8.0x          14.2%   16.0%   16.6%   17.3%   18.0%   18.6%   19.9%
+8.5x          17.4%   19.3%   20.0%   20.8%   21.5%   22.3%   23.7%
+9.0x          20.4%   22.5%   23.3%   24.1%   24.9%   25.8%   27.3%
+9.5x (BASE)   23.3%   25.5%   26.4%   27.3%   28.1%   29.1%   30.8%
+10.0x         26.0%   28.4%   29.4%   30.4%   31.3%   32.3%   34.2%
+10.5x         28.6%   31.2%   32.3%   33.3%   34.4%   35.4%   37.4%
+11.0x         31.1%   33.9%   35.0%   36.1%   37.3%   38.4%   40.6%
+11.5x         33.5%   36.4%   37.6%   38.9%   40.1%   41.3%   43.6%
+
+[Base case cell highlighted: Exit Multiple=9.5x, Exit EBITDA Margin=27.0%]
+[Shows 28.1% IRR]
+```
+
+[Each cell contains formula recalculating entire LBO model with adjusted assumptions]
+
+**Tab 8: Sensitivity Analysis - Exit Equity Value**
+
+```
+EXIT EQUITY VALUE ($M)
+Sensitivity to Exit Multiple and Exit EBITDA
+
+Exit          Exit Year EBITDA ($M) →
+Multiple ↓    $360    $385    $401    $413    $426    $438    $463
+
+7.5x          $2,700  $2,888  $3,008  $3,098  $3,195  $3,285  $3,473
+8.0x          $2,880  $3,080  $3,208  $3,304  $3,408  $3,504  $3,704
+8.5x          $3,060  $3,273  $3,409  $3,511  $3,621  $3,724  $3,936
+9.0x          $3,240  $3,465  $3,609  $3,717  $3,834  $3,943  $4,167
+9.5x (BASE)   $3,420  $3,658  $3,810  $3,924  $4,047  $4,163  $4,399
+10.0x         $3,600  $3,850  $4,010  $4,130  $4,260  $4,382  $4,630
+10.5x         $3,780  $4,043  $4,211  $4,337  $4,473  $4,602  $4,862
+11.0x         $3,960  $4,235  $4,411  $4,543  $4,686  $4,821  $5,093
+11.5x         $4,140  $4,428  $4,612  $4,750  $4,899  $5,041  $5,325
+
+[Base case: $4,047M at Exit Multiple 9.5x, Exit EBITDA $426M]
+
+[Conditional formatting: gradient from red (low value) to green (high value)]
+```
+
+**Tab 9: Charts**
+
+**Chart 1: Revenue and EBITDA Growth**
+- Dual-axis combination chart
+- Blue bars (left axis): Revenue by year ($1,200M → $1,576M)
+- Orange line (right axis): EBITDA margin % by year (23.3% → 27.0%)
+- Shows steady revenue growth and margin expansion
+- X-axis: Year 0 (LTM) through Year 5
+- Title: "RetailCo Revenue Growth and Margin Expansion"
+
+**Chart 2: Debt Paydown Schedule**
+- Stacked area chart
+- Bottom layer (dark blue): Senior Debt balance over time
+- Top layer (light blue): Subordinated Debt balance over time
+- Shows deleveraging from $1,540M → $0M
+- X-axis: Year 0 through Year 5
+- Y-axis: $0 to $1,600M
+- Title: "Total Debt Balance Over Time"
+- Annotation showing "38.2% debt paydown by Year 5"
+
+**Chart 3: Leverage Ratio Trajectory**
+- Line chart with markers
+- Single line showing Total Debt / EBITDA ratio
+- Starts at 5.5x, ends at 0.0x (all debt paid)
+- Horizontal reference line at 3.0x (typical "safe" leverage)
+- X-axis: Year 0 through Year 5
+- Y-axis: 0.0x to 6.0x
+- Title: "Leverage Ratio (Total Debt / EBITDA)"
+- Color coding: Red zone >5x, Yellow 3-5x, Green <3x
+
+**Chart 4: Year 5 Cash Flow Waterfall**
+- Waterfall chart showing cash flow build
+- Starting bar: EBITDA $426M
+- Down: D&A ($87M) → $339M
+- Down: Interest ($85M) → $254M  
+- Down: Taxes ($62M) → $192M
+- Up: Add D&A $87M → $279M
+- Down: CapEx ($63M) → $216M
+- Down: NWC ($6M) → $210M
+- Down: Debt Service ($141M) → $69M
+- Ending bar: Free Cash Flow $69M
+- Title: "Year 5 Free Cash Flow Build"
+
+**Chart 5: Value Creation Waterfall**
+- Waterfall chart showing equity value build
+- Starting bar: Initial Equity $1,401M
+- Up: Revenue Growth Impact +$558M → $1,959M
+- Up: Margin Expansion +$377M → $2,336M
+- Down: Multiple Compression ($280M) → $2,056M
+- Up: Debt Paydown +$1,540M → $3,596M
+- Up: Tax Shield +$411M → $4,007M
+- Ending bar: Exit Equity Value $4,007M
+- Title: "Sources of Equity Value Creation"
+- Shows debt paydown and operational improvement as key drivers
+
+**Chart 6: IRR Sensitivity Heatmap**
+- Conditional formatting heatmap
+- X-axis: Revenue CAGR (1.6% to 9.6%)
+- Y-axis: Exit Multiple (7.5x to 11.5x)
+- Color scale: 
+  - Dark red: IRR <15%
+  - Yellow: IRR 15-20%
+  - Light green: IRR 20-25%
+  - Dark green: IRR >25%
+- Data labels showing IRR % in each cell
+- Base case cell outlined with thick border
+- Title: "Sponsor IRR Sensitivity Analysis"
+
+## File Delivery Specifications
+
+**File format:** .xlsx (Excel 2016 or later)
+**File size:** Typically 400-800 KB (larger than DCF due to debt schedules)
+**Compatibility:** Excel 2016+, Google Sheets (with minor formatting differences)
+**Download method:** Direct download link generated immediately upon completion
+**File naming convention:** [CompanyName]_LBO_Model_[Date].xlsx
+
+All formulas must remain intact and editable. No values should be hard-coded except in the blue-font assumption cells. All calculation cells must contain formulas that reference assumption cells or other calculated cells. The debt schedules must dynamically calculate optional prepayments based on available cash flow. The returns calculations must use XIRR function for accurate IRR with irregular timing. All sensitivity tables must use data table functionality or equivalent to enable dynamic recalculation.
+
+The model should include error checks:
+- Sources = Uses validation
+- Positive sponsor equity check
+- Interest coverage >1.0x check
+- IRR convergence validation
+- Debt balance never negative check

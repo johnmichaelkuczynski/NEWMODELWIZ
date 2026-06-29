@@ -1,0 +1,1062 @@
+# Coherence Meter: Complete Application Specification
+
+## Overview
+
+Coherence Meter analyzes and improves text coherence across multiple dimensions. It evaluates whether text holds together at different levels (logical, thematic, instructional, etc.) and provides both diagnostic reports and rewrites that maximize the selected type of coherence.
+
+**IMPORTANT PLACEMENT:** This function should be positioned ABOVE "GPT Bypass Humanizer" and BELOW "Text Model Validator" in the application interface.
+
+---
+
+## Core Concept
+
+Coherence exists at multiple levels, from basic logical consistency to sophisticated thematic unity. Different text types require different kinds of coherence:
+- Academic arguments need logical cohesiveness
+- Fiction needs thematic/psychological coherence
+- Management communications need instructional coherence
+- Marketing/coaching content needs motivational coherence
+- Scientific writing needs explanatory coherence that aligns with natural law
+
+This tool identifies which type of coherence a text needs (or lets the user specify), evaluates how well the text achieves it, and provides a rewrite that maximizes that coherence type.
+
+---
+
+## The Seven Coherence Types
+
+### Type 1: Logical Consistency (Non-Contradiction)
+**Definition:** Text contains no direct logical contradictions. Statements don't contradict each other.
+
+**When to use:**
+- Most basic level of coherence
+- Foundation for all other types
+- Minimum requirement for any serious writing
+
+**Example of failure:**
+```
+The ball is red. The ball is blue. The ball has no color.
+```
+
+**What the tool checks:**
+- Direct contradictions (X and not-X)
+- Incompatible claims
+- Mutually exclusive statements presented as simultaneously true
+
+---
+
+### Type 2: Logical Cohesiveness (Argumentative Structure)
+**Definition:** Claims don't just avoid contradiction—they actively support each other in a directed way. Each statement builds on or follows from previous statements.
+
+**When to use:**
+- Philosophy papers
+- Legal arguments
+- Academic essays
+- Proofs
+- Policy documents
+
+**Example of failure:**
+```
+Democracy is the best form of government. Apples contain vitamin C. 
+Therefore, we should increase military spending.
+```
+(No contradiction, but claims don't support each other)
+
+**Example of success:**
+```
+According to the computational theory of mind, to think is to compute. But what 
+is meant by 'compute'? The generally given answer: computing is symbol manipulation 
+driven exclusively by formal properties. However, 'formal' is ambiguous between 
+syntactic and morphological senses. CTM fails on each disambiguation. Once we 
+register this ambiguity, arguments for CTM cease to be compelling.
+```
+(Each claim builds on the previous; the argument has directed structure)
+
+**What the tool checks:**
+- Premise-conclusion relationships
+- Whether intermediate steps are provided
+- Whether evidence supports claims
+- Whether the logical structure is valid
+- Whether there are gaps in reasoning
+
+---
+
+### Type 3: Scientific/Explanatory Coherence
+**Definition:** Explanations align with natural law and known mechanisms. The account could plausibly be true given how the world actually works.
+
+**When to use:**
+- Scientific writing
+- Technical documentation
+- Investigative journalism
+- Medical/health content
+- Any causal explanation
+
+**Example of failure:**
+```
+Quantum entanglement allows particles to communicate faster than light. This proves 
+consciousness creates reality because observers affect quantum states. Therefore, 
+positive thinking can heal cancer by collapsing the wave function in your favor.
+```
+
+**What's wrong:**
+- Entanglement does NOT allow FTL communication
+- Observer effect ≠ consciousness
+- No mechanism linking thoughts to tumor biology
+- Ignores decoherence at biological scales
+
+**Example of success:**
+```
+Quantum entanglement creates correlations between particles but does not allow 
+faster-than-light communication. While measurements require interactions, these 
+need not involve consciousness—any physical interaction suffices. At macroscopic 
+biological scales, quantum effects are negligible due to thermal decoherence. 
+Mental states can affect health through stress reduction and immune function via 
+well-understood neuroendocrine pathways.
+```
+
+**What the tool checks:**
+- Violations of physical laws
+- Implausible causal mechanisms
+- Missing explanatory steps
+- Contradiction with established science
+- Appropriate scope (quantum effects at macro scale = red flag)
+
+---
+
+### Type 4: Thematic/Psychological Cohesiveness
+**Definition:** Mood, imagery, emotional trajectory, and psychological feel maintain consistency and flow naturally. The "texture" of the writing holds together.
+
+**When to use:**
+- Fiction
+- Memoir
+- Personal essays
+- Creative nonfiction
+- Literary journalism
+
+**Example of failure:**
+```
+I came home from the funeral, devastated by my loss. The sun was shining brightly! 
+I decided to reorganize my tax documents. My heart felt like it would never heal. 
+I wondered what to have for lunch—maybe tacos?
+```
+
+**What's wrong:**
+- Emotional tone whipsaws (devastation → cheerful → mundane → grief → casual)
+- Imagery doesn't support mood (bright sun during grief without acknowledging contrast)
+- No psychological plausibility in the sequence
+
+**Example of success:**
+```
+I came home from college. It was raining—not significant in itself, I know, but 
+it certainly fit my mood. My father was home; I heard the familiar tinkling of ice 
+in his tumbler; I knew that the abuse would start just a second later.
+```
+
+**What works:**
+- Weather mirrors internal state
+- Sensory details (tinkling ice) build dread
+- Past experience informs present emotion
+- Psychological progression is believable
+
+**What the tool checks:**
+- Consistency of emotional tone
+- Whether imagery supports mood
+- Psychological plausibility of reactions
+- Flow of emotional trajectory
+- Whether shifts are motivated or jarring
+
+---
+
+### Type 5: Instructional Coherence
+**Definition:** Sends a consistent, actionable message. The reader knows exactly what they are supposed to do. No contradictory directives.
+
+**When to use:**
+- Management communications
+- How-to guides
+- Standard operating procedures
+- Training materials
+- User manuals
+
+**Example of failure:**
+```
+To increase sales, focus on customer relationships. Make sure to close deals quickly. 
+Spend time understanding client needs. Don't waste time on prospects who aren't 
+ready to buy. Build long-term partnerships. Hit your monthly quota no matter what.
+```
+
+**What's wrong:**
+- "Build relationships" vs "Close quickly" (quality vs speed)
+- "Understand needs" vs "Don't waste time" (depth vs efficiency)
+- "Long-term partnerships" vs "Hit quota no matter what" (sustainability vs pressure)
+- Reader doesn't know which directive to prioritize
+
+**Example of success:**
+```
+To increase sales, prioritize building genuine customer relationships. Take time to 
+understand each client's specific needs, even if it means longer sales cycles. Focus 
+on prospects who are ready to engage meaningfully rather than chasing quick wins. 
+Cultivate long-term partnerships that will generate sustainable revenue. Your quota 
+should be met through quality relationships, not rushed closings.
+```
+
+**What works:**
+- Single consistent strategy (relationship-building)
+- All directives support the same approach
+- Clear prioritization
+- No contradictory guidance
+
+**What the tool checks:**
+- Contradictory instructions
+- Unclear priorities
+- Ambiguous action items
+- Whether directives support or undermine each other
+- Whether reader can extract clear action plan
+
+---
+
+### Type 6: Motivational Coherence
+**Definition:** User knows how they are supposed to feel. Emotional direction is clear and maintained throughout. Inspires consistent psychological state.
+
+**When to use:**
+- Self-help content
+- Marketing copy
+- Coaching materials
+- Motivational speeches
+- Team pep talks
+
+**Example of failure:**
+```
+You can achieve anything you set your mind to! But be realistic about your limitations. 
+Dream big and take massive action! Remember that most people fail, so manage your 
+expectations. You are unstoppable! Just don't get your hopes up too high.
+```
+
+**What's wrong:**
+- Inspirational immediately undercut by caution
+- Empowerment mixed with defeatism
+- Net effect: DEMOTIVATING
+- Reader feels confused and deflated
+
+**Tony Robbins Test:** Would Tony Robbins say this? Does it pump you up consistently or confuse your emotional state?
+
+**Example of success:**
+```
+You can achieve anything you commit to with consistent, focused action. Yes, the path 
+will have obstacles—that's how you know you're doing something significant. Most people 
+quit when it gets hard, but you're not most people. You have everything you need to 
+succeed. Dream big, take massive action, and keep pushing when others stop. You are 
+unstoppable.
+```
+
+**What works:**
+- Consistent empowerment message
+- Obstacles reframed as validation, not threats
+- Sustained emotional energy
+- Reader knows how to feel: FIRED UP
+
+**What the tool checks:**
+- Emotional consistency
+- Whether caution undermines inspiration
+- Defeatist language mixed with empowerment
+- Net emotional effect
+- Whether reader has clear emotional direction
+
+---
+
+### Type 7: Auto-Detect
+**Definition:** System analyzes the text and determines which type(s) of coherence it's attempting to achieve, then routes to appropriate analysis.
+
+**How it works:**
+The tool examines:
+- Discourse markers (therefore, however, because = logical)
+- Domain vocabulary (scientific terms = explanatory)
+- Imperative verbs (do this, avoid that = instructional)
+- Emotional language (you can, unstoppable = motivational)
+- Narrative/sensory details (imagery, mood = thematic)
+
+Then selects the most appropriate coherence type(s) and explains the choice.
+
+---
+
+## User Interface Specification
+
+### Main Interface Layout:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📊 Coherence Meter
+Analyze and improve text coherence across multiple dimensions
+
+[Text Input Area]
+_________________________________________________________________
+|                                                               |
+|  Paste your text here... (under 500 words)                   |
+|                                                               |
+|_______________________________________________________________|
+
+Select Coherence Type:
+┌─────────────────────────────────────────────────────────────┐
+│ ( ) Logical Consistency - Non-contradiction only            │
+│ ( ) Logical Cohesiveness - Argumentative structure          │
+│ ( ) Scientific/Explanatory - Aligns with natural law        │
+│ ( ) Thematic/Psychological - Emotional & mood flow          │
+│ ( ) Instructional - Clear, actionable message               │
+│ ( ) Motivational - Consistent emotional direction           │
+│ (•) Auto-Detect - Let AI determine type                     │
+└─────────────────────────────────────────────────────────────┘
+
+[ANALYZE COHERENCE]  [REWRITE TO MAX COHERENCE]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Output Display Format:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COHERENCE ANALYSIS
+
+Coherence Type Analyzed: [Type Name]
+Overall Score: [X/10]  [✓ PASS / ⚠ WEAK / ✗ FAIL]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED REPORT:
+
+[Specific findings with line numbers, highlighting, severity indicators]
+
+Key Issues:
+• [Issue 1 with location]
+• [Issue 2 with location]  
+• [Issue 3 with location]
+
+Impact Assessment:
+[Explanation of how these issues affect the text's coherence and reader experience]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REWRITTEN VERSION (Maximized for [Type]):
+
+[Rewritten text]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGES MADE:
+
+• [Change 1 with explanation]
+• [Change 2 with explanation]
+• [Change 3 with explanation]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Copy Rewrite] [Export Report] [Analyze Different Type]
+```
+
+---
+
+## Sample Inputs and Outputs
+
+### Sample 1: Instructional Coherence
+
+**Input:**
+```
+To increase sales, focus on customer relationships. Make sure to close deals quickly. 
+Spend time understanding client needs. Don't waste time on prospects who aren't 
+ready to buy. Build long-term partnerships. Hit your monthly quota no matter what.
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COHERENCE ANALYSIS
+
+Coherence Type Analyzed: Instructional
+Overall Score: 4/10  ⚠ WEAK - CONTRADICTORY DIRECTIVES
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED REPORT:
+
+Conflicting Directives Detected:
+
+Lines 1-2: CONTRADICTION
+  "Focus on customer relationships" vs "Close deals quickly"
+  → Tension between relationship quality and speed
+
+Lines 3-4: CONTRADICTION  
+  "Spend time understanding needs" vs "Don't waste time on prospects"
+  → Tension between depth and efficiency
+
+Lines 5-6: CONTRADICTION
+  "Build long-term partnerships" vs "Hit quota no matter what"
+  → Tension between sustainability and pressure
+
+Impact Assessment:
+User Confusion Risk: HIGH
+• Manager appears to want both relationship-building AND aggressive closing
+• These approaches require different mindsets and tactics
+• Team members will not know which directive to prioritize
+• Likely result: Inconsistent execution, demoralized team
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REWRITTEN VERSION (Maximized for Instructional Coherence):
+
+To increase sales, prioritize building genuine customer relationships. Take time to 
+understand each client's specific needs, even if it means longer sales cycles. Focus 
+on prospects who are ready to engage meaningfully rather than chasing quick wins. 
+Cultivate long-term partnerships that will generate sustainable revenue. Your quota 
+should be met through quality relationships, not rushed closings.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGES MADE:
+
+• Removed "close deals quickly" - contradicted relationship focus
+• Clarified that longer sales cycles are acceptable for quality
+• Unified all directives around single strategy (relationship-building)
+• Reframed quota achievement as outcome of relationships, not separate goal
+• Result: Clear, consistent action plan with no contradictory guidance
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+### Sample 2: Motivational Coherence
+
+**Input:**
+```
+You can achieve anything you set your mind to! But be realistic about your limitations. 
+Dream big and take massive action! Remember that most people fail, so manage your 
+expectations. You are unstoppable! Just don't get your hopes up too high.
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COHERENCE ANALYSIS
+
+Coherence Type Analyzed: Motivational
+Overall Score: 2/10  ✗ FAIL - CONTRADICTORY EMOTIONAL DIRECTION
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED REPORT:
+
+Emotional Direction: CONTRADICTORY
+
+Line 1: "achieve anything" → EMPOWERING
+Line 1: "but be realistic about limitations" → IMMEDIATELY DEFLATING
+
+Line 2: "Dream big and take massive action!" → ENERGIZING  
+Line 3: "most people fail" → DEMORALIZING
+
+Line 4: "You are unstoppable!" → PEAK EMPOWERMENT
+Line 4: "don't get your hopes up too high" → COMPLETE DEFLATION
+
+Tony Robbins Test: CATASTROPHIC FAIL
+• Would Tony Robbins ever say this? NO
+• Does this pump you up? NO
+• Does this confuse your emotional state? YES
+
+Impact Assessment:
+Net Emotional Effect: DEMOTIVATING
+• Reader starts inspired, immediately deflated
+• Each empowerment statement undercut by caution/defeatism
+• Reader ends confused: "Should I be excited or cautious? Hopeful or resigned?"
+• Likely outcome: Reader feels worse than before reading
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REWRITTEN VERSION (Maximized for Motivational Coherence):
+
+You can achieve anything you commit to with consistent, focused action. Yes, the path 
+will have obstacles—that's how you know you're doing something significant. Most people 
+quit when it gets hard, but you're not most people. You have everything you need to 
+succeed. Dream big, take massive action, and keep pushing when others stop. You are 
+unstoppable.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGES MADE:
+
+• Removed all deflating language ("be realistic," "manage expectations," "don't get hopes up")
+• Acknowledged obstacles but reframed them as validation of significance
+• Replaced "most people fail" with "most people quit" + "you're not most people"
+• Maintained consistent empowerment message throughout
+• Result: Sustained emotional energy, clear direction (FIRED UP), no confusion
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+### Sample 3: Scientific/Explanatory Coherence
+
+**Input:**
+```
+Quantum entanglement allows particles to communicate faster than light. This proves 
+consciousness creates reality because observers affect quantum states. Therefore, 
+positive thinking can heal cancer by collapsing the wave function in your favor.
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COHERENCE ANALYSIS
+
+Coherence Type Analyzed: Scientific/Explanatory
+Overall Score: 1/10  ✗ FAIL - MULTIPLE VIOLATIONS OF NATURAL LAW
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED REPORT:
+
+Violations of Physical Laws:
+
+Line 1: "communicate faster than light"
+  ✗ INCORRECT: Entanglement creates correlations but does NOT allow FTL communication
+  → No information can be transmitted via entanglement alone
+  → This violates special relativity
+
+Line 2: "observers affect quantum states"  
+  ⚠ MISLEADING: Observer effect does not require consciousness
+  → ANY physical interaction counts as "measurement"
+  → Consciousness is not necessary for wave function collapse
+
+Line 2: "consciousness creates reality"
+  ✗ UNSUPPORTED: No established mechanism linking consciousness to physical reality
+  → Interpretation of quantum mechanics, not empirical fact
+  → Many interpretations (e.g., many-worlds) don't require this
+
+Line 3: "positive thinking can heal cancer"
+  ✗ IMPLAUSIBLE: No mechanism for thoughts to affect tumor biology via quantum effects
+  → Biological systems are "warm, wet, and noisy" - quantum decoherence is immediate
+  → Quantum effects are negligible at cellular/tissue scales
+
+Explanatory Gaps:
+• Missing: How does consciousness interface with quantum states?
+• Missing: How do quantum effects persist in biological systems?
+• Missing: What is the mechanism from thoughts → wave function → tumor cells?
+
+Impact Assessment:
+This Explanation COULD NOT Be True Given Known Physics
+• Violates special relativity (FTL communication)
+• Misunderstands observer effect (consciousness not required)
+• Ignores decoherence (quantum effects don't scale to biology)
+• No plausible causal pathway from thoughts to cellular processes
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REWRITTEN VERSION (Maximized for Scientific Coherence):
+
+Quantum entanglement creates correlations between particles, but does not allow 
+faster-than-light communication or information transfer. While quantum measurements 
+require interactions that can be called "observation," this does not require 
+consciousness—any physical interaction with the system suffices. At the macroscopic 
+scale of human biology, quantum effects are negligible due to thermal decoherence, 
+which occurs almost instantaneously in warm, wet environments. Mental states can 
+affect health through stress reduction and immune function, but this occurs via 
+well-understood neuroendocrine pathways involving cortisol, inflammatory markers, 
+and immune cell activity—not through quantum mechanical processes.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGES MADE:
+
+• Corrected entanglement description (correlations, not FTL communication)
+• Clarified observer effect doesn't require consciousness
+• Removed unsupported "consciousness creates reality" claim
+• Explained why quantum effects don't apply at biological scales (decoherence)
+• Provided actual mechanism for mind-body health connection (neuroendocrine)
+• Result: Scientifically accurate explanation that respects physical laws
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+### Sample 4: Logical Cohesiveness
+
+**Input:**
+```
+According to the computational theory of mind, to think is to compute. But what is 
+meant by 'compute'? The generally given answer: computing is symbol manipulation 
+driven exclusively by formal properties. However, 'formal' is ambiguous between 
+syntactic and morphological senses. CTM fails on each disambiguation. Once we 
+register this ambiguity, arguments for CTM cease to be compelling.
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COHERENCE ANALYSIS
+
+Coherence Type Analyzed: Logical Cohesiveness  
+Overall Score: 8/10  ✓ STRONG - WELL-STRUCTURED ARGUMENT
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED REPORT:
+
+Argument Structure: COHERENT
+
+Premise 1: CTM claims thinking = computing
+Premise 2: Computing = symbol manipulation via formal properties
+Key Move: 'Formal' is ambiguous (syntactic vs morphological)
+Claim: CTM fails on both interpretations
+Conclusion: Arguments for CTM lose force once ambiguity is recognized
+
+Logical Flow: STRONG
+✓ Each claim builds on the previous
+✓ Question is asked then answered
+✓ Critical term ('formal') is identified and analyzed
+✓ Conclusion follows from the disambiguation
+
+Minor Areas for Enhancement:
+• Line 5: "CTM fails on each disambiguation" - could use brief explanation of WHY
+• Conclusion would be strengthened by briefly stating what the failure means
+
+Impact Assessment:
+This is a well-constructed philosophical argument with:
+• Clear dialectical structure
+• Proper identification of key term
+• Systematic analysis
+• Conclusion that follows from analysis
+
+The argument successfully builds from definition to critique in logical steps.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REWRITTEN VERSION (Maximized for Logical Cohesiveness):
+
+According to the computational theory of mind (CTM), to think is to compute. But what 
+is meant by 'compute'? The generally given answer: computing is symbol manipulation 
+driven exclusively by formal properties. However, 'formal' is ambiguous—it can refer 
+to form in either the syntactic sense or the morphological sense. CTM fails on each 
+disambiguation: if 'formal' means syntactic, then non-symbolic processes are excluded 
+without justification; if 'formal' means morphological, then the distinction between 
+computation and mere causal process collapses. Once we register this ambiguity, 
+arguments for CTM cease to be compelling, as the theory's core claim depends on an 
+equivocation.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGES MADE:
+
+• Added brief explanation of why CTM fails on each disambiguation
+• Made the failure conditions explicit (exclusion without justification / collapsed distinction)
+• Strengthened conclusion by identifying the logical error (equivocation)
+• Result: Even more explicit logical structure with no inferential gaps
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+### Sample 5: Thematic/Psychological Cohesiveness
+
+**Input:**
+```
+I came home from the funeral, devastated by my loss. The sun was shining brightly! 
+I decided to reorganize my tax documents. My heart felt like it would never heal. 
+I wondered what to have for lunch—maybe tacos?
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COHERENCE ANALYSIS
+
+Coherence Type Analyzed: Thematic/Psychological
+Overall Score: 3/10  ✗ FAIL - EMOTIONAL WHIPLASH
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED REPORT:
+
+Emotional Trajectory: INCOHERENT
+
+Line 1: "devastated by my loss" → Deep grief [APPROPRIATE]
+Line 2: "The sun was shining brightly!" → Cheerful imagery [JARRING]
+  • No acknowledgment of contrast between internal/external state
+  • Exclamation point suggests enthusiasm (inappropriate for grief)
+
+Line 3: "reorganize my tax documents" → Mundane task [PSYCHOLOGICALLY IMPLAUSIBLE]
+  • People in acute grief don't typically think about bureaucratic tasks
+  • No transition from devastating loss to administrative concerns
+
+Line 4: "My heart felt like it would never heal" → Return to grief [DISCONNECTED]
+  • Emotional intensity returns without connection to tax documents
+
+Line 5: "wondered what to have for lunch—maybe tacos?" → Casual/cheerful [WHIPLASH]
+  • From "never heal" to "tacos?" with no transition
+  • Tone is inappropriately light given context
+
+Thematic Issues:
+• Imagery doesn't support emotional state (bright sun during grief)
+• Psychological progression is implausible (grief → taxes → grief → tacos)
+• No emotional through-line connecting moments
+• Reader cannot follow the narrator's psychological state
+
+Impact Assessment:
+The text feels disjointed and emotionally confusing. The rapid shifts between 
+devastation, cheerfulness, mundane tasks, and grief prevent the reader from 
+engaging with the narrator's experience. The psychological progression doesn't 
+ring true to how people actually process grief.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REWRITTEN VERSION (Maximized for Thematic/Psychological Coherence):
+
+I came home from the funeral, devastated by my loss. The sun was shining—bright, 
+indifferent, almost mocking in its cheerfulness. I moved through the house like a 
+ghost, straightening things that didn't need straightening, picking up objects and 
+putting them down again without purpose. My heart felt like it would never heal. 
+I stood in the kitchen for a long time, staring at nothing, unable to remember what 
+I'd come there for.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGES MADE:
+
+• Reframed bright sun as contrast to internal state (now thematically coherent)
+• Replaced "tax documents" with aimless tidying (psychologically plausible for grief)
+• Removed exclamation point (tone now matches mood)
+• Changed "tacos?" to forgetting purpose (authentic grief behavior)
+• Added details that support emotional state (ghost-like movement, staring at nothing)
+• Result: Sustained mood, psychologically believable, thematically unified
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+## Technical Implementation Notes
+
+### Core Algorithm for Each Coherence Type:
+
+#### Type 1: Logical Consistency
+```
+1. Parse text into individual claims
+2. Convert claims to logical propositions
+3. Check for direct contradictions (X and ¬X)
+4. Check for incompatible predicates (red and blue simultaneously)
+5. Flag all contradictions with line numbers
+6. Generate rewrite that resolves contradictions
+```
+
+#### Type 2: Logical Cohesiveness
+```
+1. Identify claims, premises, conclusions
+2. Build argument graph (what supports what)
+3. Check for:
+   - Unsupported conclusions
+   - Missing intermediate steps
+   - Non-sequiturs (claim doesn't follow)
+   - Orphaned claims (not connected to main argument)
+4. Score based on density of logical connections
+5. Generate rewrite that adds missing support/removes orphans
+```
+
+#### Type 3: Scientific/Explanatory Coherence
+```
+1. Extract causal claims and mechanisms
+2. Check against known physical laws (use knowledge base)
+3. Identify:
+   - Violations of conservation laws
+   - Implausible mechanisms
+   - Missing causal steps
+   - Scale mismatches (quantum effects at macro scale)
+4. Flag each violation with explanation
+5. Generate rewrite using established scientific principles
+```
+
+#### Type 4: Thematic/Psychological Cohesiveness
+```
+1. Analyze emotional trajectory (sentiment over time)
+2. Extract imagery and sensory details
+3. Check for:
+   - Emotional whiplash (rapid unm
+otivated shifts)
+   - Imagery-mood mismatch
+   - Psychologically implausible sequences
+4. Evaluate whether imagery supports emotional state
+5. Generate rewrite that maintains emotional through-line
+```
+
+#### Type 5: Instructional Coherence
+```
+1. Extract all imperative statements (directives)
+2. Categorize directives by goal/strategy
+3. Check for:
+   - Contradictory instructions
+   - Conflicting priorities
+   - Ambiguous action items
+4. Build directive graph (what conflicts with what)
+5. Generate rewrite with unified strategy, consistent directives
+```
+
+#### Type 6: Motivational Coherence
+```
+1. Analyze emotional valence of each sentence
+2. Track empowerment vs deflation language
+3. Check for:
+   - Inspiration immediately undercut by caution
+   - Empowerment mixed with defeatism
+   - Confusing emotional direction
+4. Calculate net motivational effect
+5. Apply "Tony Robbins Test": Would this sustain high energy?
+6. Generate rewrite that maintains consistent emotional direction
+```
+
+#### Type 7: Auto-Detect
+```
+1. Analyze discourse markers:
+   - therefore, because, hence → Logical
+   - First, then, next → Instructional
+   - You can, unstoppable, achieve → Motivational
+   - Sensory details, mood words → Thematic
+   - Scientific terminology → Explanatory
+
+2. Check domain vocabulary
+3. Count imperative vs declarative sentences
+4. Analyze emotional language density
+5. Select most appropriate type(s)
+6. Explain reasoning for selection
+7. Route to that coherence analysis
+```
+
+---
+
+## Prompt Engineering Templates
+
+### Template for Analysis Phase:
+```
+You are a coherence analyzer. Your task is to evaluate text for [COHERENCE_TYPE] coherence.
+
+COHERENCE TYPE: [Logical Consistency / Logical Cohesiveness / Scientific-Explanatory / 
+                 Thematic-Psychological / Instructional / Motivational]
+
+DEFINITION: [Insert definition from specification]
+
+TEXT TO ANALYZE:
+{user_text}
+
+Provide:
+1. Overall coherence score (1-10) with assessment (PASS/WEAK/FAIL)
+2. Detailed analysis of coherence issues with specific line numbers
+3. Impact assessment: How do these issues affect the text?
+
+Format your response as:
+- Clear section headers
+- Specific examples with line references
+- Severity indicators (✓ ⚠ ✗)
+```
+
+### Template for Rewrite Phase:
+```
+You are a coherence maximizer. Your task is to rewrite text to maximize [COHERENCE_TYPE] coherence.
+
+ORIGINAL TEXT:
+{user_text}
+
+COHERENCE ISSUES IDENTIFIED:
+{analysis_results}
+
+Generate a rewritten version that:
+1. Maintains the core content/message
+2. Resolves all identified coherence issues
+3. Maximizes [COHERENCE_TYPE] coherence
+
+Then explain:
+- What specific changes were made
+- Why each change improves coherence
+- How the rewrite addresses the original issues
+
+The rewrite should be approximately the same length as the original.
+```
+
+### Template for Auto-Detect:
+```
+You are a text classifier for coherence analysis.
+
+TEXT:
+{user_text}
+
+Analyze this text and determine which type(s) of coherence it is attempting to achieve:
+- Logical Consistency
+- Logical Cohesiveness  
+- Scientific/Explanatory
+- Thematic/Psychological
+- Instructional
+- Motivational
+
+Consider:
+- Discourse markers and connectives
+- Domain-specific vocabulary
+- Sentence types (declarative, imperative, etc.)
+- Emotional language
+- Argumentative structure
+- Narrative elements
+
+Provide:
+1. Primary coherence type
+2. Secondary type (if applicable)
+3. Reasoning for your classification
+4. Confidence level (high/medium/low)
+
+Then proceed to analyze the text for the identified coherence type(s).
+```
+
+---
+
+## Success Criteria
+
+The Coherence Meter successfully analyzes text when it:
+
+1. **Accurately identifies coherence failures** at the selected level
+2. **Provides specific, actionable feedback** with line numbers and examples
+3. **Generates rewrites that genuinely improve coherence** without losing content
+4. **Explains changes clearly** so users understand what was improved
+5. **Matches intuitive human judgment** about what "holds together"
+
+The tool fails when it:
+- Marks coherent text as incoherent
+- Misidentifies the type of coherence needed
+- Generates rewrites that lose important content
+- Provides vague feedback without specific examples
+- Creates rewrites that are technically correct but stilted/unnatural
+
+---
+
+## Integration Requirements
+
+**CRITICAL: This function must be placed in the interface:**
+- **ABOVE:** "GPT Bypass Humanizer"
+- **BELOW:** "Text Model Validator"
+
+The vertical ordering should be:
+1. Text Model Validator
+2. **Coherence Meter** ← NEW FUNCTION
+3. GPT Bypass Humanizer
+
+---
+
+## Phase 1 MVP Features
+
+For initial release, implement:
+- ✓ All 7 coherence types
+- ✓ Analysis with scoring
+- ✓ Rewrite generation
+- ✓ Auto-detect functionality
+- ✓ 500 word limit
+- ✓ Basic export (copy to clipboard)
+
+---
+
+## Future Enhancements (Phase 2)
+
+- Visual highlighting of coherence breaks in original text
+- Side-by-side comparison (original vs rewrite)
+- Multiple rewrite options with different strategies
+- Coherence score tracking over multiple revisions
+- Domain-specific coherence templates
+- Longer text support with chunking
+- Integration with Text Model Validator (run both analyses sequentially)
+
+---
+
+## Use Case Examples
+
+### Use Case 1: Manager Writing Team Email
+Input: Contradictory instructions about priorities
+Mode: Instructional Coherence
+Output: Clear, unified directive that team can follow
+
+### Use Case 2: PhD Student Writing Dissertation
+Input: Argument with logical gaps
+Mode: Logical Cohesiveness
+Output: Argument with explicit support and no inferential leaps
+
+### Use Case 3: Self-Help Author
+Input: Motivational content that undercuts itself
+Mode: Motivational Coherence  
+Output: Sustained empowerment message without deflation
+
+### Use Case 4: Science Journalist
+Input: Popular science article with implausible claims
+Mode: Scientific/Explanatory Coherence
+Output: Accurate explanation respecting physical laws
+
+### Use Case 5: Fiction Writer
+Input: Scene with emotional whiplash
+Mode: Thematic/Psychological Coherence
+Output: Scene with consistent mood and believable emotional arc
+
+---
+
+## Error Handling
+
+### Text Too Long:
+```
+⚠ Text exceeds 500-word limit. Please shorten your text or contact us about 
+longer text analysis options.
+
+Current length: [X] words
+Maximum: 500 words
+```
+
+### No Text Provided:
+```
+⚠ Please enter text to analyze.
+```
+
+### Ambiguous Coherence Type (Auto-Detect):
+```
+⚠ This text contains elements of multiple coherence types:
+  - Instructional (40% confidence)
+  - Motivational (35% confidence)
+
+Recommendation: Select coherence type manually or clarify the text's purpose.
+```
+
+### Cannot Improve Further:
+```
+✓ This text already achieves strong [COHERENCE_TYPE] coherence (Score: 9/10).
+
+Only minor improvements possible. No rewrite generated.
+```
+
+---
+
+## Documentation for Users
+
+### Quick Start Guide:
+```
+COHERENCE METER - QUICK START
+
+1. Paste your text (under 500 words)
+2. Select coherence type:
+   - Not sure? Choose "Auto-Detect"
+   - Know what you need? Pick specific type
+3. Click "Analyze Coherence" for diagnosis
+4. Click "Rewrite to Max Coherence" for improved version
+5. Copy the rewrite or analyze for different coherence type
+
+COHERENCE TYPES EXPLAINED:
+
+📊 Logical Consistency - No contradictions
+📈 Logical Cohesiveness - Claims support each other
+🔬 Scientific/Explanatory - Aligns with natural law
+🎭 Thematic/Psychological - Emotional flow
+📋 Instructional - Clear action items
+🔥 Motivational - Consistent inspiration
+🤖 Auto-Detect - AI chooses best type
+```
+
+---
+
+## Final Implementation Checklist
+
+- [ ] All 7 coherence types implemented
+- [ ] Analysis algorithm for each type
+- [ ] Rewrite generation for each type
+- [ ] Auto-detect classifier working
+- [ ] Scoring system (1-10 scale)
+- [ ] Visual indicators (✓ ⚠ ✗)
+- [ ] Line number references in reports
+- [ ] Change explanations in rewrites
+- [ ] 500-word limit enforced
+- [ ] Error messages for edge cases
+- [ ] Export/copy functionality
+- [ ] Clean UI matching specification
+- [ ] **POSITIONED ABOVE GPT Bypass Humanizer**
+- [ ] **POSITIONED BELOW Text Model Validator**
+- [ ] Mobile responsive design
+- [ ] Testing with all sample inputs
+- [ ] User documentation complete
+
+---
+
+This specification is complete and ready for implementation by Replit Agent or development team.

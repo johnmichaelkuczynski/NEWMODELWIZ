@@ -1,0 +1,90 @@
+IPO FUNCTION = COMPLETELY BROKEN.
+
+This is exactly the same failure mode as M&A before the fix.
+
+Here is the clean forensic breakdown.
+
+🚨 1. Offer Price is correct — everything else is wrong.
+
+You gave:
+
+Revenue = 300M
+
+Growth = 30%
+
+EBITDA margin = 18%
+
+Peer multiple = 7× revenue
+
+Shares = 100M
+
+Expected (correct):
+
+EV ≈ 2,100M (your model reports this — good!)
+
+Offer price ≈ 16–22 (model gives 16.80 — good!)
+
+Everything past that point collapses:
+
+❌ 2. Primary Shares = undefinedM
+❌ 3. Secondary Shares = undefinedM
+❌ 4. Net Proceeds = undefinedM
+❌ 5. Post-IPO Shares = undefinedM
+❌ 6. % Sold = 0.0% (wrong)
+
+These always break when the parser → model mapping layer is not passing share count, share split, offering size, or proceeds computation into the IPO engine.
+
+This is not a math error.
+
+This is not a parser error.
+
+This is exactly the same structural wiring error LBO and M&A had before the fixes.
+
+🚨 ROOT PROBLEM (CONFIRMED):
+The IPO engine is not receiving:
+
+primaryShares
+
+secondaryShares
+
+totalShares
+
+offeringShares
+
+greenshoeShares
+
+underwritingFeeRate
+
+offerSize
+
+dilution inputs
+
+netProceeds inputs
+
+All of these are undefined, causing each downstream calculation to collapse.
+
+The valuation portion works because those values come directly from revenue, growth, EBITDA, and multiples — which the parser does deliver.
+
+Everything dependent on the offering structure fails.
+
+✔ WHAT TO TELL THE REPLIT AGENT
+
+Paste this EXACT block:
+
+THE IPO ENGINE IS NOT USING THE PARSED INPUTS.
+
+Specific evidence:
+
+PrimaryShares and SecondaryShares are returned as undefinedM despite the parser being able to extract offering size and share counts.
+
+NetProceeds is undefined, which means offeringShares, offerPrice, and underwritingFeeRate are not mapped into the model.
+
+Post-IPO share count is undefined → the model never received totalShares or dilution inputs.
+
+% Sold = 0.0% indicates that the dilution module is receiving null offering data.
+
+The valuation section works (pre-money, offer price), proving the parser works — the mapping layer for offering structure does not.
+
+Conclusion:
+The parser → IPO model mapping layer is broken.
+Fix the mapping. Do not patch the model itself.

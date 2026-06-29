@@ -1,0 +1,255 @@
+Do exactly this—copy/paste to the Replit Agent.
+
+Create a client-side hotfix that (a) splits the giant blob into sections and (b) computes non-zero scores from the returned text.
+
+Open: client/components/CaseAssessment.tsx
+Replace the entire file with:
+
+import React, { useEffect, useState } from "react";
+
+type Scores = {
+  proofEffectiveness: number;
+  claimCredibility: number;
+  nonTriviality: number;
+  proofQuality: number;
+  functionalWriting: number;
+};
+
+type Sections = {
+  strengths: string[];
+  weaknesses: string[];
+  counters: string[];
+  conclusion: string;
+  raw: string;
+};
+
+function clamp(n: number) {
+  return Math.max(0, Math.min(100, Math.round(n)));
+}
+
+function splitAssessment(text: string): Sections {
+  const t = text.replace(/\r/g, "");
+  const blocks = {
+    strengths: "",
+    weaknesses: "",
+    counters: "",
+    conclusion: "",
+  };
+
+  // tolerant section split
+  const sect = (label: string) =>
+    new RegExp(`\\b${label}s?\\s*:?\\s*([\\s\\S]*?)(?=\\n\\s*\\w.*?:|$)`, "i");
+
+  const s = t.match(sect("Strength"))?.[1] ?? "";
+  const w = t.match(sect("Weakness"))?.[1] ?? "";
+  const c = t.match(sect("(Potential )?Counterargument"))?.[1] ?? "";
+  const k = t.match(sect("Conclusion"))?.[1] ?? "";
+
+  const toLines = (x: string) =>
+    x
+      .split(/\n/)
+      .map((v) => v.replace(/^[\s*-•]+/, "").trim())
+      .filter(Boolean);
+
+  return {
+    strengths: toLines(s),
+    weaknesses: toLines(w),
+    counters: toLines(c),
+    conclusion: k.trim(),
+    raw: t,
+  };
+}
+
+function computeScores(sec: Sections): Scores {
+  // simple, deterministic heuristics (non-zero) until server returns real numbers
+  const len = sec.raw.split(/\s+/).length;
+
+  const hasAll = Number(
+    sec.strengths.length > 0 &&
+      sec.weaknesses.length > 0 &&
+      (sec.counters.length > 0 || /counter/i.test(sec.raw)) &&
+      sec.conclusion.length > 0
+  );
+
+  const balance =
+    1 -
+    Math.min(
+      1,
+      Math.abs(sec.strengths.length - sec.weaknesses.length) /
+        Math.max(1, sec.strengths.length + sec.weaknesses.length)
+    );
+
+  const detailStrength =
+    Math.min(1, sec.strengths.join(" ").split(/\w{6,}/).length / 60) ||
+    0.2; // vocabulary/detail proxy
+
+  const structureBoost =
+    (/\n{2,}/.test(sec.raw) ? 0.2 : 0) +
+    (/- |• /.test(sec.raw) ? 0.2 : 0) +
+    (/\bConclusion\b/i.test(sec.raw) ? 0.1 : 0);
+
+  const proofEffectiveness = clamp(40 * hasAll + 45 * balance + 15 * detailStrength);
+  const claimCredibility = clamp(35 * hasAll + 25 * structureBoost + 40 * balance);
+  const nonTriviality = clamp(25 * hasAll + 35 * detailStrength + 20 * (sec.counters.length > 0 ? 1 : 0) + 20 * (len > 180 ? 1 : 0));
+  const proofQuality = clamp(30 * hasAll + 50 * balance + 20 * structureBoost);
+  const functionalWriting = clamp(30 * structureBoost + 20 * hasAll + 50 * (len > 150 ? 1 : 0));
+
+  return {
+    proofEffectiveness,
+    claimCredibility,
+    nonTriviality,
+    proofQuality,
+    functionalWriting,
+  };
+}
+
+export default function CaseAssessment() {
+  const [text, setText] = useState<string>("");
+  const [sec, setSec] = useState<Sections | null>(null);
+  const [scores, setScores] = useState<Scores | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const r = await fetch("/api/case-assessment", { method: "GET" });
+      const data = await r.json(); // expects { analysisText?: string, analysis?: string }
+      const analysisText = data.analysisText || data.analysis || "";
+      setText(analysisText);
+      const s = splitAssessment(analysisText);
+      setSec(s);
+      setScores(computeScores(s));
+    })();
+  }, []);
+
+  const card = (label: string, value?: number) => (
+    <div className="rounded-xl bg-white p-4 shadow">
+      <div className="text-sm font-medium">{label}</div>
+      <div className="text-2xl font-bold">{typeof value === "number" ? `${value}/100` : "—"}</div>
+    </div>
+  );
+
+  const list = (items: string[]) =>
+    items.length ? (
+      <ul className="list-disc pl-6 space-y-1">
+        {items.map((v, i) => (
+          <li key={i}>{v}</li>
+        ))}
+      </ul>
+    ) : (
+      <p className="italic text-gray-500">—</p>
+    );
+
+  return (
+    <div className="space-y-6">
+      <div className="rounded-2xl bg-orange-600 p-6 text-white">
+        <div className="text-xl font-semibold">How Well Does It Make Its Case?</div>
+        <div className="text-3xl font-extrabold">
+          {scores
+            ? `${Math.round(
+                (scores.proofEffectiveness +
+                  scores.claimCredibility +
+                  scores.nonTriviality +
+                  scores.proofQuality +
+                  scores.functionalWriting) /
+                  5
+              )}/100`
+            : "—"}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        {card("Proof Effectiveness", scores?.proofEffectiveness)}
+        {card("Claim Credibility", scores?.claimCredibility)}
+        {card("Non-Triviality", scores?.nonTriviality)}
+        {card("Proof Quality", scores?.proofQuality)}
+        {card("Functional Writing", scores?.functionalWriting)}
+      </div>
+
+      <div className="rounded-xl bg-white p-5 shadow space-y-4">
+        <h3 className="text-lg font-semibold">Detailed Case Assessment</h3>
+
+        <div>
+          <h4 className="font-semibold">Strengths</h4>
+          {sec ? list(sec.strengths) : null}
+        </div>
+
+        <div>
+          <h4 className="font-semibold">Weaknesses</h4>
+          {sec ? list(sec.weaknesses) : null}
+        </div>
+
+        <div>
+          <h4 className="font-semibold">Potential Counterarguments</h4>
+          {sec ? list(sec.counters) : null}
+        </div>
+
+        <div>
+          <h4 className="font-semibold">Conclusion</h4>
+          <p>{sec?.conclusion || <span className="italic text-gray-500">—</span>}</p>
+        </div>
+
+        <details className="pt-2">
+          <summary className="cursor-pointer text-sm text-gray-600">Raw</summary>
+          <pre className="whitespace-pre-wrap text-sm text-gray-700">{text}</pre>
+        </details>
+      </div>
+    </div>
+  );
+}
+
+
+Ensure the API returns the analysis text (the hotfix expects analysisText or analysis).
+
+Open: server/routes/caseAssessment.ts
+Replace the handler body with:
+
+app.get("/api/case-assessment", async (_req, res) => {
+  // this endpoint must return raw analysis text from your evaluator
+  // Keep your existing call; just ensure we send a string field.
+  try {
+    const analysisText = await getCaseAssessmentText(); // must resolve to string
+    res.json({ analysisText });
+  } catch (e) {
+    res.json({ analysisText: "" });
+  }
+});
+
+
+(If your route is POST, keep it POST; just ensure it responds with { analysisText: string }.)
+
+Rebuild.
+
+In the Shell:
+
+npm run build && npm run start
+
+
+Permanent fix (do after the hotfix works):
+
+Modify the server to return structured JSON so the UI can show true scores.
+
+Open: server/evaluators/caseAssessment.ts
+Create (or replace) with:
+
+export type CaseAssessmentResult = {
+  scores: {
+    proofEffectiveness: number;
+    claimCredibility: number;
+    nonTriviality: number;
+    proofQuality: number;
+    functionalWriting: number;
+  };
+  sections: {
+    strengths: string[];
+    weaknesses: string[];
+    counters: string[];
+    conclusion: string;
+  };
+  analysisText: string;
+};
+
+// Implement your LLM call so it *returns JSON exactly in this shape*.
+// Then change the route to `res.json(result)`, and in the component,
+// delete computeScores() and use `result.scores` directly.
+
+
+Tell me when the hotfix is live; I’ll give you the minimal diff to switch the UI from computed scores to the server’s real scores.

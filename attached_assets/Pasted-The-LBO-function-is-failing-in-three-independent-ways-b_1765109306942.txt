@@ -1,0 +1,98 @@
+The LBO function is failing in three independent ways based on the Summit Industrial Services test input. These are parsing failures and propagation failures, not math errors. Below is exactly what the app is NOT doing that it should be doing.
+
+1. PURCHASE PRICE AND DEAL-STRUCTURE VARIABLES ARE NOT BEING PARSED
+
+The app is failing to extract the enterprise value from the sentence:
+
+“Purchase Price: 7.0× LTM EBITDA of $100M (EV = $700M)”
+
+Expected:
+
+purchase_price = 700
+Actual:
+
+purchase_price = undefined
+
+Because this value is undefined, the following fields are also undefined:
+
+Senior Debt
+
+Subordinated Debt
+
+Sponsor Equity
+
+Total Sources
+
+Total Uses
+
+Exit Enterprise Value
+
+Exit Equity Value
+
+Entry Leverage
+
+Exit Leverage
+
+Debt Paydown
+
+These failures are all downstream of the missing purchase price parse.
+
+2. EBITDA DOES NOT PROPAGATE BEYOND YEAR 1
+
+The app successfully computes Year-1 EBITDA:
+
+Revenue: $577.5M
+
+EBITDA Margin: 18%
+
+Expected EBITDA: $103.95M
+
+Year-1 EBITDA output = correct
+
+However, EBITDA for Years 2–5 all return undefined.
+
+This means:
+
+The EBITDA margin is parsed correctly
+
+Revenue is forecast correctly
+
+The function applying the margin to future-year revenues is not running after Year 1
+
+This is a propagation failure inside the model logic.
+
+3. DEBT SCHEDULE FAILS IMMEDIATELY AFTER SENIOR DEBT RETURNS UNDEFINED
+
+Because Senior Debt is not parsed:
+
+senior_debt = undefined
+
+Interest expense cannot be computed
+
+Mandatory amortization cannot be computed
+
+Year-end senior debt balances become undefined from Year-1 onward
+
+This causes:
+
+Undefined interest
+
+Undefined free cash flow adjustments
+
+Undefined debt balances for all projected years
+
+This is a direct consequence of the missing debt-sizing parse.
+
+SUMMARY OF WHAT THE APP FAILED TO DO
+
+Did not parse the purchase price (EV).
+
+Did not parse debt multiples (4.0× Senior, 1.0× Sub).
+
+Did not parse transaction fees.
+
+Did not propagate EBITDA margin after Year-1.
+
+Produced undefined senior debt balances beginning in Year-1.
+
+Produced undefined exit valuation due entirely to undefined EV and debt balances.

@@ -1,0 +1,85 @@
+Build an app that estimates the intelligence level reflected in one or two writing samples, based on deep conceptual analysis. The app must not rely on superficial characteristics (such as vocabulary, formatting, or mere organization) but must instead diagnose deep cognitive features such as conceptual clarity, inferential continuity, definition coherence, and semantic density.
+
+Here are the complete specifications:
+
+# 1. Inputs
+- The user must be able to input text in **multiple ways**:
+  - **Type manually** into a text box.
+  - **Paste** copied text into the text box.
+  - **Upload** a document (.docx, .pdf, or .txt file).
+  - **Drag-and-drop** a document into a clearly marked drop zone.
+- Every input box must have a **Clear Text** button immediately above it that instantly erases the content.
+
+# 2. Optional Modes
+- The app must allow the user to choose:
+  - **Analyze a Single Document**, or
+  - **Compare Two Documents**.
+
+# 3. Analysis Functionality
+- For each document, the app must:
+  - Summarize the content in clear terms.
+  - Analyze the document along the following dimensions:
+    - **Definition Coherence** (Are key terms defined?)
+    - **Claim Formation** (Are real claims made?)
+    - **Inferential Continuity** (Do ideas build logically?)
+    - **Semantic Load** (Are words meaningful or hollow?)
+    - **Jargon Detection** (Is technical language used properly?)
+    - **Surface Complexity** (Organization, referencing, polish)
+    - **Deep Complexity** (Real conceptual sophistication)
+  - Quote directly from the document to illustrate each finding.
+  - Estimate overall intelligence level (deep vs surface assessment).
+
+- If two documents are provided, the app must also generate a **Comparative Report**:
+  - Relative intelligence level.
+  - Strengths and weaknesses comparison.
+  - Style, structure, and substantive differences.
+  - Overall final judgment with optional side-by-side table.
+
+# 4. AI Detection Functionality
+- The app must integrate with **GPTZero API** to allow users to check whether input text appears AI-generated.
+- Above each text box (Document A and Document B), there must be a **"Check for AI"** button.
+- When pressed, this button must:
+  - Send the text to GPTZero.
+  - Return a simple result ("Likely AI" / "Unlikely AI") along with a confidence score if available.
+
+# 5. Reserved for Future Rewrite Module
+- Although no rewrite functionality is included now, the app must be built modularly, leaving room to later add a **Rewrite This Text** button after analysis results.
+- The code architecture must be organized so that rewriting can be added later without major rebuilding.
+
+# 6. User Interface (UI) Structure
+- Clean, minimalistic layout.
+- Inputs at the top:
+  - Document A input area (with Upload / Drag & Drop / Paste / Type).
+  - (If comparison mode) Document B input area (same functionality).
+  - Clear Text button above each input.
+  - Check for AI button above each input.
+- Analysis Buttons:
+  - **Analyze Document A** (or)
+  - **Analyze Both Documents and Compare**
+- Result panels below:
+  - Intelligence Report for Document A.
+  - (If comparison mode) Intelligence Report for Document B.
+  - Comparative Report (side-by-side analysis).
+
+# 7. API Keys and Services Involved
+- **GPTZero API Key:** For AI detection functionality.
+- **(Future Expansion Placeholder)**: AssemblyAI API key for dictation input, but this is not yet active for Phase 1.
+
+# 8. Platform Notes
+- Build the app using Replit.
+- Code must be modular to allow for easy additions.
+- Interface must be responsive and load quickly.
+- Avoid clutter and unnecessary steps: clean buttons, clear labels.
+
+# 9. Important
+- **No output generation or rewriting at this stage.**
+- **No AI embellishment or 'correction' of user text.**
+- Only analysis and comparison.
+
+# 10. Summary
+The app must be a powerful deep-structure intelligence analysis tool for writing samples, with an optional AI detection feature, built cleanly for immediate use and future expansion.
+
+---
+
+End of Build Instructions.
+

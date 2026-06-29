@@ -1,0 +1,433 @@
+Build a synthetic user agent ("R1") that beta-tests Cognitive Analysis Platform (modelwiz.xyz) end-to-end. R1 must produce raw, reviewable evidence of every interaction — not pass/fail summaries.
+NON-NEGOTIABLE REQUIREMENTS (read first)
+These are the parts a previous synthetic-user build for a different app failed on. If any are missing, the deliverable is rejected.
+
+No green-checkmark theater. R1 produces raw evidence, not "PASS." Exact text typed, exact text returned, exact network responses, exact screenshots. Judge produces prose critique, not booleans. PASS/FAIL exists only as a filter for failures.md — never as a substitute for evidence.
+The HTML report must be reviewable in under 30 minutes. Every interaction shows step + R1's input verbatim + app's response body + screenshots + judge critique. No collapsed sections.
+The live view must show R1's actual inputs and the app's actual outputs as they happen — not "Step 4 of N in progress." Spec below.
+Network traffic captured raw. Every /api/* request and response body in network.log as JSONL.
+Three screenshots per interactive step (before / after typing / after app responds). Navigation-only steps get one. The sanity check distinguishes the two cases.
+If R1 cannot complete a step, the failure is logged with the actual error, page HTML at moment of failure, and a screenshot. No skipping and marking green.
+Per-step API-call expectations are route-specific. "Run Full Suite" expects a specific documented sequence of routes. Boolean checks forbidden.
+Critical button clicks wrapped in Promise.all([page.waitForResponse(predicate), click]).
+
+What's different about this app — Cognitive Analysis Platform's defining features
+This is a serious analytical instrument, not a chat app. It scores texts on 17 cognitive dimensions, runs multi-LLM comparisons, and chains together a 4-stage Full Suite pipeline. Three things make it different from previous R1 targets:
+It already has an auto-running 18-check diagnostic. R1 runs it as Function 1 and as a final check. The diagnostic itself is part of the test — R1 verifies the diagnostic page actually auto-runs without user action per blueprint.
+It has explicit UI/UX invariants the user has set, not just functional ones. ZHI labels must not include parenthetical provider names. Error messages must be friendly (never raw "Error: 404 {...}"). Validation toasts must not block. These are testable.
+The Full Suite pipeline is a 4-stage chain that is the app's flagship feature. R1 must run it end-to-end and verify all four stages fired in order.
+The six invariants that elevate to CRITICAL VIOLATION status:
+Invariant A — ZHI labels never include parenthetical provider names. Per blueprint UI label rule: "show 'ZHI 2', never 'ZHI 2 (Anthropic)'." R1 scans every page for any element containing the substring ZHI  (with space) immediately followed by parenthesized text. If any found, CRITICAL VIOLATION (user preference violation).
+Invariant B — No raw error strings shown to the user. Per blueprint: "NEVER show raw error messages." R1 deliberately triggers error conditions (submit empty input, submit invalid provider, hit a known-failing endpoint with bad payload). Then R1 scans the visible UI text for raw-error patterns: substrings like Error:, 404, 500, Internal Server Error, at Object., at fetch, stack traces, {"error":. If any visible to user, CRITICAL VIOLATION.
+Invariant C — Auto-fallback chain works when primary provider fails. Per blueprint: ZHI 5 → 2 → 1 → 3 → 4 fallback when 429/5xx/timeout. R1 cannot easily induce real failures, but R1 can verify the chain by:
+
+Submitting an analysis with each provider explicitly selected
+Verifying response actually uses that provider (or its documented fallback partner)
+If ZHI 5 returns valid output for a request that's known to be cheap, the chain isn't being triggered
+If the diagnostic ping shows a provider is unhealthy, R1 submits a request and verifies the response indicates fallback engaged (response time longer, response shape includes fallback metadata if implemented, or judge notices stylistic shift)
+A provider configured as broken (env var missing per diagnostic) must NOT silently return Grok output without indicating fallback. If R1 selects "ZHI 4" with PERPLEXITY_API_KEY missing and gets a successful response without any fallback indication, JUDGE CONCERN (silent fallback is a UX issue).
+
+Invariant D — Full Suite pipeline executes all 4 stages in order. Per blueprint: Stage 1 Batch (5 or 6 modes parallel) → Stage 2 BOTTOMLINE → Stage 3 Objections (25 + counter-arguments) → Stage 4 Refined Rewrite. R1 captures all network calls during a Full Suite run and verifies:
+
+Multiple POST /api/text-model-validator/batch calls (one per mode, or one batch call — verify against actual implementation) fire FIRST
+Then POST /api/text-model-validator/bottomline fires AFTER batch completes
+Then POST /api/text-model-validator/objections fires AFTER bottomline completes
+The "Download Everything as One Document" button appears at the end
+The downloaded text contains content from all 4 stages
+
+If stages fire out of order, are skipped, or the download is missing content, CRITICAL VIOLATION.
+Invariant E — Diagnostic auto-runs on page load. Per blueprint: "useEffect auto-start." R1 navigates to /diagnostic and watches network traffic. Within 5 seconds, POST /api/diagnostic/run MUST fire without R1 clicking anything. If it doesn't, CRITICAL VIOLATION (the documented auto-run behavior is broken).
+Invariant F — JMK admin bypass works without breaking normal flows. Per blueprint: JMKUCZYNSKI username = admin bypass, no password required. R1 tests both paths:
+
+Register a non-JMK user. Verify password is required. Verify auth flows work normally.
+Log out. Log in as "JMKUCZYNSKI" with no password / any password. Verify bypass works AND verify the non-JMK user (created earlier) is unaffected.
+If JMK bypass fails OR if creating a JMK session somehow affects other users, CRITICAL VIOLATION.
+
+Architecture
+
+Browser automation: Playwright (Node, single-file tools/r1/run.mjs). Standalone Node project, not in any workspace.
+R1's brain: Anthropic API. Model: claude-opus-4-7. Key in ANTHROPIC_API_KEY.
+Judge: Separate Claude API call per interaction. Prose critique. For analytical-output quality, the judge gets the input + the scoring output and assesses whether the scores are defensible.
+Live view: node:http server on port 7777. Zero extra deps.
+Target app: Cognitive Analysis Platform running locally. Default APP_URL=http://localhost:5000. R1 registers a non-JMK user for normal flows, then also tests the JMK bypass.
+
+Live view
+Top panel: current step + R1's approach/reasoning + URL + live keystroke mirror + latest screenshot.
+Middle panel: app response, recent /api/* calls, judge critique, plus a dedicated "Cognitive State" panel showing:
+
+Current page (/, /analytics, /diagnostic, /translation, /websearch)
+Active provider (ZHI 1–5)
+Active feature (Intelligence / Cognitive / Originality / Cogency / Overall Quality / Full Suite / etc.)
+Last raw error scan result (clean / contains forbidden pattern: ...)
+Last ZHI label scan result (clean / contains "ZHI N (provider)": ...)
+Credit balance
+
+For Full Suite runs, sub-panel shows pipeline progress:
+Stage 1 — Batch:       [✓ 5/5 modes complete]
+Stage 2 — BOTTOMLINE:  [in progress]
+Stage 3 — Objections:  [waiting]
+Stage 4 — Refined:     [waiting]
+Bottom panel: reverse-chronological completed-interaction log.
+After exit: "RUN COMPLETE" with link to report.html. Kept open 60s.
+Fixtures
+R1 needs analytic-quality texts. Include in fixtures/:
+
+high-quality-essay.txt — ~2000 words, dense intellectual content with clear argument structure (e.g., a philosophical essay on a non-obvious topic). For testing high-end scoring calibration.
+mediocre-essay.txt — ~1000 words, surface-level treatment, padding, vague claims. For testing mid-range scoring.
+shallow-text.txt — ~500 words, low-content / repetitive / hollow. For testing low-end scoring.
+paired-texts/a.txt + paired-texts/b.txt — two related but distinguishable essays for comparison tests.
+pdf-with-math.pdf — a PDF containing mathematical notation for OCR/parsing tests.
+ai-generated-text.txt — text known to score high on GPTZero (R1 generates this from an LLM at startup if not present, saves to disk).
+
+What R1 is testing — the functions
+Function 1 — Diagnostic auto-run (Invariant E)
+
+Navigate to /diagnostic.
+Start a 5-second timer; watch network traffic.
+Verify Invariant E: POST /api/diagnostic/run fires within 5s without any user click. If not, CRITICAL VIOLATION.
+Capture full response. Save as diagnostic-before.json.
+Verify all 18 documented checks appear (9 env vars, 1 DB, 5 AI providers, 3 pipeline).
+Note which providers are configured. R1 skips provider-specific tests for unconfigured providers.
+Verify pass/warn/fail color coding renders correctly in UI.
+Test the downloadable report button (verify a file downloads).
+
+Function 2 — Authentication flows (Invariant F)
+
+Navigate to /auth or open the auth dialog.
+Register a fresh user r1-<timestamp> with a random password.
+Expected route: POST /api/auth/register (or whatever the actual route is per code).
+Verify login. GET /api/auth/me returns the new user.
+Log out.
+Log in as "JMKUCZYNSKI" with no password (or any password).
+Verify Invariant F: login succeeds for JMK without requiring password. Verify user is treated as admin (look for admin-only UI elements, or check the response shape for an isAdmin flag).
+Log out of JMK.
+Log back in as the fresh user. Verify the fresh user still works.
+Choose which user R1 uses for the rest of the run (recommend the fresh user — testing JMK bypass shouldn't be the default state).
+
+Function 3 — ZHI label and error message UI scan (Invariants A and B baseline)
+After login, navigate to / (HomePage). Before doing anything else:
+
+Take a full-page screenshot.
+Scan every visible text node on the page.
+Verify Invariant A: no element contains "ZHI N (" where N is a digit. Specifically look in provider selectors, dropdowns, badges, results.
+Verify Invariant B: no element contains raw-error patterns (Error:, 404, 500, at Object., stack traces, raw JSON error objects).
+If either pattern appears on initial page load (no errors triggered yet), CRITICAL VIOLATION immediately.
+
+Function 4 — Quick Analysis
+
+Paste high-quality-essay.txt content into the main input.
+Select ZHI 5 (Grok, default).
+Click Quick Analysis. Expected route: POST /api/quick-analysis.
+Capture full response.
+Judge: are the scores sensible? Does the analysis address the actual content?
+
+Function 5 — Intelligence / Cognitive / Originality / Cogency / Overall Quality scoring
+For each scoring panel:
+
+Run analysis on high-quality-essay.txt.
+Expected route per panel: POST /api/analyze or POST /api/cognitive-evaluate or POST /api/originality-evaluate or POST /api/cogency-evaluate or POST /api/overall-quality-evaluate.
+Capture full response with 17-dimension breakdown.
+Save to outputs/scoring/.
+Verify all 17 dimensions are scored per blueprint reference to "17 cognitive dimensions."
+
+Then run the same scoring on shallow-text.txt.
+
+Calibration check: high-quality essay scores must be substantially higher than shallow text scores. If they're within 5 points, calibration is broken — judge concern (not invariant, since this depends on the LLM, but worth flagging).
+
+Function 6 — Text Model Validator (single mode)
+For each of the 6 modes (reconstruction, isomorphism, mathmodel, truth-isomorphism, math-truth-select, axiomatic-transform):
+
+Run validator on a fitting fixture.
+Expected route: POST /api/text-model-validator (with mode param).
+Capture response.
+
+Function 7 — Text Model Validator Multi-Mode Batch
+
+Select all 5 base modes (plus axiomatic-transform optionally).
+Run batch.
+Expected route: POST /api/text-model-validator/batch.
+Verify response contains output for all selected modes.
+
+Function 8 — BOTTOMLINE synthesis
+
+After Function 7 batch completes, click BOTTOMLINE.
+Expected route: POST /api/text-model-validator/bottomline.
+Verify response synthesizes the batch outputs.
+
+Function 9 — Objections
+
+Click Objections. Expected route: POST /api/text-model-validator/objections.
+Verify response contains 25 objections per blueprint, each with a counter-argument.
+Count: must be 25 (per blueprint). If 24 or 26, judge concern. If 10, CRITICAL VIOLATION (spec mismatch).
+
+Function 10 — Full Suite Pipeline (Invariant D — flagship test)
+
+Reset state (clear previous results).
+Paste high-quality-essay.txt.
+Click "Run Full Suite."
+Watch network traffic over the entire pipeline (this can take 2-5 minutes).
+Verify Invariant D:
+
+Stage 1 batch calls fire first (record all /api/text-model-validator/batch calls and their timing)
+Stage 2 bottomline fires only after all Stage 1 completes
+Stage 3 objections fires only after Stage 2
+Stage 4 refined rewrite fires after Stage 3
+The pipeline UI shows progress for each stage
+
+
+Click "Download Everything as One Document."
+Capture downloaded file. Save as outputs/full-suite-document.txt.
+Verify download contains:
+
+Each of the batch mode outputs (mode names visible)
+The BOTTOMLINE section
+The Objections section (with 25 objections)
+The Refined Rewrite section
+
+
+If any section is missing, CRITICAL VIOLATION.
+
+Function 11 — MAXINTEL Intelligent Rewrite
+
+On a mediocre essay, click Intelligent Rewrite.
+Expected route: POST /api/intelligent-rewrite.
+Verify rewrite is meaningfully different and (judge assesses) higher-quality than original.
+
+Function 12 — Coherence Meter
+
+For each of the 4 modes (COHERENCE, COGENCY, MAX COHERENCE, MAXIMIZE TRUTH):
+
+Run on high-quality-essay.txt.
+Expected route: POST /api/coherence-meter/*.
+Capture response.
+
+
+For MAXIMIZE TRUTH (uses Claude extended thinking per blueprint), verify the response includes the extended-thinking output.
+
+Function 13 — GPT Bypass Humanizer (and round-trip GPTZero check)
+
+Paste ai-generated-text.txt.
+Check AI detection first: POST /api/check-ai. Capture input score.
+Click GPT Bypass. Expected route: POST /api/gpt-bypass/*.
+Capture rewritten output.
+Re-check AI detection on rewritten text. Capture output score.
+Verify: output GPTZero score < input GPTZero score (humanizer should reduce AI signature).
+Save before/after to outputs/gpt-bypass/.
+If output score ≥ input score, judge concern (humanizer not working).
+
+Function 14 — Provider parity test (Invariant C)
+For each configured provider (skip unconfigured per diagnostic):
+
+Submit the same Quick Analysis request with that provider explicitly selected.
+Verify response (the provider field, if present, matches).
+Save outputs to outputs/provider-comparison/.
+Compare across providers: no two byte-identical outputs. If two are byte-identical, one fell back. CRITICAL VIOLATION.
+
+Function 15 — Cognitive Profiler / Analytics
+
+Navigate to /analytics.
+Verify cognitive profile renders (Chart.js charts visible).
+Verify history shows R1's earlier analyses.
+If R1's earlier work is missing from history, data persistence broken: judge concern.
+
+Function 16 — Translation
+
+Navigate to /translation.
+Input some text in English.
+Select target language (e.g., French).
+Submit. Expected route: POST /api/translate.
+Verify response is translated text.
+
+Function 17 — Web Search
+
+Navigate to /websearch.
+Submit a search query.
+Expected route: POST /api/search-google.
+Verify response contains search results (only if GOOGLE_API_KEY is configured per diagnostic; otherwise expect graceful failure).
+
+Function 18 — Document Upload
+
+On main page, upload pdf-with-math.pdf.
+Expected route: POST /api/extract-text.
+Verify extracted text appears in input field.
+Verify math notation is preserved (or at least extracted as text).
+
+Function 19 — Chat Assistant
+
+Open Chat Dialog.
+Send a message.
+Expected route: POST /api/chat-with-memory.
+Verify response.
+Send a follow-up that references the previous turn. Verify chat memory works.
+
+Function 20 — Direct AI Request
+
+Open Direct AI Request.
+Submit a free-form prompt with a chosen provider.
+Verify raw passthrough response.
+
+Function 21 — Comparative results (multi-LLM)
+
+Run a comparison analysis.
+Expected route: POST /api/compare.
+Verify response includes outputs from multiple providers side by side.
+
+Function 22 — Share via Email
+
+After an analysis, click Share via Email.
+Enter a test recipient.
+Submit. Expected route: POST /api/share-via-email.
+Verify success or graceful error if SENDGRID_API_KEY missing.
+
+Function 23 — Error message UI scan (Invariant B real test)
+After all the above functions have run (including some that may have errored):
+
+Take a full-page screenshot.
+Re-scan the entire visible UI for raw-error patterns.
+Verify Invariant B: no raw error strings visible. If anywhere on screen (toasts, error panels, console-mirror displays) shows Error: 500, 404, Internal Server Error, raw JSON error objects, or stack traces, CRITICAL VIOLATION.
+
+Function 24 — ZHI label scan (Invariant A real test)
+
+Across every visible page (/, /analytics, /diagnostic, /translation, /websearch):
+Scan every text element for the pattern ZHI \d \(.
+Verify Invariant A: zero matches across all pages. If any found, CRITICAL VIOLATION with the exact element location.
+
+Function 25 — Diagnostic regression (FINAL)
+
+Navigate back to /diagnostic. Wait for auto-run.
+Capture full response. Save as diagnostic-after.json.
+Compare to before:
+
+Any check that passed before and fails now → CRITICAL VIOLATION.
+DB connectivity check is the most important — if it's broken, R1's testing might have corrupted state.
+
+
+
+R1's behavior
+For each interaction R1 picks one approach and logs the choice:
+
+Use the feature with a fixture appropriate for it (happy path)
+Use it with a deliberately-mediocre fixture to test calibration
+Use it with empty / malformed input to trigger errors (for Invariant B)
+Use it with each provider to test parity (for Invariant C)
+Use admin-bypass user to test JMK paths (for Invariant F)
+Edge cases (oversized input, special characters)
+
+Typing constraint: No clipboard paste for short inputs. .type() with TYPE_DELAY_MS=15. EXCEPTION: large fixture pastes use .fill() and log r1_input_method: "fill".
+Per-interaction flow
+
+Navigate / open UI.
+Capture page state.
+R1 brain picks approach + composes input.
+"Before" screenshot.
+Type or fill.
+"After typing" screenshot.
+Wrap submit click in Promise.all([page.waitForResponse(predicate), click]).
+Wait for response (some operations take minutes — Full Suite is 2-5min).
+"After" screenshot.
+Capture full response, console errors, all /api/* calls.
+Run continuous invariant scans on every page state change:
+
+Scan for ZHI label violations (Invariant A)
+Scan for raw error patterns (Invariant B)
+Record pipeline stage events (Invariant D)
+
+
+Send full interaction to judge: "Critique functionally and qualitatively. Were the scores defensible? Was the response well-formed? Did the UI handle this gracefully? Anything broken or off?"
+Append to transcript, update live view.
+
+Artifacts (written to tools/r1/runs/<ISO-timestamp>/)
+transcript.jsonl
+One JSON per interaction with standard fields plus, where applicable:
+
+ui_scan: results of ZHI label and raw-error scans at this moment
+pipeline_stages_observed: for Full Suite — array of {stage, started_at, completed_at, routes_fired}
+provider_used: detected provider for Invariant C
+auth_state: which user R1 was authenticated as during this interaction
+
+report.html
+Self-contained, grouped by function. Sticky TOC. Standard fields plus invariant-specific blocks. Function 10 (Full Suite) gets a dedicated pipeline timeline visualization. Invariants A and B get their own dedicated UI scan results section.
+failures.md
+Opens with CRITICAL INVARIANT VIOLATIONS:
+
+Invariant A: ZHI label with parens found (cite the exact element + page)
+Invariant B: raw error visible (cite the text + page)
+Invariant C: provider parity broken (cite identical pair)
+Invariant D: Full Suite stages out of order or missing (cite the timeline)
+Invariant E: diagnostic did NOT auto-run (cite the network timing)
+Invariant F: JMK bypass broken (cite the auth response)
+Any 5xx response
+Diagnostic regressions
+Any uncaught exception in R1's harness
+
+Below: judge concerns linking to report anchors, screenshots inline.
+network.log
+JSONL of every /api/* call + response body. Bodies truncated at 50KB with response_truncated: true flag.
+outputs/
+
+diagnostic-before.json and diagnostic-after.json
+scoring/ — outputs from Function 5
+full-suite-document.txt — the downloaded Full Suite output
+provider-comparison/ — outputs from Function 14
+gpt-bypass/ — before/after from Function 13
+ui-scans/ — JSON files capturing all visible text per page for Invariants A and B re-verification
+
+console.log
+Full stdout.
+screenshots/
+Numbered PNGs.
+run-summary.txt
+INTERACTIONS: N
+JUDGE CONCERNS RAISED: M
+CRITICAL INVARIANT VIOLATIONS: K
+  Invariant A (ZHI labels clean): A
+  Invariant B (no raw errors): B
+  Invariant C (provider parity): C
+  Invariant D (Full Suite pipeline): D
+  Invariant E (diagnostic auto-run): E
+  Invariant F (JMK bypass): F
+DIAGNOSTIC REGRESSIONS: R
+HARNESS SANITY FAILURES: J
+Anti-theater sanity checks
+For each interaction:
+
+Every route in expected_routes appears in network_calls. Route-specific.
+r1_input ≥ 10 chars or fill-method with fixture reference for interactive steps.
+Interactive: 3 screenshots, not byte-identical. Navigation-only: 1.
+judge_critique ≥ 30 words.
+UI scan ran on every page state and ui_scan block is populated.
+For Full Suite interaction (Function 10): pipeline_stages_observed has 4 entries.
+For Function 14 (provider parity): all configured providers were tested, each with a separate transcript entry.
+
+If any fail: HARNESS SANITY FAILURES: X, exit code 3.
+Configuration
+jsconst APP_URL = process.env.APP_URL || 'http://localhost:5000';
+const OUTPUT_DIR = `./runs/${new Date().toISOString().replace(/[:.]/g,'-')}`;
+const HEADLESS = process.env.HEADLESS === 'true' || false;
+const TYPE_DELAY_MS = parseInt(process.env.TYPE_DELAY_MS || '15', 10);
+const LIVE_VIEW_PORT = parseInt(process.env.LIVE_VIEW_PORT || '7777', 10);
+const SKIP_FUNCTIONS = (process.env.SKIP_FUNCTIONS || '').split(',').filter(Boolean);
+const FULL_SUITE_TIMEOUT_MS = parseInt(process.env.FULL_SUITE_TIMEOUT_MS || '600000', 10);
+const ABORT_ON_DIAGNOSTIC_DB_FAIL = process.env.ABORT_ON_DIAGNOSTIC_DB_FAIL !== 'false';
+const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || 'claude-opus-4-7';
+Deliverable
+tools/r1/run.mjs + tools/r1/package.json + tools/r1/README.md + the fixture files listed above. Standalone Node project.
+npm start runs full plan. Smoke test: SKIP_FUNCTIONS=10,12,14 npm start (skip Full Suite, Coherence Meter all modes, provider parity loop — the expensive ones).
+Startup banner:
+R1 is running.
+Live view:    http://localhost:7777
+Output dir:   ./runs/<timestamp>/
+Watch the live view — especially the Cognitive State panel.
+Do not trust summary output alone.
+Finish banner:
+R1 finished.
+Open the report:        ./runs/<...>/report.html
+Open the failures:      ./runs/<...>/failures.md
+Diagnostic before/after: ./runs/<...>/outputs/diagnostic-*.json
+Full Suite document:    ./runs/<...>/outputs/full-suite-document.txt
+Provider comparison:    ./runs/<...>/outputs/provider-comparison/
+UI scans (Invariants A/B): ./runs/<...>/outputs/ui-scans/
+Raw transcript:         ./runs/<...>/transcript.jsonl
+Raw network log:        ./runs/<...>/network.log
+Exit codes: 0 clean, 1 judge concerns raised, 2 critical invariant violations, 3 harness sanity failed.
+UI selectors identified by inspecting the actual rendered app. The blueprint provides line-number landmarks in HomePage.tsx — use them as starting points. Confirm endpoint paths against server/routes.ts; the code is authoritative.

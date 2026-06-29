@@ -1,0 +1,495 @@
+# DCF Model Function - Complete Implementation Instructions
+
+## Function Purpose
+Accept natural language description of a company's financials and growth projections, extract all relevant variables, perform discounted cash flow valuation calculations, and generate a downloadable Excel file with working formulas, multiple tabs, and sensitivity analysis.
+
+## Input Processing Requirements
+
+The function must parse natural language input and extract the following variables:
+
+**Revenue Projections:**
+- Current revenue (base year)
+- Revenue growth rates by year or year ranges
+- Terminal growth rate (perpetual growth assumption)
+
+**Profitability Metrics:**
+- EBITDA margin (current and target)
+- Margin expansion timeline
+- Depreciation & Amortization as percentage of revenue or absolute values
+- Tax rate
+
+**Operating Assumptions:**
+- Capital Expenditures (CapEx) as percentage of revenue or absolute values
+- Net Working Capital (NWC) requirements as percentage of revenue
+- Change in NWC calculations
+
+**Valuation Parameters:**
+- Weighted Average Cost of Capital (WACC)
+- Terminal growth rate
+- Projection period length (typically 5-10 years)
+
+**Capital Structure:**
+- Total debt outstanding
+- Cash and equivalents
+- Number of shares outstanding (if equity value per share is requested)
+
+## Calculation Requirements
+
+The function must perform the following calculations with formulas (not hard-coded values):
+
+**Year-by-Year Projections:**
+1. Revenue = Previous Year Revenue × (1 + Growth Rate)
+2. EBITDA = Revenue × EBITDA Margin
+3. Depreciation & Amortization = Revenue × D&A Rate (or manual input)
+4. EBIT = EBITDA - D&A
+5. Taxes = EBIT × Tax Rate
+6. NOPAT (Net Operating Profit After Tax) = EBIT - Taxes
+7. Add back: D&A (non-cash charge)
+8. Subtract: CapEx = Revenue × CapEx Rate
+9. Subtract: Change in NWC = (Current Year NWC - Previous Year NWC)
+10. Free Cash Flow (FCF) = NOPAT + D&A - CapEx - Δ NWC
+
+**Terminal Value Calculation:**
+1. Year N+1 FCF = Year N FCF × (1 + Terminal Growth Rate)
+2. Terminal Value = Year N+1 FCF / (WACC - Terminal Growth Rate)
+3. Present Value of Terminal Value = Terminal Value / (1 + WACC)^N
+
+**Enterprise and Equity Value:**
+1. Present Value of each year's FCF = FCF / (1 + WACC)^Year
+2. Sum of PV of Explicit Period FCFs
+3. Enterprise Value = Sum of PV FCFs + PV of Terminal Value
+4. Less: Total Debt
+5. Plus: Cash and Equivalents
+6. Equity Value = Enterprise Value - Debt + Cash
+7. If shares provided: Value per Share = Equity Value / Shares Outstanding
+
+**Sensitivity Analysis:**
+Create two-dimensional sensitivity tables showing Equity Value sensitivity to:
+- WACC (rows: typically -200bps to +200bps from base case)
+- Terminal Growth Rate (columns: typically -100bps to +100bps from base case)
+
+## Excel File Structure
+
+**Tab 1: Executive Summary**
+- Company name (extracted or "Target Company")
+- Valuation date
+- Key outputs: Enterprise Value, Equity Value, Implied Value per Share (if applicable)
+- Key assumptions summary: Base Year Revenue, WACC, Terminal Growth Rate
+
+**Tab 2: Detailed Assumptions**
+All assumption cells must use blue font to indicate user-editable inputs.
+
+Section 1: Revenue Assumptions
+- Base Year Revenue
+- Year-by-year growth rates (each in separate cell)
+- Terminal growth rate
+
+Section 2: Profitability Assumptions
+- Base Year EBITDA Margin
+- Target EBITDA Margin
+- Year margin reaches target
+- Margin expansion path (linear, step function, or custom)
+- D&A as % of Revenue (or absolute $ by year)
+- Tax Rate
+
+Section 3: Operating Assumptions
+- CapEx as % of Revenue (or absolute $ by year)
+- NWC as % of Revenue
+- Working capital assumptions
+
+Section 4: Valuation Parameters
+- WACC calculation components:
+  - Cost of Equity
+  - Cost of Debt (if building up from components)
+  - Capital structure weights
+  - Or: Direct WACC input
+- Terminal Growth Rate
+- Projection Period (number of years)
+
+Section 5: Capital Structure
+- Total Debt Outstanding
+- Cash and Cash Equivalents
+- Shares Outstanding (if applicable)
+
+**Tab 3: Revenue & EBITDA Projection**
+
+Column headers: Year 0 (Base), Year 1, Year 2, Year 3, Year 4, Year 5, Terminal Year
+
+Row calculations with formulas:
+- Revenue Growth Rate (%)
+- Revenue ($)
+- EBITDA Margin (%)
+- EBITDA ($)
+
+Each cell must contain formula referencing assumption tab, not hard-coded value.
+
+**Tab 4: Free Cash Flow Build**
+
+Column headers: Year 0 (Base), Year 1, Year 2, Year 3, Year 4, Year 5
+
+Row calculations with formulas:
+- Revenue
+- EBITDA
+- Less: D&A
+- EBIT
+- Less: Taxes
+- NOPAT
+- Add back: D&A
+- Less: CapEx
+- Less: Increase in NWC
+- Unlevered Free Cash Flow
+
+Each cell must reference either the Assumptions tab or previous calculations in same tab.
+
+**Tab 5: DCF Valuation**
+
+Section 1: Present Value of Explicit Period
+- Year, FCF, Discount Factor, Present Value (4 columns)
+- Year 1 through Year N rows
+- Sum row: Total PV of Explicit Period
+
+Section 2: Terminal Value
+- Terminal Year FCF calculation
+- Terminal Value formula: FCF / (WACC - g)
+- Discount factor: 1 / (1 + WACC)^N
+- PV of Terminal Value
+
+Section 3: Enterprise Value Bridge
+- PV of Explicit Period FCFs
+- Plus: PV of Terminal Value
+- Equals: Enterprise Value
+- Less: Debt
+- Plus: Cash
+- Equals: Equity Value
+- Divided by: Shares Outstanding
+- Equals: Value per Share
+
+**Tab 6: Sensitivity Analysis - WACC vs Terminal Growth**
+
+Two-dimensional table structure:
+- Left column: WACC values ranging from (Base WACC - 2%) to (Base WACC + 2%) in 0.5% increments
+- Top row: Terminal Growth values ranging from (Base Terminal Growth - 1%) to (Base Terminal Growth + 1%) in 0.5% increments
+- Interior cells: Equity Value for each combination of WACC and Terminal Growth
+- Base case cell highlighted in yellow
+- Conditional formatting: green for higher values, red for lower values
+
+**Tab 7: Sensitivity Analysis - Revenue Growth vs EBITDA Margin**
+
+Two-dimensional table structure:
+- Left column: Year 1-3 Revenue Growth rates from (Base - 5%) to (Base + 5%) in 2.5% increments
+- Top row: Terminal EBITDA Margin from (Base - 5%) to (Base + 5%) in 2.5% increments
+- Interior cells: Equity Value for each combination
+- Base case cell highlighted in yellow
+- Conditional formatting: green for higher values, red for lower values
+
+**Tab 8: Charts**
+
+Chart 1: Revenue and EBITDA Projection
+- Column chart showing Revenue bars and EBITDA bars side by side for Years 1-5
+- Y-axis: Dollar values
+- X-axis: Years
+- Legend identifying Revenue vs EBITDA
+
+Chart 2: Free Cash Flow Waterfall
+- Waterfall chart showing FCF bridge from EBITDA to FCF for Year 5
+- Starting point: EBITDA
+- Steps down: D&A, Taxes, CapEx, Change in NWC
+- Ending point: Free Cash Flow
+
+Chart 3: Valuation Bridge
+- Waterfall chart from Enterprise Value to Equity Value
+- Starting point: Enterprise Value
+- Step down: Debt
+- Step up: Cash
+- Ending point: Equity Value
+
+Chart 4: Sensitivity Heatmap
+- Heatmap visualization of WACC vs Terminal Growth sensitivity table
+- Color gradient from red (low values) to green (high values)
+
+## Formatting Requirements
+
+**Numerical Formatting:**
+- Dollar values: $#,##0 (millions) or $#,##0.0 (millions with one decimal)
+- Percentages: 0.0% (one decimal place)
+- Growth rates: 0.0% (one decimal place)
+- Multiples: 0.0x (one decimal place)
+
+**Cell Color Coding:**
+- Blue font: User-editable assumption inputs
+- Black font: Calculated values (formulas)
+- Yellow highlight: Base case in sensitivity tables
+- Green/Red conditional formatting: Sensitivity table values
+
+**Cell Protection:**
+- All assumption cells (blue font): Unlocked
+- All calculated cells (black font): Locked
+- Sheet protection enabled with password
+- Allow: Select locked cells, select unlocked cells, format cells
+
+## Error Handling
+
+The function must validate:
+- WACC > Terminal Growth Rate (or terminal value formula breaks)
+- All growth rates are reasonable (typically -50% to +200%)
+- EBITDA margins are between -100% and +100%
+- Tax rate is between 0% and 100%
+- All required fields are present in natural language input
+
+If validation fails, return error message specifying which assumption is problematic.
+
+## Example Input
+
+"Build me a DCF model for CloudTech Inc, a cloud infrastructure company. Their current annual revenue is eight hundred and fifty million dollars. For the first two years, I expect revenue to grow at thirty-five percent year over year. In year three, growth will moderate to twenty-eight percent. Years four and five should see twenty percent growth. After that, assume a perpetual growth rate of four percent for the terminal value calculation. 
+
+Currently, their EBITDA margin is eighteen percent of revenue. Management has guided toward thirty-two percent EBITDA margins by the end of year five. Model a linear expansion in margins from eighteen percent today to thirty-two percent in year five. 
+
+For depreciation and amortization, use six percent of revenue each year. The company operates in a jurisdiction with a twenty-one percent corporate tax rate.
+
+Capital expenditures run at about eight percent of revenue annually, which should continue throughout the projection period. Net working capital requirements are twelve percent of revenue. Calculate the change in net working capital each year.
+
+For the discount rate, use a weighted average cost of capital of eleven point five percent. This reflects their current capital structure and cost of equity and debt.
+
+The company currently has four hundred and twenty million dollars in outstanding debt on their balance sheet. They have one hundred and thirty million in cash and cash equivalents. There are seventy-five million shares outstanding.
+
+Build this as a five-year projection model with full sensitivity analysis on both the WACC and terminal growth rate assumptions."
+
+## Example Output
+
+**File name:** CloudTech_DCF_Model.xlsx
+
+**Tab 1: Executive Summary**
+
+```
+CloudTech Inc - DCF Valuation Model
+Valuation Date: December 3, 2025
+
+VALUATION SUMMARY
+Enterprise Value:           $8,429 million
+Less: Net Debt               $290 million
+Equity Value:              $8,139 million
+Shares Outstanding:           75 million
+Value per Share:             $108.52
+
+KEY ASSUMPTIONS
+Base Year Revenue:           $850 million
+Revenue CAGR (Y1-5):         26.8%
+Terminal Growth Rate:        4.0%
+WACC:                        11.5%
+Terminal EBITDA Margin:      32.0%
+```
+
+**Tab 2: Detailed Assumptions**
+
+```
+REVENUE ASSUMPTIONS
+Base Year Revenue (Year 0):                 $850 million
+Year 1 Growth Rate:                         35.0%
+Year 2 Growth Rate:                         35.0%
+Year 3 Growth Rate:                         28.0%
+Year 4 Growth Rate:                         20.0%
+Year 5 Growth Rate:                         20.0%
+Terminal Growth Rate (Perpetuity):          4.0%
+
+PROFITABILITY ASSUMPTIONS
+Base Year EBITDA Margin:                    18.0%
+Target EBITDA Margin (Year 5):              32.0%
+Margin Expansion Method:                    Linear
+D&A as % of Revenue:                        6.0%
+Corporate Tax Rate:                         21.0%
+
+OPERATING ASSUMPTIONS
+CapEx as % of Revenue:                      8.0%
+NWC as % of Revenue:                        12.0%
+
+VALUATION PARAMETERS
+Weighted Average Cost of Capital (WACC):    11.5%
+Projection Period:                          5 years
+
+CAPITAL STRUCTURE
+Total Debt Outstanding:                     $420 million
+Cash and Cash Equivalents:                  $130 million
+Net Debt:                                   $290 million
+Shares Outstanding:                         75 million
+```
+
+**Tab 3: Revenue & EBITDA Projection**
+
+```
+                        Year 0   Year 1   Year 2   Year 3   Year 4   Year 5
+Revenue Growth Rate       --     35.0%    35.0%    28.0%    20.0%    20.0%
+Revenue ($M)             850    1,148    1,549    1,983    2,379    2,855
+EBITDA Margin (%)       18.0%   21.5%    25.0%    28.5%    30.2%    32.0%
+EBITDA ($M)              153      247      387      565      720      914
+
+[All cells contain formulas]
+Year 1 Revenue formula: =Assumptions!B6*(1+Assumptions!B7)
+Year 1 EBITDA Margin formula: =Assumptions!B13+(Assumptions!B14-Assumptions!B13)*(A2/Assumptions!B19)
+Year 1 EBITDA formula: =B3*B4
+```
+
+**Tab 4: Free Cash Flow Build**
+
+```
+                                Year 0   Year 1   Year 2   Year 3   Year 4   Year 5
+Revenue ($M)                      850    1,148    1,549    1,983    2,379    2,855
+EBITDA ($M)                       153      247      387      565      720      914
+Less: D&A ($M)                    (51)     (69)     (93)    (119)    (143)    (171)
+EBIT ($M)                         102      178      294      446      577      743
+Less: Taxes ($M)                  (21)     (37)     (62)     (94)    (121)    (156)
+NOPAT ($M)                         81      141      232      352      456      587
+Add back: D&A ($M)                 51       69       93      119      143      171
+Less: CapEx ($M)                  (68)     (92)    (124)    (159)    (190)    (228)
+Less: Increase in NWC ($M)       (102)     (36)     (48)     (52)     (48)     (57)
+Unlevered Free Cash Flow ($M)     (38)      82      153      260      361      473
+
+[All cells contain formulas]
+Year 1 Revenue formula: ='Revenue & EBITDA'!B3
+Year 1 D&A formula: =B2*Assumptions!B15
+Year 1 EBIT formula: =B3-B4
+Year 1 Taxes formula: =B5*Assumptions!B16
+Year 1 NOPAT formula: =B5-B6
+Year 1 CapEx formula: =B2*Assumptions!B19
+Year 1 NWC Balance: =B2*Assumptions!B20
+Year 1 Change in NWC formula: =(Current Year NWC)-(Previous Year NWC)
+Year 1 FCF formula: =B7+B8-B9-B10
+```
+
+**Tab 5: DCF Valuation**
+
+```
+PRESENT VALUE OF EXPLICIT PERIOD CASH FLOWS
+
+Year    Free Cash Flow    Discount Factor    Present Value
+        ($M)              (1+WACC)^n         ($M)
+1       82                0.8969             74
+2       153               0.8044             123
+3       260               0.7214             188
+4       361               0.6470             234
+5       473               0.5803             275
+
+Total PV of Years 1-5:                       893
+
+[Formulas]
+Year 1 Discount Factor: =1/(1+Assumptions!B21)^A3
+Year 1 PV: =B3*C3
+
+
+TERMINAL VALUE CALCULATION
+
+Year 6 FCF ($M):                             492
+[Formula: =B7*(1+Assumptions!B12)]
+
+Terminal Value ($M):                         6,560
+[Formula: =B13/(Assumptions!B21-Assumptions!B12)]
+
+Discount Factor (Year 5):                    0.5803
+[Formula: =1/(1+Assumptions!B21)^5]
+
+PV of Terminal Value ($M):                   3,808
+[Formula: =B14*B16]
+
+
+ENTERPRISE VALUE BRIDGE
+
+PV of Explicit Period FCFs ($M):             893
+Plus: PV of Terminal Value ($M):             3,808
+Enterprise Value ($M):                       4,701
+Less: Total Debt ($M):                       (420)
+Plus: Cash ($M):                             130
+Equity Value ($M):                           4,411
+Divided by: Shares Outstanding (M):          75
+Implied Value per Share ($):                 $58.81
+
+[All values contain formulas referencing previous calculations or Assumptions tab]
+```
+
+**Tab 6: Sensitivity Analysis - WACC vs Terminal Growth**
+
+```
+Equity Value ($M)
+Sensitivity to WACC and Terminal Growth Rate
+
+WACC ↓          Term Growth → 2.0%    2.5%    3.0%    3.5%    4.0%    4.5%    5.0%
+9.5%                          5,982   6,289   6,639   7,041   7,506   8,050   8,692
+10.0%                         5,423   5,687   5,986   6,328   6,722   7,179   7,715
+10.5%                         4,932   5,159   5,413   5,699   6,024   6,396   6,826
+11.0%                         4,498   4,695   4,915   5,163   5,443   5,762   6,128
+11.5% (BASE)                  4,112   4,285   4,477   4,692   4,933   5,206   5,517
+12.0%                         3,767   3,920   4,089   4,277   4,487   4,723   4,991
+12.5%                         3,457   3,593   3,743   3,909   4,095   4,303   4,537
+13.0%                         3,177   3,299   3,433   3,582   3,748   3,933   4,140
+13.5%                         2,924   3,034   3,155   3,289   3,438   3,604   3,790
+
+[Base case cell (WACC=11.5%, Terminal Growth=4.0%) is highlighted in yellow]
+[Conditional formatting: Green for values >$4,933M, Red for values <$4,933M]
+[Each cell contains formula recalculating Equity Value with specific WACC and Terminal Growth inputs]
+
+Cell formula example (WACC=11.5%, Terminal Growth=4.0%):
+Uses same DCF calculation as Tab 5 but substitutes this row's WACC and this column's Terminal Growth
+```
+
+**Tab 7: Sensitivity Analysis - Revenue Growth vs EBITDA Margin**
+
+```
+Equity Value ($M)
+Sensitivity to Year 1-3 Revenue Growth and Terminal EBITDA Margin
+
+Rev Growth ↓    EBITDA Margin → 27.0%   29.0%   30.0%   31.0%   32.0%   33.0%   34.0%
+30.0%                           3,421   3,682   3,819   3,961   4,107   4,258   4,415
+32.5%                           3,728   4,010   4,158   4,311   4,469   4,633   4,803
+35.0% (BASE)                    4,057   4,363   4,522   4,687   4,858   5,035   5,219
+37.5%                           4,411   4,743   4,916   5,095   5,281   5,474   5,674
+40.0%                           4,791   5,152   5,341   5,538   5,741   5,952   6,171
+
+[Base case cell (Growth=35%, Margin=32%) is highlighted in yellow]
+[Each cell contains formula recalculating entire model with adjusted growth and margin assumptions]
+```
+
+**Tab 8: Charts**
+
+Chart 1: Revenue and EBITDA Projection
+[Clustered column chart with two data series]
+- X-axis labels: Year 1, Year 2, Year 3, Year 4, Year 5
+- Y-axis: $0 to $3,000M in $500M increments
+- Blue columns: Revenue ($1,148M, $1,549M, $1,983M, $2,379M, $2,855M)
+- Orange columns: EBITDA ($247M, $387M, $565M, $720M, $914M)
+- Chart title: "CloudTech Revenue and EBITDA Projection"
+- Legend: Revenue, EBITDA
+
+Chart 2: Year 5 Free Cash Flow Bridge
+[Waterfall chart]
+- Starting point (floating bar): EBITDA $914M
+- Step down (red bar): D&A ($171M) → cumulative $743M
+- Step down (red bar): Taxes ($156M) → cumulative $587M
+- Step up (green bar): Add back D&A $171M → cumulative $758M
+- Step down (red bar): CapEx ($228M) → cumulative $530M
+- Step down (red bar): Change in NWC ($57M) → ending $473M
+- Ending point (floating bar): Free Cash Flow $473M
+- Chart title: "Year 5 Free Cash Flow Build"
+
+Chart 3: Enterprise to Equity Value Bridge
+[Waterfall chart]
+- Starting point: Enterprise Value $4,701M
+- Step down (red): Debt ($420M) → cumulative $4,281M
+- Step up (green): Cash $130M → ending $4,411M
+- Ending point: Equity Value $4,411M
+- Chart title: "Enterprise Value to Equity Value Bridge"
+
+Chart 4: WACC vs Terminal Growth Sensitivity Heatmap
+[Conditional formatting heatmap visualization]
+- X-axis: Terminal Growth Rate from 2.0% to 5.0%
+- Y-axis: WACC from 9.5% to 13.5%
+- Color scale: Red ($2,924M) → Yellow ($4,933M) → Green ($8,692M)
+- Data labels showing equity value in each cell
+- Chart title: "Equity Value Sensitivity ($M)"
+
+## File Delivery Specifications
+
+**File format:** .xlsx (Excel 2016 or later)
+**File size:** Typically 200-500 KB
+**Compatibility:** Excel 2016+, Google Sheets (with minor formatting differences)
+**Download method:** Direct download link generated immediately upon completion
+**File naming convention:** [CompanyName]_DCF_Model_[Date].xlsx
+
+All formulas must remain intact and editable. No values should be hard-coded except in the blue-font assumption cells. All calculation cells must contain formulas that reference assumption cells or other calculated cells, ensuring the entire model updates dynamically when any assumption is changed.

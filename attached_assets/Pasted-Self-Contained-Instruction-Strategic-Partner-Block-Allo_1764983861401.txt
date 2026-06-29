@@ -1,0 +1,73 @@
+Self-Contained Instruction: Strategic Partner Block Allocation
+
+Purpose: Adjust the IPO pricing confidence to account for guaranteed demand from a strategic partner.
+
+New Inputs to Collect:
+
+strategic_partner_shares - Number of shares guaranteed to partner (in millions, e.g., 10)
+
+partner_price - Price they pay (typically "IPO price" or a formula)
+
+Implementation Logic:
+
+python
+# Add after calculating final_offer_price but before finalizing
+
+if strategic_partner_shares > 0:
+    strategic_shares_actual = strategic_partner_shares * 1_000_000
+    
+    # 1. REDUCE the primary shares that need to be marketed to the public
+    # The partner takes some of the allocation
+    public_shares_to_market = primary_shares - strategic_shares_actual
+    
+    # 2. INCREASE confidence → REDUCE the IPO discount
+    # Example: If standard discount is X%, with strategic partner reduce by Y%
+    confidence_boost = 0.05  # 5% reduction in discount (adjustable)
+    adjusted_discount = max(ipo_discount - confidence_boost, 0.05)  # Don't go below 5%
+    
+    # Recalculate price with reduced discount
+    final_offer_price = final_theoretical_price * (1 - adjusted_discount)
+    
+    # 3. Recalculate primary shares needed with new price
+    primary_shares = (primary_raise_target * 1_000_000) / final_offer_price
+    
+    # 4. Ensure partner allocation fits within total primary shares
+    if strategic_shares_actual > primary_shares:
+        strategic_shares_actual = primary_shares  # Cap at available shares
+    
+    print(f"✓ Strategic Partner: {strategic_partner_shares}M shares guaranteed")
+    print(f"  Discount reduced from {ipo_discount:.1%} to {adjusted_discount:.1%}")
+    
+    # Add to output report
+    # ... reporting logic
+else:
+    strategic_shares_actual = 0
+Alternative Simpler Approach (More Realistic):
+
+python
+# Just adjust the discount directly based on partner size
+if strategic_partner_shares > 0:
+    partner_percentage = strategic_partner_shares / (pre_ipo_shares * 0.10)  # % of float
+    confidence_multiplier = min(1.0 + (partner_percentage * 0.3), 1.15)  # Max 15% boost
+    
+    # Apply to theoretical price BEFORE discount
+    boosted_theoretical = final_theoretical_price * confidence_multiplier
+    final_offer_price = boosted_theoretical * (1 - ipo_discount)  # Keep same discount
+    
+    print(f"✓ Strategic Partner boost: Valuation × {confidence_multiplier:.2f}")
+Add to Output Report:
+
+text
+STRATEGIC PARTNER ALLOCATION:
+- Partner: [Name]
+- Guaranteed Shares: [X]M shares
+- Price: IPO Price ($[price])
+- Effect: Increased offer price by [X]% due to guaranteed demand
+Test Case:
+If base calculation gives $20.00 price with 20% discount:
+
+With strategic partner (10M shares), discount might reduce to 15%
+
+New price = Theoretical $25.00 × (1 - 0.15) = $21.25 (higher than $20.00)
+
+The core idea: Guaranteed demand increases pricing power.

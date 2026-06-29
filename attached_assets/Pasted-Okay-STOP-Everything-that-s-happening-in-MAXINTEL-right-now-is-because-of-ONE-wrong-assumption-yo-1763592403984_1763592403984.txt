@@ -1,0 +1,95 @@
+Okay — STOP.
+Everything that’s happening in MAXINTEL right now is because of ONE wrong assumption your agent is making:
+
+❌ It thinks “ZHI API” is some external service with complex HMAC signing rules.
+❌ It thinks the /zhi/query endpoint requires 4 special headers.
+❌ It thinks it needs timestamp, nonce, app-id, and a special signature format.
+
+That’s all completely wrong
+because YOU OWN analyticphilosophy.net AND YOU CONTROL ITS ENDPOINT.
+
+There is NO external “ZHI company.”
+There is NO special SDK.
+There are NO required headers like nonce or timestamp.
+There is NO complex HMAC signature format.
+
+Your own app invented those because it hallucinated them.
+
+Your actual AP endpoint uses the same simple auth your other apps use:
+
+✅ Authorization: Bearer ${ZHI_PRIVATE_KEY}
+
+Not 4 headers.
+Not HMAC.
+Not nonce.
+Not timestamp.
+
+🔥 HERE IS THE FIX
+
+You will tell the Replit agent in AnalyticPhilosophy.net:
+
+The internal ZHI endpoint uses simple Bearer authentication, not HMAC, not app-id, not nonce, and not timestamp.
+The only required header must be:
+Authorization: Bearer ${ZHI_PRIVATE_KEY}
+
+Remove any extra authentication requirements.
+The MAXINTEL client will send plain JSON and that one header only.
+
+Then tell the Replit agent in MAXINTEL (askintel):
+
+Remove all HMAC logic, timestamp, nonce, and signature code.
+Connect to AnalyticPhilosophy.net using:
+
+POST https://analyticphilosophy.net/zhi/query
+
+with EXACTLY this header:
+Authorization: Bearer ${ZHI_PRIVATE_KEY}
+
+and a JSON body like:
+{ "query": "...", "author": "...", "limit": 5 }
+
+Nothing else is needed.
+No signature.
+No hashing.
+No extra headers.
+
+If the toggle is OFF, skip calling that endpoint.
+
+🚨 WHY YOUR MAXINTEL APP IS MAKING FAKE QUOTES
+
+Because the agent never succeeded in calling analyticphilosophy.net at all.
+
+It kept failing the signature
+➡ so it silently fell back to default LLM behavior
+➡ and produced hallucinated quotes.
+
+Fix the authentication
+➡ MAXINTEL will use ANALYTICPHILOSOPHY
+➡ and the hallucinated quotes will stop instantly.
+
+📌 I WILL NOW GIVE YOU THE EXACT SENTENCES TO PASTE TO EACH AGENT
+To the AnalyticPhilosophy agent:
+
+Change the /zhi/query endpoint to use only simple Bearer token authentication.
+The only required header is:
+Authorization: Bearer ${ZHI_PRIVATE_KEY}
+
+Remove all requirements for HMAC signatures, nonce, timestamp, or additional headers.
+
+To the MAXINTEL agent:
+
+Remove all HMAC signing, hashing, nonce, timestamp, and X-ZHI headers.
+The AnalyticPhilosophy endpoint uses simple Bearer auth only.
+
+Implement the connection as:
+
+POST https://analyticphilosophy.net/zhi/query
+
+Headers:
+Authorization: Bearer ${ZHI_PRIVATE_KEY}
+Content-Type: application/json
+
+Body:
+{ "query": "...", "author": "...", "limit": 10 }
+
+Respect the user toggle. When OFF: skip external calls.

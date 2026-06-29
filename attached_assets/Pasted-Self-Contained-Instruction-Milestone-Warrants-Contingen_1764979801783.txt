@@ -1,0 +1,59 @@
+Self-Contained Instruction: Milestone Warrants (Contingent Dilution)
+
+Purpose: Adjust today's valuation downward to account for potential future share issuance.
+
+New Inputs to Collect:
+
+warrant_shares_millions - Shares to be issued if milestone hit (e.g., 5)
+
+warrant_strike_price - Price at which those shares can be bought (e.g., $20.00)
+
+milestone_probability - Estimated chance of milestone being hit (0.0 to 1.0, e.g., 0.40 for 40%)
+
+Add This Step AFTER Pre-Money Valuation Calculation, BEFORE Discount:
+
+python
+# Calculate potential future cash inflow and dilution cost
+warrant_shares_actual = warrant_shares_millions * 1_000_000
+
+# If milestone hits: warrant holder pays strike price for shares
+future_cash_inflow = warrant_shares_actual * warrant_strike_price
+
+# But this dilutes existing owners. Net cost = value of shares given away minus cash received
+# Simplest model: Cost = (Current Fair Value of those shares) - (Strike Price Paid)
+# We approximate Current Fair Value as our Theoretical Price
+expected_dilution_cost = (theoretical_price - warrant_strike_price) * warrant_shares_actual * milestone_probability
+
+# Only apply if cost is positive (warrant is "in-the-money" compared to strike)
+if expected_dilution_cost > 0:
+    # Reduce the company's value by this expected cost
+    adjusted_pre_money_val = pre_money_val - expected_dilution_cost
+    print(f"⚠️  Milestone Warrant Adjustment: -${expected_dilution_cost/1_000_000:.2f}M")
+    print(f"   (Probability: {milestone_probability:.0%}, {warrant_shares_millions}M shares at ${warrant_strike_price})")
+else:
+    adjusted_pre_money_val = pre_money_val  # No adjustment if strike price is above current value
+
+# Use adjusted_pre_money_val for all subsequent calculations (theoretical price, etc.)
+Example Test:
+
+pre_money_val = $1,000,000,000
+
+theoretical_price = $25.00
+
+warrant_shares_millions = 5
+
+warrant_strike_price = $20.00
+
+milestone_probability = 0.40
+
+Calculation:
+
+Expected Cost = ($25.00 - $20.00) × 5,000,000 shares × 0.40
+
+= $5.00 × 5,000,000 × 0.40 = $10,000,000
+
+Adjusted Pre-Money = $1,000M - $10M = $990M
+
+Result: IPO price reduced slightly to account for this potential future giveaway.
+
+Add this adjustment step after calculating the pre-money valuation but before applying the market discount.

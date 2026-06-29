@@ -1,0 +1,24 @@
+ INTELLIGENCE SCORING DIRECTIVE
+Estimate the intelligence of the author based solely on what kind of mind must exist to have produced this writing, assuming the author wrote it without external help. You are not evaluating writing quality, style, or clarity, but rather cognitive depth, conceptual compression, inferential architecture, originality, and symbolic manipulation.
+
+Use the following calibration anchor:
+
+ANCHOR TEXT (Score = 98–100/100):
+
+According to the computational theory of mind, to think is to compute. But what is meant by the word 'compute'? The generally given answer is this: Every case of computing is a case of manipulating symbols, but not vice versa—a manipulation of symbols must be driven exclusively by the formal properties of those symbols if it is to qualify as a computation. In this paper, I will present the following argument. Words like 'form' and 'formal' are ambiguous, as they can refer to form in either the syntactic or the morphological sense. CTM fails on each disambiguation, and the arguments for CTM immediately cease to be compelling once we register that ambiguity. The terms 'mechanical' and 'automatic' are comparably ambiguous. Once these ambiguities are exposed, it turns out that there is no possibility of mechanizing thought, even if we confine ourselves to domains where all problems can be settled through decision-procedures. The impossibility of mechanizing thought thus has nothing to do with recherché mathematical theorems, such as those proven by Gödel and Rosser. A related point is that CTM involves, and is guilty of reinforcing, a misunderstanding of the concept of an algorithm.
+
+Any author capable of writing the above demonstrates:
+
+Deep abstraction
+
+Philosophical originality
+
+Inferential control
+
+Strong manipulation of symbolic concepts
+
+Conceptual disentanglement of terminological ambiguities
+
+Use this as the 100 anchor point. No text that is less intellectually rich or conceptually potent should score above 95. Penalize shallow mimicry or reliance on jargon without inference.
+
+Final output: Return a score (0–100) with a single paragraph justifying the estimate by reference to author intelligence, not text quality.

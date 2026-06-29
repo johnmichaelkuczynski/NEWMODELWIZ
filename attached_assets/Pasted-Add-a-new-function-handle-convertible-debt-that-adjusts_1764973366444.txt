@@ -1,0 +1,61 @@
+Add a new function handle_convertible_debt that adjusts the share count and valuation before final price calculation.
+
+Step 1: Add New Inputs
+Add these inputs to your core data collection:
+
+convertible_debt_amount (in millions, e.g., 450)
+
+conversion_trigger_price (e.g., 15.00)
+
+conversion_shares (e.g., 30.0) // millions of shares debt converts into
+
+Step 2: Create Adjustment Logic
+In your calculation engine, BEFORE calculating the final offer price, insert this logic:
+
+text
+# PSEUDOCODE
+pre_ipo_shares_original = pre_ipo_shares  # Save the original count
+
+# 1. Calculate initial price WITHOUT conversion
+initial_pre_money_val = ltm_revenue * industry_multiple
+initial_theoretical_price = initial_pre_money_val / pre_ipo_shares_original
+tentative_offer_price = initial_theoretical_price * (1 - ipo_discount)
+
+# 2. Check conversion trigger
+if tentative_offer_price > conversion_trigger_price:
+    # DEBT CONVERTS: Add conversion shares
+    adjusted_pre_ipo_shares = pre_ipo_shares_original + conversion_shares
+    
+    # 3. RECALCULATE everything with new share count
+    # Recalc pre-money valuation (same business value, spread over more shares)
+    new_pre_money_val = ltm_revenue * industry_multiple  # Same as before
+    new_theoretical_price = new_pre_money_val / adjusted_pre_ipo_shares
+    final_offer_price = new_theoretical_price * (1 - ipo_discount)
+    
+    # 4. Check if still above trigger (sanity check)
+    if final_offer_price < conversion_trigger_price:
+        # If dilution pushed price below trigger, revert (edge case)
+        final_offer_price = conversion_trigger_price + 0.01  # Force just above
+else:
+    # No conversion
+    adjusted_pre_ipo_shares = pre_ipo_shares_original
+    final_offer_price = tentative_offer_price
+
+# Use adjusted_pre_ipo_shares and final_offer_price for all remaining calculations
+Step 3: Report the Decision
+Add to your output report:
+
+text
+Convertible Debt Treatment:
+- Trigger Price: $15.00
+- Debt Amount: $450M
+- Conversion Shares: 30.0M
+- Conversion Activated: YES/NO
+- Adjusted Pre-IPO Shares: [new share count]
+Test Case:
+Use your original Quantum Compute Inc. example:
+
+conversion_trigger_price = 15
+
+conversion_shares = 30
+With your other inputs, the tentative price should be >$15, triggering conversion, adding 30M shares, and slightly lowering the final price.

@@ -1,0 +1,96 @@
+**Single Problem: Parsing Structured Convertible Instruments**
+
+**PROBLEM:** The app ignores the `convertibles` list input and treats all convertibles as "N/A".
+
+**CURRENT STATE:** Assumptions sheet shows:
+```
+CONVERTIBLE DEBT
+Convertible Debt Amount: N/A
+Conversion Trigger Price: N/A  
+Conversion Shares: N/A
+```
+
+But input had:
+```python
+convertibles = [
+    {"type": "SAFE", "amount": 85, "trigger": "lower_of", "price1": 14.50, "price2": "0.85*IPO"},
+    {"type": "Debt", "amount": 120, "trigger": "price_gt", "price": 16.00, "condition": "IPO>15"},
+    {"type": "Grant", "amount": 45, "shares": 2.25, "probability": 0.80, "trigger": "tech_milestone"}
+]
+```
+
+**REQUIRED FIX:** Parse the structured list and calculate probability-weighted conversion shares.
+
+**NEW LOGIC TO ADD:**
+
+```python
+def process_convertibles(convertibles_list, tentative_ipo_price):
+    """
+    Process list of convertible instruments.
+    Returns: total expected conversion shares (in millions)
+    """
+    total_conversion_shares = 0
+    
+    for conv in convertibles_list:
+        if conv["type"] == "SAFE":
+            # Calculate conversion price: lower of $14.50 or 85% of IPO
+            price_option1 = conv["price1"]
+            price_option2 = 0.85 * tentative_ipo_price
+            conversion_price = min(price_option1, price_option2)
+            
+            shares = conv["amount"] / conversion_price  # in millions
+            total_conversion_shares += shares
+            print(f"  SAFE: ${conv['amount']}M → {shares:.3f}M shares @ ${conversion_price:.2f}")
+            
+        elif conv["type"] == "Debt":
+            # Check if condition met: IPO > $15
+            if tentative_ipo_price > conv.get("condition", 0):
+                shares = conv["amount"] / conv["price"]
+                total_conversion_shares += shares
+                print(f"  Debt: ${conv['amount']}M → {shares:.3f}M shares @ ${conv['price']:.2f}")
+            else:
+                print(f"  Debt: ${conv['amount']}M → NOT CONVERTED (IPO ${tentative_ipo_price:.2f} ≤ ${conv.get('condition', 0):.2f})")
+                
+        elif conv["type"] == "Grant":
+            # Probability-weighted shares
+            expected_shares = conv["shares"] * conv.get("probability", 1.0)
+            total_conversion_shares += expected_shares
+            print(f"  Grant: ${conv['amount']}M → {expected_shares:.3f}M shares (expected, {conv.get('probability', 1.0):.0%} probability)")
+    
+    return total_conversion_shares
+```
+
+**INTEGRATION POINT:** Add this **after** calculating `tentative_ipo_price` but **before** finalizing share count.
+
+```python
+# In main calculation flow:
+tentative_ipo_price = theoretical_price * (1 - ipo_discount)
+
+# NEW: Process convertibles
+if convertibles_list:  # If structured input provided
+    print("\nCONVERTIBLE INSTRUMENT ANALYSIS:")
+    extra_shares = process_convertibles(convertibles_list, tentative_ipo_price)
+    # Add to share count
+    adjusted_pre_ipo_shares = pre_ipo_shares + extra_shares
+else:
+    # Fallback to old logic
+    adjusted_pre_ipo_shares = pre_ipo_shares
+```
+
+**EXPECTED OUTPUT FOR SIGMA QUANTUM (with $180.08 tentative price):**
+```
+CONVERTIBLE INSTRUMENT ANALYSIS:
+  SAFE: $85M → 5.862M shares @ $14.50 (min of $14.50 vs $153.07)
+  Debt: $120M → 7.500M shares @ $16.00 (IPO $180.08 > $15)
+  Grant: $45M → 1.800M shares (expected, 80% probability)
+Total Conversion Shares: 15.162M
+```
+
+**TEST:** Create a minimal input with just:
+- Basic financials ($92M revenue, etc.)
+- The `convertibles` list above
+- No other complexities
+
+The app should output the **15.162M conversion shares** calculation and increase the share count accordingly.
+
+**This fixes ONE specific problem: reading structured convertible inputs.**

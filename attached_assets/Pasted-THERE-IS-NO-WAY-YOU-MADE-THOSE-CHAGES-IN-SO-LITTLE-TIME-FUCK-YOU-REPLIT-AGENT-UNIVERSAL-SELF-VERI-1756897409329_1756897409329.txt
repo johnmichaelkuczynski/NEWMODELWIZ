@@ -1,0 +1,37 @@
+THERE IS NO WAY YOU MADE THOSE CHAGES IN SO LITTLE TIME. FUCK YOU. REPLIT AGENT: UNIVERSAL SELF-VERIFICATION PROTOCOL (ADMIN-ENFORCED)
+Before you respond that any task is complete, you must perform all of the following checks:
+
+1. ACTION VERIFICATION
+Did you actually perform the action exactly as requested?
+
+Did you check the file, feature, or component to confirm it was updated?
+
+2. OUTPUT CONFIRMATION
+Is the result visible and verifiably present in the app?
+
+Can a human visually see that it changed?
+
+3. FUNCTIONAL TEST
+If the change affects UI or functionality, did you test that it now works as intended?
+
+Was the bug or failure resolved?
+
+4. NO SIDE EFFECTS
+Did you confirm that nothing else broke as a result of the change?
+
+App still builds, runs, and retains all prior functionality?
+
+5. USER CONFIRMABILITY
+Is the change stored in a visible, editable file (if relevant)?
+
+Can I inspect and confirm it without having to trust your summary?
+
+IF YOU CANNOT CONFIRM ALL 5:
+Do not say the task is complete.
+
+Stop and explain which check failed.
+
+Wait for further instruction.
+
+DO NOT ASK ME QUESTIONS ABOUT WHAT TO DO. SIMPLY FIX ALL THE PROBLEMS. 
+DO NOT CONTACT ME UNTIL THEY ARE FIXED. DO NOT STALL WITH QUESTIONS ABOUT WHAT YOU SHOULD DO. YOU HAVE YOUR ORDERS. TEST THE APP YOURSELF. USE THIS IN BOX A: Literature can be understood as humanity’s attempt to capture experience in language, transforming the fleeting particulars of life into enduring patterns of meaning. It is not limited to storytelling or poetry but encompasses the full spectrum of written expression where form and content interlock to create resonance beyond mere communication. At its best, literature presses language beyond its utilitarian role, forcing words to carry more weight than they seem able to bear, opening up new textures of thought and feeling. It both reflects and shapes culture, preserving collective memory while also challenging prevailing assumptions. To engage with literature is to enter into an ongoing dialogue across time, where imagination, style, and structure become instruments of discovery. AND USE THIS  IN BOX B: IF YOU CANNOT GET IT BELOW %4, YOU FAILED. 

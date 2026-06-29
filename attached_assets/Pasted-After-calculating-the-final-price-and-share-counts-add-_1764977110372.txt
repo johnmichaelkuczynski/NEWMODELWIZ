@@ -1,0 +1,73 @@
+After calculating the final price and share counts, add this logic:
+
+text
+# INPUT: founder_shares, founder_vote_multiplier (e.g., 10)
+# INPUT: public_vote_multiplier (always 1)
+# INPUT: control_threshold (e.g., 0.40 for 40%)
+
+total_founder_votes = founder_shares * founder_vote_multiplier
+total_public_votes = public_shares * public_vote_multiplier  # public_shares = Post-IPO shares not held by founders
+
+founder_voting_percentage = total_founder_votes / (total_founder_votes + total_public_votes)
+
+if founder_voting_percentage < control_threshold:
+    print("WARNING: Founders will lose control. Voting power = ", founder_voting_percentage)
+This does NOT change the IPO price. It just warns if the deal structure violates the founders' control requirement. It's a pass/fail check on the structure, not part of the valuation.
+
+GIVE ME A SELF-CONTAINED INSTRUCTION THAT DEALS WITH THIS THATI WILL GIVE VERBATIM TO REPLIT APP
+Self-Contained Instruction: Dual-Class Share Voting Check
+
+Purpose: Add a validation step to ensure founders retain required voting control post-IPO.
+
+New Inputs to Collect:
+
+founder_shares_millions - Number of shares held by founders (in millions)
+
+founder_vote_multiplier - Votes per founder share (e.g., 5, 10, 20)
+
+control_threshold - Minimum voting % founders require (e.g., 0.40 for 40%)
+
+Add This Logic AFTER All Price & Share Calculations:
+
+python
+# Convert to actual shares
+founder_shares_actual = founder_shares_millions * 1_000_000
+
+# Calculate total votes
+founder_votes = founder_shares_actual * founder_vote_multiplier
+public_votes = (post_ipo_shares - founder_shares_actual) * 1  # All non-founder shares get 1 vote
+
+# Calculate founder control percentage
+total_votes = founder_votes + public_votes
+founder_voting_power = founder_votes / total_votes
+
+# Validation Check
+if founder_voting_power < control_threshold:
+    print("⚠️  CRITICAL WARNING: Voting Control Breached")
+    print(f"   Founders will have only {founder_voting_power:.1%} voting power")
+    print(f"   Required threshold: {control_threshold:.1%}")
+else:
+    print(f"✓ Voting Control Secured: Founders have {founder_voting_power:.1%} voting power")
+
+# Add to output report under "Governance" section
+Example Test:
+
+Post-IPO shares: 25,000,000
+
+Founder shares: 10,000,000
+
+Founder vote multiplier: 5x
+
+Control threshold: 40%
+
+Calculation:
+
+Founder votes = 10M × 5 = 50M votes
+
+Public votes = (25M - 10M) × 1 = 15M votes
+
+Total votes = 65M votes
+
+Founder % = 50M / 65M = 76.9% → PASS
+
+Add this block to your app after the main IPO price is calculated. It doesn't change the price—it only validates the structure meets the founders' control requirement.

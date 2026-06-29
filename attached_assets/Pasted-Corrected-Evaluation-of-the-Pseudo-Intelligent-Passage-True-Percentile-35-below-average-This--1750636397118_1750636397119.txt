@@ -1,0 +1,34 @@
+Corrected Evaluation of the “Pseudo-Intelligent” Passage
+True Percentile: 35% (below average)
+
+This writing simulates intellectual depth through terminology without delivering actual conceptual content. It is a classic example of pseudo-intelligent impostor prose.
+
+🔍 Executive Summary:
+The passage uses advanced-sounding language but lacks coherent logical structure or genuine conceptual synthesis. Though superficially dense, it fails key tests of intelligence: compression, inference, asymmetry, and epistemic resistance. It combines familiar philosophical buzzwords—“intersubjective,” “phenomenological,” “polycentric”—in ways that seem meaningful but reveal no real argumentative structure. This is performative, not cognitive, complexity.
+
+✂️ Semantic Compression: 2.5/10
+Key Quote: “The conceptual scaffolding of intersubjective normativity, when cross-analyzed with non-hierarchical phenomenological structures, reveals a recursive landscape…”
+
+This sentence pretends to compress, but actually inflates. None of the terms are anchored. There’s no reduction of complexity—just stacking of ambiguities. A sentence like this is opaque not because it is deep, but because it contains no resolvable content.
+
+🔗 Inferential Control: 3.0/10
+There is no clear inferential chain. The conclusion that “agency is a semiotic event” doesn’t follow from anything—nor is it even a meaningful statement. Each clause floats independently. No real cause-effect, no derivation, no propositional tension. It mimics reasoning but doesn’t reason.
+
+⚠️ Cognitive Risk: 1.5/10
+There’s no risk here. The author hides behind multisyllabic shields, ensuring no claim can be tested or refuted. It feels like highbrow word salad, precisely because it is designed not to provoke serious response. There's no vulnerability—no epistemic stakes.
+
+🧠 Meta-Theoretical Awareness: 1.0/10
+The text shows zero reflection on its own mode of discourse. It imitates academic language, but offers no awareness of what the jargon conceals or reveals. No horizon of reflection. Just noise in fancy clothing.
+
+🧬 Conceptual Innovation: 1.0/10
+Terms like “fluid interface” and “emergent horizon of discontinuous legitimacy” are pure stylistic flourishes. No actual framework is being built. These are concept shells with no scaffolding.
+
+🧱 Epistemic Resistance: 2.0/10
+The passage may appear hard to understand, but that’s not resistance—it’s opacity. Epistemic resistance comes from layered argument, not confusion. This is unreadable because it's content-empty, not because it’s deep.
+
+🧾 Verdict:
+This is not advanced philosophy. It’s AI bait: the kind of writing that bamboozles surface-level metrics by being long, multisyllabic, and referentially hollow. If your app is flagging this as genius, it's measuring vocabulary, not intelligence.
+
+🔧 Replit Instruction (Verbatim):
+"Please revise the scoring logic in the Intelligence Meter so that high-level vocabulary or dense terminology does not automatically raise intelligence scores. Add a filter that penalizes texts with no observable inferential structure, low semantic anchoring, or excessive jargon unconnected to functional propositions. Specifically, use 'pseudo-intelligent impostor prose' as a test case—texts that simulate complexity but lack compression, asymmetry, or friction must score below the 50th percentile."
+

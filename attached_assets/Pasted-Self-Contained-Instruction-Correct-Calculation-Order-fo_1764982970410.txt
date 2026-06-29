@@ -1,0 +1,98 @@
+Self-Contained Instruction: Correct Calculation Order for Multiple Edge Cases
+
+PROBLEM: When both convertible debt and milestone warrants exist, they must be processed in the correct sequence.
+
+CORRECT ORDER OF OPERATIONS:
+
+Calculate Base Valuation (blended or single multiple)
+
+Process CONVERTIBLE DEBT → Adjusts SHARE COUNT
+
+Process MILESTONE WARRANTS → Adjusts VALUATION using NEW share count
+
+Calculate final price, shares, etc.
+
+CODE STRUCTURE:
+
+python
+# === STEP 1: BASE VALUATION ===
+# (Your existing blended/single multiple calculation)
+if valuation_method == "blended":
+    revenue_val = ltm_revenue * revenue_multiple
+    ebitda_val = ltm_ebitda * ebitda_multiple
+    base_pre_money = (revenue_val * revenue_weight) + (ebitda_val * ebitda_weight)
+else:
+    base_pre_money = ltm_revenue * revenue_multiple  # or ebitda
+
+# === STEP 2: CONVERTIBLE DEBT (Adjusts SHARE COUNT) ===
+pre_conversion_shares = pre_ipo_shares * 1_000_000
+conv_shares_actual = conv_shares * 1_000_000 if conv_shares else 0
+
+# First pass price to check trigger
+first_pass_price = base_pre_money / pre_conversion_shares
+tentative_discounted_price = first_pass_price * (1 - ipo_discount)
+
+if conv_trigger_price and tentative_discounted_price > conv_trigger_price:
+    # DEBT CONVERTS: Add shares
+    adjusted_shares = pre_conversion_shares + conv_shares_actual
+    conversion_activated = True
+else:
+    adjusted_shares = pre_conversion_shares
+    conversion_activated = False
+
+# === STEP 3: MILESTONE WARRANTS (Adjusts VALUATION) ===
+# Calculate theoretical price WITH converted shares (if any)
+theoretical_price_post_conv = base_pre_money / adjusted_shares
+
+if warrant_shares > 0 and theoretical_price_post_conv > warrant_strike_price:
+    warrant_shares_actual = warrant_shares * 1_000_000
+    # Expected dilution cost
+    warrant_cost = (theoretical_price_post_conv - warrant_strike_price) * warrant_shares_actual * milestone_prob
+    adjusted_pre_money = base_pre_money - warrant_cost
+else:
+    adjusted_pre_money = base_pre_money
+    warrant_cost = 0
+
+# === STEP 4: FINAL CALCULATIONS ===
+# Recalculate with BOTH adjustments
+final_theoretical_price = adjusted_pre_money / adjusted_shares
+final_offer_price = final_theoretical_price * (1 - ipo_discount)
+
+# Primary shares to issue
+primary_shares = (primary_raise_target * 1_000_000) / final_offer_price
+EXAMPLE TEST with Iota Robotics Inputs:
+
+Given:
+
+ltm_revenue = 42, ltm_ebitda = 3
+
+revenue_multiple = 9, ebitda_multiple = 14, revenue_weight = 0.7
+
+pre_ipo_shares = 10M
+
+conv_trigger = 12, conv_shares = 4.167M
+
+warrant_shares = 2.5M, warrant_strike = 18, milestone_prob = 0.75
+
+primary_raise = 60M, ipo_discount = 0.20
+
+Your app should produce:
+
+Base Pre-Money: $277.2M ✓
+
+Convertible Debt: ACTIVATED (price > $12), Adjusted Shares: 14.167M
+
+Theoretical after conversion: $277.2M / 14.167M = $19.57
+
+Warrant Cost: ($19.57 - $18.00) × 2.5M × 0.75 = $2.94M
+
+Adjusted Pre-Money: $277.2M - $2.94M = $274.26M
+
+Final Theoretical: $274.26M / 14.167M = $19.36
+
+Final Offer Price: $19.36 × 0.80 = $15.49
+
+Output should show: Final Offer Price ≈ $15.49 (NOT $14.62)
+
+Implement this exact sequence. The key is: Debt changes shares FIRST, THEN warrants adjust valuation using those new shares.
+

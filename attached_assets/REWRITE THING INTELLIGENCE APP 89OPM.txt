@@ -1,0 +1,95 @@
+**Replit Rewrite App — Full Instruction Set (Intelligence Mode)**
+
+---
+
+### 🔐 PRIMARY OBJECTIVE
+
+Build a rewrite engine that upgrades the *intelligence* of a given input text without dumbing it down, bloating it, or formatting it like machine garbage.
+
+---
+
+### 🔄 REWRITE FUNCTION
+
+#### ✅ Mandatory Behaviors:
+- Preserve or slightly increase **length** (100% to 110% of original)
+- Preserve or **increase** conceptual **depth** and precision
+- Never summarize, simplify, casualize, or inflate
+- Never introduce padding, rhetorical filler, or fake "academic" gibberish
+- Rewrite **sentence-by-sentence** for sharper logic, not stylistic smoothing
+- No markdown or formatting symbols (`###`, `***`, etc.)
+- Final output must be **clean**, **editorial-grade**, and **print-ready**
+
+#### ❌ Forbidden Behaviors:
+- No verbosity without added information
+- No GPT-style bloating or synthetic transitions
+- No journalistic tone
+- No simplification of concepts or logic chains
+
+---
+
+### 👨‍🔧 USER CONTROLS
+
+- Input box where the user pastes original text
+- Dropdown or freeform text field where user specifies desired rewrite behavior
+  - Examples:
+    - "Clarify argument without adding length"
+    - "Preserve structure but elevate tone"
+    - "Make more recursive"
+    - "Add precision without verbosity"
+
+---
+
+### 📥 OUTPUT TOOLS
+
+- “**Copy**” button: Copies rewritten output to clipboard
+- “**Clear**” button: Clears the rewrite output box
+- “**Download**” button:
+  - Options: `.pdf` and `.docx`
+  - Must format with real headers/paragraphs (no code formatting)
+
+---
+
+### 🔮 EVALUATE REWRITE BUTTON
+
+- One-click button to run the rewrite back through the intelligence evaluator
+- Does **not** require user to paste rewritten text into a separate input box
+
+---
+
+### 🔍 AI DETECTION
+
+- “**Detect AI**” button to analyze rewritten output using GPTZero or equivalent API
+- Display verdict clearly: "Likely AI-written" / "Likely Human-written" / "Unclear"
+
+---
+
+### 📧 EMAIL FUNCTIONALITY (SENDGRID)
+
+- Allow user to email rewritten output to self or other
+- Uses verified SendGrid integration
+- Clean email formatting (no markdown artifacts)
+- Subject line: "Your Rewritten Text"
+
+---
+
+### ✨ REWRITE QUALITY CRITERIA
+
+1. **Length**: 100% to 110% of input
+2. **Depth**: Conceptual density must be maintained or increased
+3. **Argument**: No steps dropped; recursive chains preserved
+4. **Clarity**: Improved logic, NOT smoothed fluff
+5. **Format**: No markdown. Clean, printable paragraphs
+6. **Voice**: No tone-softening, unless explicitly requested
+
+---
+
+### 📄 SUMMARY
+
+You are building an **intelligence-focused rewrite engine** with full document utility, flexible control, and high-end formatting/export capability. No summarizing. No smoothing. No markdown artifacts. The app must preserve and sharpen.
+
+Build it like it’s meant for top-tier editors, philosophers, or researchers—because it is.
+
+---
+
+**END OF INSTRUCTION SET**
+

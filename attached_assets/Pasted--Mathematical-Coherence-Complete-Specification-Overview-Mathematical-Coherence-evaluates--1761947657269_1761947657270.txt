@@ -1,0 +1,650 @@
+# Mathematical Coherence: Complete Specification
+
+## Overview
+
+Mathematical Coherence evaluates the logical validity of mathematical proofs, identifies errors, gaps, and invalid steps, and either repairs the proof or—if the original theorem is unprovable—finds the nearest provable theorem and provides a valid proof for it.
+
+This is a specialized coherence type that applies formal logical rigor to mathematical arguments.
+
+**IMPORTANT PLACEMENT:** Add this as an additional option within the Coherence Meter dropdown menu, labeled "Mathematical (Proof Validity)".
+
+---
+
+## Core Concept
+
+Mathematical proofs require **perfect logical coherence**—every step must follow validly from previous steps or established axioms/theorems. Unlike argumentative writing where some looseness is acceptable, mathematical proofs must be **completely rigorous**.
+
+This function:
+1. **Analyzes** attempted proofs for logical validity
+2. **Identifies** errors, gaps, unjustified steps, and invalid inferences
+3. **Repairs** the proof if the theorem is correct but the proof is flawed
+4. **Pivots** if the theorem is false: finds the nearest true theorem and proves that instead
+
+---
+
+## What Mathematical Coherence Checks
+
+### 1. Logical Validity of Steps
+- Does each step follow from previous steps?
+- Are all inferences valid?
+- Are there hidden assumptions?
+
+### 2. Completeness
+- Are there gaps in the argument?
+- Are intermediate steps missing?
+- Does the conclusion actually follow?
+
+### 3. Rigor
+- Are quantifiers used correctly?
+- Are domain/range restrictions respected?
+- Are special cases handled?
+
+### 4. Correctness of Invoked Results
+- Are cited theorems stated correctly?
+- Do they actually apply in this context?
+- Are hypotheses satisfied?
+
+### 5. Overall Provability
+- Is the claimed theorem actually true?
+- If false, what's the nearest true statement?
+
+---
+
+## The Two Output Modes
+
+### Mode A: Proof is Repairable
+**When:** The theorem is correct but the proof has errors
+
+**Output:**
+1. Analysis of errors in original proof
+2. Corrected proof with all gaps filled
+3. Explanation of what was fixed
+
+### Mode B: Theorem is False → Find Nearest True Theorem
+**When:** The claimed theorem cannot be proven because it's false
+
+**Output:**
+1. Explanation of why original theorem is false
+2. Counterexample (if applicable)
+3. Nearest provable theorem (weakened hypothesis, strengthened conclusion, or restricted domain)
+4. Complete valid proof of the new theorem
+5. Explanation of how new theorem relates to original attempt
+
+---
+
+## User Interface Addition
+
+Add to the Coherence Meter dropdown:
+
+```
+Select Coherence Type:
+( ) Logical Consistency - Non-contradiction only
+( ) Logical Cohesiveness - Argumentative structure
+( ) Scientific/Explanatory - Aligns with natural law
+( ) Thematic/Psychological - Emotional & mood flow
+( ) Instructional - Clear, actionable message
+( ) Motivational - Consistent emotional direction
+( ) Mathematical (Proof Validity) - Rigorous proof checking  ← NEW
+(•) Auto-Detect - Let AI determine type
+```
+
+When selected, the interface should show:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📐 Mathematical Coherence (Proof Validity)
+Analyze mathematical proofs for logical validity and rigor
+
+Input Your Proof Attempt:
+_________________________________________________________________
+|                                                               |
+|  Paste proof here... (theorem statement + proof)             |
+|                                                               |
+|_______________________________________________________________|
+
+[ANALYZE PROOF]  [FIX PROOF OR FIND NEAREST THEOREM]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+## Sample Inputs and Outputs
+
+### Sample 1: Repairable Proof (Mode A)
+
+**Input:**
+```
+Theorem: For all real numbers x and y, if x > y, then x² > y².
+
+Proof: 
+Assume x > y.
+Since x > y, we can multiply both sides by x to get x² > xy.
+Similarly, we can multiply both sides by y to get xy > y².
+By transitivity, x² > xy > y², therefore x² > y².
+QED
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MATHEMATICAL COHERENCE ANALYSIS
+
+Proof Status: ⚠ FLAWED BUT REPAIRABLE
+Overall Score: 4/10
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED ANALYSIS:
+
+ERROR 1: Invalid multiplication step (Line 2)
+Location: "multiply both sides by x to get x² > xy"
+Issue: This is only valid if x > 0. If x < 0, the inequality reverses.
+Severity: CRITICAL - proof fails for negative x
+
+ERROR 2: Invalid multiplication step (Line 3)  
+Location: "multiply both sides by y to get xy > y²"
+Issue: This is only valid if y > 0. If y < 0, the inequality reverses.
+Severity: CRITICAL - proof fails for negative y
+
+ERROR 3: Theorem is actually FALSE
+The claim "if x > y then x² > y²" is false.
+Counterexample: Let x = 1, y = -2
+Then x > y (since 1 > -2)
+But x² = 1 and y² = 4, so x² < y² (not x² > y²)
+
+Conclusion: The proof cannot be repaired because the theorem is false.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NEAREST PROVABLE THEOREM:
+
+The original theorem fails because it doesn't account for negative numbers.
+The nearest true theorem requires restricting to positive numbers:
+
+**Corrected Theorem:**
+For all real numbers x and y, if x > y > 0, then x² > y².
+
+**Valid Proof:**
+Assume x > y > 0.
+Since x and y are both positive, we can square both sides of the inequality
+while preserving the direction:
+  x > y
+  ⟹ x · x > y · y    (multiplying by positive numbers preserves inequality)
+  ⟹ x² > y²
+Therefore, x² > y². QED
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSFORMATION EXPLANATION:
+
+ORIGINAL CLAIM: if x > y then x² > y²
+PROBLEM: Fails for negative values (e.g., 1 > -2 but 1 < 4)
+
+CORRECTED CLAIM: if x > y > 0 then x² > y²  
+ADDED RESTRICTION: Both x and y must be positive
+
+WHY THIS WORKS:
+- Squaring function is monotonically increasing on positive reals
+- The restriction to positive numbers ensures squaring preserves order
+- This captures the valid intuition behind the original attempt
+
+RELATIONSHIP TO ORIGINAL:
+Your proof structure was correct for positive numbers. The fix is not in 
+the proof technique but in the theorem statement itself.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+### Sample 2: Repairable Proof (Mode A)
+
+**Input:**
+```
+Theorem: The sum of two even integers is even.
+
+Proof:
+Let m and n be even integers.
+Then m = 2k and n = 2j for some integers k and j.
+So m + n = 2k + 2j = 2(k + j).
+Since k + j is an integer, m + n is even.
+QED
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MATHEMATICAL COHERENCE ANALYSIS
+
+Proof Status: ✓ VALID
+Overall Score: 9/10
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED ANALYSIS:
+
+Structure: CORRECT
+- Proper use of definitions (even integers)
+- Valid algebraic manipulation
+- Correct application of closure property (sum of integers is an integer)
+- Conclusion follows logically
+
+Minor Enhancement Opportunity:
+The proof could be slightly more explicit about why k + j is an integer
+(closure of integers under addition), but this is typically considered obvious.
+
+Verdict: This is a valid, rigorous proof. No repair needed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ENHANCED VERSION (Optional):
+
+Let m and n be even integers.
+By definition of even, there exist integers k and j such that m = 2k and n = 2j.
+Then:
+  m + n = 2k + 2j
+        = 2(k + j)    (factoring)
+
+Since k and j are integers, k + j is an integer (by closure of ℤ under addition).
+Therefore m + n = 2(k + j) where (k + j) ∈ ℤ.
+By definition of even, m + n is even.
+QED
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGES MADE:
+
+• Made definition invocations explicit ("By definition of even...")
+• Made algebraic step explicit ("factoring")
+• Added explicit justification for k+j being an integer
+• Made final conclusion reference definition explicitly
+
+These changes increase formal rigor but the original proof was already valid.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+### Sample 3: Proof with Gaps (Mode A)
+
+**Input:**
+```
+Theorem: If f is differentiable at x = a, then f is continuous at x = a.
+
+Proof:
+Assume f is differentiable at a.
+Then f'(a) exists.
+Therefore f is continuous at a.
+QED
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MATHEMATICAL COHERENCE ANALYSIS
+
+Proof Status: ⚠ INCOMPLETE - MAJOR GAPS
+Overall Score: 3/10
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED ANALYSIS:
+
+ERROR 1: Missing intermediate argument
+Location: Line 3 → Line 4
+Issue: The proof jumps from "f'(a) exists" directly to "f is continuous at a" 
+without showing WHY this is true.
+Severity: CRITICAL - This is the entire content of the theorem
+
+The proof is circular: it states the theorem as if it's obvious, but proving 
+the connection between differentiability and continuity IS the theorem.
+
+What's Missing:
+- Definition of differentiability must be used
+- Definition of continuity must be used  
+- The connection between these definitions must be established
+- Limit calculations must be performed
+
+Verdict: This "proof" is just a restatement of the theorem, not a proof.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPAIRED PROOF:
+
+Theorem: If f is differentiable at x = a, then f is continuous at x = a.
+
+Proof:
+Assume f is differentiable at a.
+By definition, this means:
+
+  f'(a) = lim[h→0] [f(a+h) - f(a)]/h  exists and is finite.
+
+To show f is continuous at a, we must show:
+
+  lim[x→a] f(x) = f(a)
+
+Equivalently (by substitution x = a + h):
+
+  lim[h→0] f(a+h) = f(a)
+
+Now observe:
+  f(a+h) - f(a) = [f(a+h) - f(a)]/h · h
+
+Taking limits as h → 0:
+  lim[h→0] [f(a+h) - f(a)] = lim[h→0] {[f(a+h) - f(a)]/h · h}
+                            = lim[h→0] [f(a+h) - f(a)]/h · lim[h→0] h
+                            = f'(a) · 0    (since f'(a) exists and is finite)
+                            = 0
+
+Therefore:
+  lim[h→0] f(a+h) = lim[h→0] [f(a) + (f(a+h) - f(a))]
+                   = f(a) + lim[h→0] [f(a+h) - f(a)]
+                   = f(a) + 0
+                   = f(a)
+
+Thus lim[x→a] f(x) = f(a), so f is continuous at a.
+QED
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGES MADE:
+
+ORIGINAL: "f'(a) exists → f continuous at a" (stated without justification)
+
+ADDED:
+• Explicit definitions of differentiability and continuity
+• Algebraic manipulation: f(a+h) - f(a) = [f(a+h) - f(a)]/h · h
+• Limit laws applied explicitly
+• Each step justified with reasoning
+• Clear logical flow from hypothesis to conclusion
+
+RESULT: A complete, rigorous proof with no gaps.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+### Sample 4: False Theorem → Find Nearest True One (Mode B)
+
+**Input:**
+```
+Theorem: Every continuous function is differentiable.
+
+Proof:
+Let f be continuous.
+Then f has no jumps or breaks.
+Therefore f has a well-defined slope at every point.
+So f is differentiable.
+QED
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MATHEMATICAL COHERENCE ANALYSIS
+
+Proof Status: ✗ THEOREM IS FALSE
+Overall Score: 1/10 - Cannot be repaired
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED ANALYSIS:
+
+The claimed theorem is FALSE.
+
+Counterexample:
+Consider f(x) = |x| (absolute value function)
+
+• f is continuous everywhere (including at x = 0)
+• But f is NOT differentiable at x = 0
+• At x = 0, the left derivative is -1 and the right derivative is +1
+• Since these don't match, f'(0) does not exist
+
+Why the "proof" fails:
+Line 3: "no jumps or breaks → well-defined slope" is INVALID
+- Continuity means no jumps in the function value
+- Differentiability means no jumps in the slope/rate of change
+- These are different conditions!
+- A function can be continuous but have a "corner" (like |x| at 0)
+
+Additional counterexamples:
+• f(x) = x^(1/3) is continuous at 0 but not differentiable there (vertical tangent)
+• Weierstrass function: continuous everywhere, differentiable nowhere
+• f(x) = x·sin(1/x) for x≠0, f(0)=0: continuous at 0, not differentiable there
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NEAREST PROVABLE THEOREM:
+
+The relationship between continuity and differentiability goes the OTHER direction:
+
+**Corrected Theorem:**
+Every differentiable function is continuous.
+
+(This is the converse of your original claim, and it IS true.)
+
+**Valid Proof:**
+Let f be differentiable at point a.
+By definition, f'(a) = lim[h→0] [f(a+h) - f(a)]/h exists and is finite.
+
+To show continuity, we need: lim[x→a] f(x) = f(a)
+
+Observe that:
+  f(a+h) - f(a) = [f(a+h) - f(a)]/h · h
+
+Taking limits:
+  lim[h→0] [f(a+h) - f(a)] = lim[h→0] {[f(a+h) - f(a)]/h · h}
+                            = f'(a) · 0    (product of finite number and 0)
+                            = 0
+
+Therefore:
+  lim[h→0] f(a+h) = f(a) + lim[h→0] [f(a+h) - f(a)]
+                   = f(a) + 0 = f(a)
+
+Thus f is continuous at a.
+QED
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ALTERNATIVE CORRECT THEOREM:
+
+If you want conditions that DO imply differentiability, you need stronger hypotheses:
+
+**Alternative Theorem:**
+If f is continuous on [a,b] and f' exists on (a,b), then f is differentiable 
+on (a,b).
+
+(This is essentially a tautology - if the derivative exists, the function is 
+differentiable by definition. The real content is theorems about WHEN derivatives 
+exist.)
+
+**Or, a more interesting related theorem:**
+
+If f is continuously differentiable (f' exists and is continuous), then f is 
+differentiable.
+
+(Again, somewhat tautological, but the point is that continuity of f' is a 
+stronger condition than just continuity of f.)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSFORMATION EXPLANATION:
+
+ORIGINAL CLAIM: continuous → differentiable
+PROBLEM: False. Counterexample: |x|
+
+CORRECT IMPLICATION: differentiable → continuous (converse is true)
+
+CONCEPTUAL FIX:
+You had the arrow pointing the wrong direction. Differentiability is a STRONGER 
+condition than continuity:
+• Continuous = no jumps in function value
+• Differentiable = no jumps in slope (which implies no jumps in value)
+
+Think of it hierarchically:
+  All functions ⊃ Continuous functions ⊃ Differentiable functions ⊃ Smooth functions
+
+Your intuition about "no jumps" was correct, but continuity only prevents jumps 
+in HEIGHT, not jumps in SLOPE.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+## Technical Implementation
+
+### Core Algorithm:
+
+```
+1. Parse proof attempt:
+   - Extract theorem statement
+   - Extract proof steps
+   - Identify invoked definitions/theorems
+   
+2. Check logical validity:
+   - Does each step follow from previous?
+   - Are quantifiers used correctly?
+   - Are there hidden assumptions?
+   - Are special cases handled?
+   
+3. Check invoked results:
+   - Are theorems stated correctly?
+   - Do hypotheses apply?
+   - Is the context appropriate?
+   
+4. Determine proof status:
+   IF proof is valid:
+     → Output: "Valid proof" with minor enhancement suggestions
+   
+   ELSE IF proof has gaps but theorem is true:
+     → Output: Fill gaps, provide complete proof
+   
+   ELSE IF theorem is false:
+     → Find counterexample
+     → Determine nearest true theorem:
+        * Add hypothesis (restrict domain)
+        * Weaken conclusion
+        * Reverse implication
+     → Provide valid proof of corrected theorem
+     
+5. Generate explanation:
+   - What was wrong
+   - How it was fixed
+   - Why the new version works
+```
+
+### Prompt Template:
+
+```
+You are a mathematical proof checker and repair system.
+
+INPUT PROOF ATTEMPT:
+{user_proof}
+
+Your task:
+1. Analyze the proof for logical validity
+2. Identify all errors, gaps, and invalid steps
+3. Determine if the theorem is true
+
+IF theorem is true but proof is flawed:
+  → Provide corrected, complete, rigorous proof
+  → Explain what was fixed
+
+IF theorem is false:
+  → Provide counterexample
+  → Find nearest provable theorem by:
+     * Restricting domain/hypotheses
+     * Weakening conclusion
+     * Reversing implication
+  → Provide valid proof of corrected theorem
+  → Explain transformation
+
+Format your response as:
+- Analysis section (errors identified)
+- Repaired/New proof (complete and rigorous)
+- Transformation explanation (what changed and why)
+
+Use standard mathematical notation. Be precise and formal.
+```
+
+---
+
+## Success Criteria
+
+Mathematical Coherence successfully validates proofs when it:
+
+1. **Correctly identifies logical errors** in proof steps
+2. **Recognizes when theorems are false** and provides counterexamples
+3. **Generates valid proofs** with no gaps or invalid steps
+4. **Finds sensible "nearest theorems"** when original is false
+5. **Uses proper mathematical notation and rigor**
+6. **Explains transformations clearly** so users learn from corrections
+
+The function fails when it:
+- Marks valid proofs as invalid
+- Fails to catch logical errors
+- Generates proofs with gaps or errors
+- Suggests "nearest theorems" that are unrelated to original
+- Uses informal or imprecise language
+
+---
+
+## Educational Value
+
+This function is particularly valuable for:
+- **Students** learning to write proofs
+- **Researchers** checking draft arguments
+- **Teachers** generating corrected versions of common errors
+- **Anyone** wanting to understand why a proof fails and what the correct version would be
+
+The "find nearest true theorem" feature is especially pedagogically powerful—it shows users not just that they're wrong, but what they SHOULD have proven.
+
+---
+
+## Integration Notes
+
+**Add to Coherence Meter as 8th option:**
+- Does NOT need Auto-Detect (mathematical proofs are obvious)
+- Should be clearly labeled as "Mathematical (Proof Validity)"
+- Uses same UI structure as other coherence types
+- Output format matches other coherence analyses
+
+---
+
+## Example Use Cases
+
+### Use Case 1: Calculus Student
+Attempts proof that f continuous → f differentiable
+Gets counterexample (|x|) and correct theorem (differentiable → continuous)
+
+### Use Case 2: Abstract Algebra Student  
+Writes proof with gap in group homomorphism argument
+Gets complete proof with missing steps filled in
+
+### Use Case 3: Real Analysis Student
+Claims false theorem about uniform convergence
+Gets corrected theorem with proper hypotheses and valid proof
+
+### Use Case 4: Logic Student
+Writes proof using invalid inference rule
+Gets identification of error and corrected proof using valid rules
+
+---
+
+## Implementation Checklist
+
+- [ ] Add "Mathematical (Proof Validity)" to coherence type dropdown
+- [ ] Proof parsing system
+- [ ] Logical validity checker
+- [ ] Gap detection
+- [ ] Counterexample generation (when theorem is false)
+- [ ] "Nearest theorem" finder:
+  - [ ] Hypothesis strengthening
+  - [ ] Conclusion weakening
+  - [ ] Implication reversal
+  - [ ] Domain restriction
+- [ ] Valid proof generator
+- [ ] Mathematical notation formatting
+- [ ] Transformation explanation system
+- [ ] Testing with standard proof examples:
+  - [ ] Valid proofs (should pass)
+  - [ ] Proofs with gaps (should fill)
+  - [ ] False theorems (should find nearest true)
+  - [ ] Common student errors
+- [ ] Integration with Coherence Meter UI
+- [ ] Documentation for users
+
+---
+
+This specification is complete and ready for implementation by Replit Agent.

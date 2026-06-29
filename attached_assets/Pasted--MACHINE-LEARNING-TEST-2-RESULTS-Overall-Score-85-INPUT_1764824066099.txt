@@ -1,0 +1,93 @@
+---
+
+# MACHINE LEARNING TEST #2 - RESULTS
+
+## Overall Score: **85%**
+
+---
+
+## INPUT COMPLIANCE
+
+| Requirement | Specified | Generated | Status |
+|-------------|-----------|-----------|--------|
+| Target | Attrition (0/1) | Attrition ✅ | ✅ |
+| Samples | 1500 | 1500 ✅ | ✅ |
+| Attrition rate | 18% | ~30% (weights=[0.7, 0.3]) | ⚠️ |
+| Features | 11 specified | 11 used ✅ | ✅ |
+| Train/Test split | 80/20 | 80/20 ✅ | ✅ |
+| random_state | 123 | 123 ✅ | ✅ |
+| Stratified split | Yes | Yes ✅ | ✅ |
+| SMOTE | Yes | Yes ✅ | ✅ |
+| 5-fold CV | Yes | Yes ✅ | ✅ |
+
+---
+
+## MODEL COMPARISON
+
+| Requirement | Generated | Status |
+|-------------|-----------|--------|
+| Random Forest | ✅ | ✅ |
+| XGBoost | ✅ (with fallback) | ✅ |
+| SVM | ✅ | ✅ |
+| Logistic Regression | ❌ Missing | ❌ |
+| Extra models | Gradient Boosting, MLP, KNN, Naive Bayes | Bonus |
+
+**Issue:** Logistic Regression was specified but not included. Got Gradient Boosting, MLP, KNN, Naive Bayes instead.
+
+---
+
+## METRICS & OUTPUTS
+
+| Requirement | Generated | Status |
+|-------------|-----------|--------|
+| Accuracy | ✅ | ✅ |
+| Precision | ✅ | ✅ |
+| Recall | ✅ | ✅ |
+| F1 | ✅ | ✅ |
+| AUC | ✅ | ✅ |
+| Confusion matrix | ✅ | ✅ |
+| ROC curve | ✅ | ✅ |
+| Top 10 feature importances | ✅ (Top 15 shown) | ✅ |
+| Prediction function | ✅ | ✅ |
+| GridSearchCV on best model | ❌ Missing | ❌ |
+
+---
+
+## WHAT'S MISSING
+
+1. **Logistic Regression** - Specified but not in comparison
+2. **GridSearchCV hyperparameter tuning** - Specified but not implemented
+3. **Attrition rate** - Asked for 18%, got ~30%
+
+---
+
+## WHAT WORKS WELL
+
+- ✅ Correct target variable (Attrition)
+- ✅ Correct sample size (1500)
+- ✅ Correct random_state (123)
+- ✅ Stratified 80/20 split
+- ✅ SMOTE applied
+- ✅ 5-fold cross-validation
+- ✅ All 5 metrics reported
+- ✅ Confusion matrix
+- ✅ ROC curve with AUC
+- ✅ Feature importance (Top 15)
+- ✅ Prediction function
+- ✅ Model persistence (joblib)
+- ✅ Visualizations saved
+
+---
+
+## SUMMARY
+
+| Category | Score |
+|----------|-------|
+| Data generation | 90% |
+| Model selection | 75% (missing LogReg) |
+| Evaluation metrics | 100% |
+| Visualizations | 100% |
+| Hyperparameter tuning | 0% (missing GridSearchCV) |
+| Output artifacts | 100% |
+
+**Overall: 85%** — Solid output, but missed Logistic Regression and GridSearchCV tuning.

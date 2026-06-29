@@ -1,0 +1,78 @@
+DATA SCIENCE MODELS PANEL
+
+Four specialized data science modeling functions targeting ML engineers, data scientists, and quantitative analysts:
+
+**Function 1: REGRESSION MODELS**
+
+*To be specified - should include:*
+- Linear regression, multiple regression, logistic regression
+- Polynomial regression options
+- Input: Dataset description or actual data, target variable, features
+- Output: Python/R code with complete implementation
+- Model training, validation, testing splits
+- Feature engineering suggestions
+- Coefficient interpretation
+- Model diagnostics (R-squared, p-values, residual analysis)
+- Prediction function
+- Visualization code (scatter plots, residual plots, etc.)
+
+**Function 2: MACHINE LEARNING MODELS**
+
+*To be specified - should include:*
+- Classification models (Random Forest, XGBoost, Neural Networks)
+- Clustering models (K-means, DBSCAN, hierarchical)
+- Dimensionality reduction (PCA, t-SNE)
+- Input: Problem description, dataset characteristics, target metric
+- Output: Complete Python implementation with:
+  - Data preprocessing pipeline
+  - Model training code
+  - Hyperparameter tuning (Grid Search or Random Search)
+  - Cross-validation
+  - Model evaluation metrics
+  - Feature importance analysis
+  - Prediction pipeline
+  - Deployment-ready code
+
+**Function 3: STATISTICAL FORECASTING**
+
+*To be specified - should include:*
+- Time series models (ARIMA, SARIMA, Prophet)
+- Exponential smoothing methods
+- Seasonal decomposition
+- Input: Historical time series data, forecast horizon, seasonality information
+- Output: Complete implementation with:
+  - Data preprocessing and stationarity tests
+  - Model selection and parameter optimization
+  - Forecast generation with confidence intervals
+  - Backtesting and accuracy metrics
+  - Visualization of historical data, fitted values, and forecasts
+  - Residual diagnostics
+
+**Function 4: PREDICTIVE ANALYTICS**
+
+*To be specified - should include:*
+- End-to-end predictive modeling pipeline
+- Feature engineering and selection
+- Model comparison framework
+- Ensemble methods
+- Input: Business problem description, available data, prediction target
+- Output: Complete analytical pipeline with:
+  - Exploratory data analysis code
+  - Feature engineering transformations
+  - Multiple model implementations
+  - Model comparison metrics
+  - Best model selection justification
+  - Productionization guidelines
+  - Monitoring and retraining recommendations
+
+**Common Output Features Across All Data Science Functions:**
+- Python code (Jupyter notebook format .ipynb or .py script)
+- Complete implementation ready to run
+- Commented code explaining each step
+- Required library imports clearly listed
+- Data loading and preprocessing included
+- Model training and evaluation included
+- Visualization code included
+- Best practices for model validation
+- Hyperparameter tuning where applicable
+- Documentation of assumptions and limitations

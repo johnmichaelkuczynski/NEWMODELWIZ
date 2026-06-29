@@ -1,0 +1,2635 @@
+Russell’s Mathematical Philosophy
+J.-M. Kuczynski PhD
+
+Preface to the Second Edition
+Chapter 1: The Incompleteness of Dedekind's Axiom-set
+Chapter 2: The Nature of Natural Numbers
+Chapter 3: The Definitions of "0" and "+1"
+Chapter 4: Serial Order
+Chapters 5-6: Higher-Order Relations and Similarity Among Relations
+Chapter 7: Rational and Real Numbers
+Chapter 8: Infinite Cardinal Numbers
+Chapter 9: Ordinal Numbers and Infinite Series
+Chapters 10-11: Limits and Continuity
+Chapter 12: The Axiom of Choice and the Law of Excluded Middle
+Chapter 13: The Axiom of Infinity and the Theory of Types
+Chapter 14: Incompatibility and the Consequence-relation
+Chapter 15: Propositional Functions
+Chapter 16: Classes
+Chapter 17: Descriptions
+Index
+References
+
+Preface to the Second Edition
+
+This work presents a critical, chapter-by-chapter exposition of Bertrand Russell's *Introduction to Mathematical Philosophy*, offering both exegesis and original contributions to foundational mathematics. While maintaining fidelity to Russell's core ideas, this analysis reveals both the enduring significance of his work and areas where modern developments suggest alternative approaches.
+
+ Scope and Contributions
+
+The present work makes several distinct contributions to mathematical philosophy:
+
+1. A novel resolution to certain set-theoretic paradoxes, particularly through the analysis of reflexive pronouns and their role in apparently self-referential statements (Chapter 13)
+
+2. A fresh perspective on the relationship between formal and informal mathematical truth, challenging Russell's assertion that mathematics reduces to logic (Chapter 18)
+
+3. An original analysis of number theory that synthesizes insights from both Frege and Von Neumann while avoiding their respective limitations
+
+4. A new approach to understanding mathematical existence claims through the lens of propositional functions (Chapter 15)
+
+ Structure and Methodology
+
+Each chapter contains:
+
+1. A detailed summary of the corresponding chapter in Russell's work
+2. Original illustrations of principles that Russell either omitted or inadequately explained
+3. Critical assessment of Russell's arguments and conclusions
+4. Novel suggestions for resolving technical and philosophical problems that arise
+
+The exposition aims to be rigorous yet accessible, serving both as a companion to Russell's text and as an independent contribution to mathematical philosophy.
+
+ Key Themes
+
+Several recurring themes emerge throughout the work:
+
+1. The relationship between formal and informal mathematical truth
+2. The nature of mathematical existence
+3. The role of construction versus axiomatization in mathematical foundations
+4. The limits and possibilities of formal systems
+
+ Acknowledgment of Limitations
+
+While this work strives for comprehensiveness, certain areas warrant further development:
+
+1. The treatment of real numbers could benefit from deeper exploration of alternative constructions
+2. The relationship between different approaches to cardinal numbers deserves fuller examination
+3. The implications of modern set theory for Russell's paradoxes merit additional investigation
+
+These limitations suggest directions for future research while not diminishing the core contributions of the present work.
+
+ Notes on the Second Edition
+
+This edition includes:
+- Enhanced discussion of real number construction methods
+- Expanded treatment of set-theoretic paradoxes
+- Additional examples throughout
+- New cross-references between related sections
+- Chapter summaries and study questions
+- An index of key terms and concepts
+
+ Intended Audience
+
+This work assumes familiarity with basic mathematical concepts but strives to remain accessible to:
+- Advanced undergraduate students in mathematics and philosophy
+- Graduate students in mathematical logic and foundations
+- Researchers in mathematical philosophy
+- Anyone interested in the foundations of mathematics
+
+The technical level increases gradually, with more advanced material clearly marked.
+
+ A Note on Notation
+
+While maintaining consistency with Russell's notation where possible, this work adopts modern conventions where they enhance clarity. All deviations from Russell's notation are explicitly noted.
+
+ Chapter 1: The Incompleteness of Dedekind's Axiom-set
+
+ Introduction
+The foundations of arithmetic rest upon our ability to characterize the natural numbers through a set of axioms. Dedekind's attempt to do so, while groundbreaking, reveals fundamental issues about the nature of mathematical definition. This chapter examines why Dedekind's axioms, though accurate, fail to uniquely characterize the natural numbers.
+
+ 1. Dedekind's Axioms
+The axiom set consists of five fundamental statements:
+
+1. 0 is a number
+2. The successor of a number is a number
+3. No two numbers have the same successor
+4. 0 is not the successor of any number
+5. If 0 has a property, and n+1 has that property whenever n has it, then every (finite number) has that property
+
+ Key Definitions
+- The intended domain: The class K of whole numbers
+- The intended truths: The class K* of arithmetic truths expressible using:
+  * 0
+  * successor
+  * addition (+)
+  * multiplication (×)
+  * existential quantification
+  * negation
+
+ 2. The Problem of Unintended Models
+The axioms fail to uniquely characterize the natural numbers because they admit models that, while satisfying all axioms, clearly diverge from our intended interpretation.
+
+ Model 1
+- Let "0" refer to 100
+- Let "successor of n" refer to 2n
+- Validates all axioms but generates sequence: 100, 200, 400,...
+
+ Model 2
+- Let "0" refer to 1
+- Let "successor of n" refer to "smallest prime > n"
+- Validates all axioms but generates sequence: 1, 2, 3, 5, 7, 11,...
+
+ Model 3
+- Let "0" refer to 1
+- Let "successor of n" refer to "{n}" (singleton set)
+- Validates all axioms but generates fundamentally different structure
+
+ 3. The Categorical Failure
+The existence of these models demonstrates that the axioms are not categorical - they do not pin down a unique structure up to isomorphism.
+
+ Why This Matters
+The common objection that these models involve "misinterpretation" of terms begs the question. The very purpose of axiomatization is to fix the meaning of primitive terms through their logical relationships.
+
+ Formal Analysis
+If we represent the intended structure as M = <N, 0, S> where:
+- N is the set of natural numbers
+- 0 ? N
+- S: N ? N is the successor function
+
+Then we can show that there exist structures M' = <N', 0', S'> that:
+1. Satisfy all Dedekind axioms
+2. Are not isomorphic to M
+3. Cannot be excluded by adding finitely many axioms of the same logical type
+
+ 4. Implications
+This inadequacy reveals several important points about mathematical foundations:
+
+1. Informal understanding often relies on implicit assumptions not captured in formal systems
+2. The gap between intended and formal meaning cannot always be bridged through first-order axiomatization
+3. Some mathematical concepts may require higher-order logic or additional mathematical machinery to characterize uniquely
+
+ Study Questions
+1. Why can't we simply add an axiom excluding the unintended models?
+2. What does this tell us about the relationship between formal and informal mathematics?
+3. Construct your own model that satisfies Dedekind's axioms but differs from the standard interpretation
+4. How might this problem relate to Gödel's incompleteness theorems?
+
+ Exercises
+1. Prove that Model 1 satisfies each of Dedekind's axioms
+2. Find a property shared by all numbers in Model 2 that is not shared by all natural numbers
+3. Construct a bijection between Model 3 and the standard natural numbers
+4. Show that no finite set can satisfy Dedekind's axioms
+
+ Further Reading
+- Dedekind, R. (1888) *Was sind und was sollen die Zahlen?*
+- Benacerraf, P. (1965) "What Numbers Could Not Be"
+- Shapiro, S. (1991) *Foundations Without Foundationalism*
+
+ Notes
+1. The distinction between adequate and complete characterization becomes crucial in modern mathematical logic
+2. This problem foreshadows deeper issues in model theory and mathematical foundations
+3. The resolution ultimately requires tools beyond first-order logic
+
+ Chapter 2: The Nature of Natural Numbers
+
+ Introduction
+The quest to understand what numbers truly are leads us to a fundamental insight: numbers are properties of classes, not of individual objects. This chapter develops this crucial idea and explores its implications for mathematical foundations.
+
+ 1. Numbers as Properties of Classes
+
+ The Basic Insight
+Consider two fundamental statements:
+1. "Jim has two cars"
+2. "Jim has zero cars"
+
+ Key Observation
+Neither statement attributes properties to individual cars:
+- In (1), no specific car has the property "two"
+- In (2), there clearly exists no car having the property "zero"
+
+ Analysis
+These statements are about classes:
+- (1) attributes a property to the class of Jim's cars
+- (2) states that a particular class (Jim's cars) is empty
+
+ 2. The Quantifier Analysis
+
+ Quantifiers and Class Properties
+- Words like "0" and "2" function as quantifiers
+- Similar to "some" and "all" in logical notation
+- Example: "Some man is tall" answers the question "How many members does the class of tall men have?"
+
+ Double Interpretation
+Quantified statements can be interpreted as:
+1. Statements about classes of individuals
+2. Statements about classes of statements
+
+Example Analysis:
+```
+"Some man is tall" can mean either:
+a) The class of tall men has at least one member
+b) At least one statement of form "x is a man and x is tall" is true
+```
+
+ 3. Numbers as Properties of Properties
+
+ Key Insight
+Numbers are second-order properties:
+- 0 is a property of the property "being a square circle"
+- 1 is a property of the property "being a U.S. President in 2014"
+
+ Formal Definition
+For any number n:
+- A property has number n iff it has exactly n instances
+- A set has number n iff it has exactly n members
+
+ 4. Frege's Analysis of Cardinality
+
+ What It Means for a Class to Have n Members
+For each n, we can define precisely what it means:
+
+ Zero Members
+k has 0 members iff k is empty
+
+ One Member
+k has 1 member iff:
+- For some x, x is a member of k
+- For any y, y is a member of k iff y=x
+
+ Two Members
+k has 2 members iff:
+- For some x and y where x?y
+- Each of x and y is a member of k
+- For any z, z is a member of k iff z=x or z=y
+
+ General Pattern
+This pattern extends naturally to any finite number
+
+ 5. Numbers as Classes of Equinumerous Classes
+
+ The Concept of Equinumerosity
+Two classes are equinumerous if:
+- They can be put into one-one correspondence
+- Each member of one can be paired with exactly one member of the other
+
+ Formal Definition
+Let Kn be the class of all n-membered classes
+- 'k has n members' ? 'k is a member of Kn'
+- We can identify n with Kn
+- The property of having n members ? membership in n
+
+ 6. Alternative Analysis: Numbers as Properties
+
+ Advantages of Property-Based Analysis
+1. Doesn't require infinitely many objects
+2. Avoids making number identity contingent on universe composition
+
+ Example
+The number 2 as:
+a) Class-based: The class of all pairs
+b) Property-based: The property of being a two-membered class
+
+ Study Questions
+1. Why can't numbers be properties of individual objects?
+2. How does Frege's analysis avoid circularity?
+3. What advantages does the property-based analysis have over the class-based analysis?
+4. Can you construct a definition for "k has 4 members" following Frege's pattern?
+
+ Exercises
+1. Prove that equinumerosity is an equivalence relation
+2. Show how the property-based analysis avoids Russell's paradox
+3. Construct explicit one-one correspondences between example equinumerous classes
+4. Analyze the statement "Most philosophers are logical" using the quantifier framework
+
+ Further Reading
+- Frege, G. (1884) *The Foundations of Arithmetic*
+- Benacerraf, P. (1965) "What Numbers Could Not Be"
+- Dummett, M. (1991) *Frege: Philosophy of Mathematics*
+
+ Notes
+1. The distinction between numbers as classes and numbers as properties remains philosophically significant
+2. The analysis here provides foundations for later discussions of infinite cardinals
+3. The property-based approach anticipates modern category-theoretic perspectives
+
+ Chapter 3: The Definitions of "0" and "+1"
+
+ Introduction 
+The foundation of arithmetic rests on properly defining two primitive notions: zero and the successor operation. This chapter shows how these concepts can be rigorously constructed from set-theoretic principles, avoiding the circularity that plagues naive definitions.
+
+ 1. Hereditary (Inductive) Relations
+
+ The Problem of "And So On"
+Traditional definition: "The natural numbers are 0, 1, 2, and so on."
+- This is clearly inadequate
+- "And so on" requires precise definition
+- The very concept we're trying to define seems presupposed
+
+ The Correct Definition
+(N) The class of natural numbers is the smallest class containing 0 that is closed under the successor relation.
+
+ Analysis of Components
+1. "Smallest class containing 0"
+   - Establishes the starting point
+   - Ensures no unnecessary elements
+
+2. "Closed under the successor relation"
+   - If n is in the class, n+1 must be in the class
+   - Captures the generative nature of numbers
+
+3. "Smallest such class"
+   - Eliminates unintended elements
+   - Ensures minimality
+
+ 2. Definition of Zero
+
+ Frege's Analysis
+0 = the class of all empty classes
+
+ Key Properties
+1. There is exactly one empty class (by Extensionality)
+2. The empty class exists necessarily
+3. This definition makes 0 independent of contingent facts
+
+ Formal Statement
+Let Ø be the empty class
+- 0 is identical with {Ø}
+- This makes 0 the class whose sole member is the empty class
+
+ 3. Definition of Successor
+
+ Formal Definition
+For any numbers m and n:
+m is the successor of n (m = n+1) if and only if:
+- For any member s of m
+- For any member x of s
+- The set s* that does not include x but otherwise has the same membership as s is a member of n
+
+ Analysis of Definition
+1. m is a class of classes (the class of all m-membered classes)
+2. n is a class of classes (the class of all n-membered classes)
+3. Any m-membered class has exactly one more member than any n-membered class
+
+ 4. Proofs of Dedekind's Axioms
+
+ Axiom 1: 0 is a number
+Proof:
+1. "n is a number" means "n is a class of equinumerous sets"
+2. 0 is the class of all empty sets
+3. Any two empty sets are equinumerous
+4. Therefore, 0 is a number
+
+ Axiom 2: The successor of a number is a number
+Proof:
+1. Let n be an arbitrary number
+2. Let s be an arbitrary n-membered class
+3. Let x be an arbitrary non-member of s
+4. Let s* be a class that includes x but is otherwise like s
+5. s* is an n+1-membered class
+6. The class of all n+1 membered classes is a number
+   - Because it's a maximal class of equinumerous classes
+
+ Axiom 3: No two numbers have the same successor
+Proof:
+1. Let n and m be distinct numbers
+2. Let s be an arbitrary n-membered class
+3. Let s* be an arbitrary m-membered class
+4. Since n ? m, s and s* cannot be put in one-one correspondence
+5. For any x not in s or s*:
+   - Let sx include x but otherwise coincide with s
+   - Let s*x include x but otherwise coincide with s*
+6. sx and s*x cannot be put in one-one correspondence
+7. Therefore n+1 ? m+1
+
+ Axiom 4: 0 is not the successor of any number
+Proof:
+1. 0 is the empty set
+2. There are no non-empty subsets of 0
+3. Therefore, there is no subset of 0 that is better populated than any set
+4. Thus, 0 isn't the successor of any number
+
+ 5. Definition by Abstraction
+
+ Nature of the Method
+- Defines entities indirectly through equivalence relations
+- Avoids circularity while capturing essential properties
+- Provides rigorous foundation for mathematical concepts
+
+ Examples
+1. Length
+2. Points in time
+3. Points in space
+
+ Study Questions
+1. Why is the "and so on" definition inadequate?
+2. How does Frege's definition of 0 avoid circularity?
+3. Why must we prove Dedekind's axioms from our definitions?
+4. What role does the Axiom of Extensionality play?
+
+ Exercises
+1. Prove that 1 is the successor of 0 using the given definitions
+2. Show that 2 is the successor of 1
+3. Construct a formal proof that 0 has no predecessors
+4. Define 3 explicitly using the successor operation
+
+ Further Reading
+- Dedekind, R. (1888) *Was sind und was sollen die Zahlen?*
+- Frege, G. (1884) *The Foundations of Arithmetic*
+- Peano, G. (1889) *Arithmetices principia, nova methodo exposita*
+
+ Notes
+1. The definitions here provide foundation for all of arithmetic
+2. These constructions avoid the circularity of naive definitions
+3. The approach generalizes to other mathematical structures
+
+ Chapter 4: Serial Order 
+
+ Introduction
+The concept of order is fundamental to mathematics, yet its precise characterization requires careful analysis. This chapter examines how mathematical ordering can be rigorously defined and explores the distinction between different types of ordering relations.
+
+ 1. Basic Concepts
+
+ Definition of a Series
+A series is an ordered pair <K, R> where:
+- K is a class of objects (the domain)
+- R is an ordering relation on K
+
+ Properties of Ordering Relations
+For any x, y, and z in K, an ordering relation R must satisfy:
+1. Asymmetry: If xRy, then not(yRx)
+2. Transitivity: If xRy and yRz, then xRz
+3. Connection: If x?y, then either xRy or yRx
+
+ Formal Notation
+For clarity, we can write:
+```
+Asymmetry: xRy ? ¬(yRx)
+Transitivity: (xRy ? yRz) ? xRz
+Connection: x?y ? (xRy ? yRx)
+```
+
+ 2. Types of Ordering
+
+ Strict Ordering
+A relation R establishes a strict ordering when:
+1. The members of K are connected under R
+2. R is asymmetrical with respect to K's members
+3. R is transitive with respect to K's members
+
+ Example: Natural Numbers
+- K = {natural numbers}
+- R = "less than" (<)
+- Forms <K, R> = <?, <>
+
+ Partial Ordering
+A relation R establishes a partial ordering when:
+1. R is asymmetrical and transitive
+2. K's members are not necessarily connected under R
+
+ Example: Human Height
+- K = {human beings}
+- R = "is taller than"
+- Not all pairs are comparable (same height possible)
+
+ 3. Mathematical Examples
+
+ The Natural Number Series
+Consider <?, <> where:
+- Domain: Natural numbers
+- Relation: Less than
+- Properties:
+  * If n < m, then not(m < n)
+  * If n < m and m < p, then n < p
+  * For any n,m ? ? where n?m, either n < m or m < n
+
+ The Rational Number Series
+Consider <?, <> where:
+- Domain: Rational numbers
+- Relation: Less than
+- Notable feature: Dense ordering (between any two elements exists another)
+
+ 4. Formal Properties
+
+ Important Distinctions
+1. Strict vs. Non-strict Ordering
+   - Strict: x < y
+   - Non-strict: x ? y
+
+2. Total vs. Partial Ordering
+   - Total: All elements comparable
+   - Partial: Some elements may be incomparable
+
+ Additional Properties
+1. Density
+   - For any x,y where xRy, exists z where xRz and zRy
+   - Example: Rationals are dense
+
+2. Completeness
+   - Every bounded set has a least upper bound
+   - Example: Reals are complete, rationals are not
+
+ 5. Applications
+
+ Mathematical Structures
+1. Number Systems
+   - Natural numbers: Discrete ordering
+   - Rationals: Dense ordering
+   - Reals: Complete ordering
+
+2. Set Theory
+   - Subset relation: Partial ordering
+   - Cardinal numbers: Total ordering
+
+ Real-world Applications
+1. Time Sequences
+   - Events ordered by temporal precedence
+   - Demonstrates transitivity
+
+2. Hierarchical Structures
+   - Organizational charts
+   - Taxonomic classifications
+
+ Study Questions
+1. Why is asymmetry necessary for an ordering relation?
+2. What distinguishes a partial order from a total order?
+3. Can you find a real-world example of a partial ordering that isn't a total ordering?
+4. Why is density important in the rational numbers?
+
+ Exercises
+1. Prove that the "proper subset" relation is a partial ordering
+2. Show that "divides evenly" is a partial ordering on the natural numbers
+3. Construct a finite set with a partial ordering that isn't total
+4. Prove that if R is a strict ordering, then its inverse is also a strict ordering
+
+ Advanced Topics
+1. Well-orderings
+   - Every non-empty subset has a least element
+   - Connection to transfinite induction
+
+2. Order Types
+   - Isomorphism classes of ordered sets
+   - Role in cardinal arithmetic
+
+ Further Reading
+- Hausdorff, F. "Grundzüge der Mengenlehre"
+- Sierpi?ski, W. "Cardinal and Ordinal Numbers"
+- Birkhoff, G. "Lattice Theory"
+
+ Notes
+1. The concept of order underlies much of modern mathematics
+2. Understanding different types of order is crucial for later chapters
+3. Order theory connects to topology, algebra, and set theory
+
+ Chapters 5-6: Higher-Order Relations and Similarity Among Relations
+
+ Introduction
+The concepts of higher-order relations and similarity among relations are crucial for understanding mathematical structure. These chapters examine how different orderings can share the same structure despite having different domains and relations.
+
+ 1. Isomorphic Orderings: A Foundational Example
+
+ Case Study: Two Different Series
+Let's examine two apparently different but structurally identical series:
+
+ Series 1 (S?)
+- K: Whole numbers from 1 to 100
+- R: "is one less than"
+- Notation: <K, R>
+
+ Series 2 (S?)
+- K*: Even numbers from 200 to 400
+- R*: "is two less than"
+- Notation: <K*, R*>
+
+ Structural Analysis
+1. S? consists of 50 links:
+   - Link 1: 1 ? 2
+   - Link 2: 2 ? 3
+   - And so on...
+
+2. S? consists of 50 links:
+   - Link 1: 200 ? 202
+   - Link 2: 202 ? 204
+   - And so on...
+
+ 2. The Concept of Isomorphism
+
+ Formal Definition
+Two orderings <K,R> and <K*,R*> are isomorphic if there exists a rule R such that:
+- For any n (1?n?50)
+- For x,y ? K and x*,y* ? K*
+- R pairs <x,y> with <x*,y*> iff:
+  * The nth link of RK begins with x and ends with y
+  * The nth link of R*K* begins with x* and ends with y*
+
+ Key Properties
+1. Preservation of Structure
+   - Order-preserving bijection
+   - Maintains relationships between elements
+
+2. Equivalence Relation
+   - Reflexive: Every ordering is isomorphic to itself
+   - Symmetric: If A ? B then B ? A
+   - Transitive: If A ? B and B ? C then A ? C
+
+ 3. Ordinal Numbers
+
+ Definition
+An ordinal number is the class of all orderings isomorphic with a given ordering.
+
+ Properties
+1. For finite sets:
+   - Equinumerous sets generate the same ordinal
+   - Order type determined by size alone
+
+2. For infinite sets:
+   - Equinumerosity doesn't guarantee same ordinal
+   - Different orderings possible for same cardinality
+
+ 4. Mathematical Formalization
+
+ Isomorphism Function
+For orderings A = <K,R> and B = <K*,R*>, a function f: K ? K* is an isomorphism if:
+```
+?x,y ? K: xRy ? f(x)R*f(y)
+```
+
+ Properties of Isomorphism Functions
+1. Bijective (one-to-one and onto)
+2. Order-preserving
+3. Structure-preserving
+
+ 5. Examples and Applications
+
+ Numeric Examples
+1. Positive Integers vs. Negative Integers
+   - <??, <> ? <??, >>
+   - f(n) = -n establishes isomorphism
+
+2. Dense Orders
+   - <??(0,1), <> ? <??(1,2), <>
+   - Linear transformation establishes isomorphism
+
+ Geometric Examples
+1. Line Segments
+   - Different lengths can have same order type
+   - Points in correspondence preserve order
+
+ 6. Higher-Order Relations
+
+ Definition
+Relations between relations or between structures of relations
+
+ Examples
+1. "Is more dense than"
+2. "Is a suborder of"
+3. "Is order-embeddable in"
+
+ Formal Treatment
+For relations R and S:
+```
+R ? S ? ?f: dom(R) ? dom(S): 
+  ?x,y ? dom(R): xRy ? f(x)Sf(y)
+```
+
+ Study Questions
+1. Why can two structures be isomorphic despite having different elements?
+2. How does isomorphism differ from equality?
+3. Why do infinite orderings introduce new complexities?
+4. Can you construct an isomorphism between two simple finite orderings?
+
+ Exercises
+1. Prove that isomorphism is an equivalence relation
+2. Construct an explicit isomorphism between [0,1] and [2,3]
+3. Show that the rational numbers in [0,1] are isomorphic to all rational numbers
+4. Find two orderings of ? that aren't isomorphic
+
+ Advanced Topics
+1. Order-preserving embeddings
+2. Dense linear orderings
+3. Well-orderings and ordinal arithmetic
+
+ Applications
+1. Mathematical Structures
+   - Group isomorphisms
+   - Topological homeomorphisms
+   - Category equivalences
+
+2. Computer Science
+   - Data structure equivalence
+   - Algorithm analysis
+   - Type theory
+
+ Further Reading
+- Cantor, G. "Contributions to the Founding of the Theory of Transfinite Numbers"
+- Hausdorff, F. "Set Theory"
+- Sierpi?ski, W. "General Topology"
+
+ Notes
+1. Isomorphism is fundamental to modern mathematical thinking
+2. Understanding structure preservation guides mathematical classification
+3. The finite/infinite distinction remains crucial
+
+ Chapter 7: Rational and Real Numbers
+
+ Introduction
+The construction of rational and real numbers represents a crucial bridge between discrete and continuous mathematics. These constructions demonstrate how complex mathematical structures can be built from simpler ones through precise logical steps.
+
+ 1. Key Definitions
+
+ Fundamental Constructions
+1. +n is the relation that m+n bears to n
+2. -n is the relation that n bears to m-n
+3. p/q is the relation that x bears to y when xq=yp
+4. The real number corresponding to n is the class of all fractions less than n
+
+ Implications
+- Each cardinal number n is distinct from corresponding rational and real numbers
+- Signed integers are relations between cardinals
+- Rationals are relations between integers
+- Reals can be constructed in multiple ways
+
+ 2. Signed Integers
+
+ Construction and Properties
+1. Motivation:
+   - The relation borne by 4 to 7 is -3
+   - We identify -3 with that relation
+   - +3 is the converse of -3
+
+2. Formal Analysis
+```
+For integers a,b:
++a: relation that (m+a) bears to m
+-a: relation that m bears to (m-a)
+```
+
+ Operations
+ Addition: Two Distinct Cases
+1. Cardinal Addition: "5+3=8"
+   - Relation between cardinal numbers
+
+2. Signed Integer Addition: "-3+8=5"
+   - Relation between relations between cardinals
+   - Denoted by "+RC" (Relation among Cardinals)
+
+ Multiplication: Similar Distinction
+1. Cardinal Multiplication: "5×3"
+2. Signed Integer Multiplication: "-3×4"
+
+ 3. Rational Numbers
+
+ Construction
+Definition: p/q is identical with relation that x bears to y when xq=yp
+
+ Key Properties
+1. Well-defined: Independent of representation
+2. Ordering: p/q < m/n iff pn < mq
+3. Equivalence: p/q = m/n iff pn = mq
+
+ Operations on Rationals
+1. Addition: (p/q) + (m/n) = (pn+mq)/qn
+2. Multiplication: (p/q) × (m/n) = (pm)/(qn)
+
+ Density Property
+For any rationals p/q < m/n:
+- There exists a rational between them: (p+m)/(q+n)
+- Proves rational numbers form a dense set
+
+ 4. Real Numbers: Russell's Construction
+
+ The Problem of Irrational Numbers
+ Square Root of 2
+1. Proof of Irrationality:
+   - Assume ?2 = p/q in lowest terms
+   - Then p² = 2q²
+   - Shows p must be even
+   - Leads to contradiction
+
+2. Implications:
+   - Reveals gaps in rational numbers
+   - Necessitates new number system
+
+ Russell's Solution
+Define a real number as the class of all fractions less than it.
+
+ Properties
+1. Every rational defines a real number
+2. Some reals (like ?2) aren't defined by rationals
+3. Ordering is natural: r < s iff class for r ? class for s
+
+ Operations
+1. Addition of reals:
+   - Let K?, K? be real numbers
+   - K? + K? = class of sums of their members
+
+2. Multiplication:
+   - K? × K? = class of products of their members
+
+ 5. Alternative Construction: Reals as Cauchy Sequences
+
+ The Cauchy Sequence Approach
+A fundamentally different construction views reals as equivalence classes of convergent sequences of rationals.
+
+ Definition of Cauchy Sequence
+A sequence {a?} is Cauchy if:
+- For any ? > 0
+- There exists N such that
+- For all m,n > N: |a? - a?| < ?
+
+ Examples
+1. Sequence approaching ?2:
+   - S = (1, 1.4, 1.41, 1.414, ...)
+   - Each term better approximates ?2
+
+2. Sequence for 1/3:
+   - (0.3, 0.33, 0.333, ...)
+   - Shows rational representation
+
+ Formal Construction
+
+ Step 1: Define Sequences
+Let S be the set of all Cauchy sequences of rationals.
+
+ Step 2: Define Equivalence
+Two sequences {a?} and {b?} are equivalent if:
+- For any ? > 0
+- There exists N such that
+- For all n > N: |a? - b?| < ?
+
+ Step 3: Form Equivalence Classes
+- Each real number is an equivalence class
+- Write [S] for equivalence class containing S
+- Different sequences can represent same real
+
+ Operations on Cauchy Sequences
+
+ Addition
+For sequences {a?} and {b?}:
+```
+[{a?}] + [{b?}] = [{a? + b?}]
+```
+
+ Multiplication
+```
+[{a?}] × [{b?}] = [{a? × b?}]
+```
+
+ 6. Comparison of Approaches
+
+ Russell's Cuts vs. Cauchy Sequences
+
+ Russell (Dedekind Cuts):
+- Reals as classes of rationals
+- Static, set-theoretic perspective
+- Emphasizes ordering properties
+
+ Cauchy Sequences:
+- Reals as equivalence classes of sequences
+- Dynamic, process-oriented perspective
+- Emphasizes approximation properties
+
+ Equivalence of Constructions
+While appearing different, both approaches yield isomorphic structures:
+
+1. From Cuts to Sequences:
+   - Given cut A, form sequence {a?} approaching boundary
+   - All such sequences form same equivalence class
+
+2. From Sequences to Cuts:
+   - Given sequence {a?}, form cut {r ? ? | r < a? for some n}
+   - Equivalent sequences yield same cut
+
+ 7. Philosophical Implications
+
+ Nature of Mathematical Objects
+1. Reals not as limits of rationals
+2. Reals as classes or sequences
+3. Multiple equivalent constructions
+
+ Ontological Status
+1. Independence from physical reality
+2. Necessity vs contingency
+3. Abstract vs concrete existence
+
+ Study Questions
+1. Why can't ?2 be rational?
+2. How do Dedekind cuts differ from Cauchy sequences?
+3. Why are two constructions of reals useful?
+4. What makes real numbers "complete"?
+
+ Exercises
+1. Prove that 1/3 has no finite decimal representation
+2. Construct the Dedekind cut for ?2
+3. Show that between any two reals there is a rational
+4. Prove the density of rationals in reals
+5. Show that the sequence (1, 1.4, 1.41, 1.414, ...) is Cauchy
+6. Prove that sum of Cauchy sequences is Cauchy
+7. Construct two different Cauchy sequences converging to same real
+8. Show how to represent ? through a Cauchy sequence
+
+ Advanced Topics
+1. Completeness axiom
+2. Cauchy completion
+3. Dedekind completion
+4. Decimal representations
+5. Completion of metric spaces
+6. Relation to topological completeness
+7. Other types of convergence
+8. Non-standard analysis approaches
+
+ Further Reading
+- Dedekind, R. "Continuity and Irrational Numbers"
+- Cauchy, A.L. "Cours d'analyse"
+- Weierstrass, K. "On Continuous Functions"
+- Russell, B. "Principles of Mathematics"
+
+ Chapter 8: Infinite Cardinal Numbers
+
+ Introduction
+The study of infinite cardinal numbers marks a crucial transition in mathematics, moving beyond finite quantities to understand different sizes of infinity. This chapter explores how such infinities can be rigorously compared and manipulated.
+
+ 1. Reflexive Classes
+
+ Definition and Basic Properties
+A class K is reflexive if:
+- It can be put into one-one correspondence with a proper part of itself
+- The existence of such a correspondence proves K is infinite
+- The converse requires the Axiom of Choice
+
+ Key Example: Natural Numbers
+Let C be the class of cardinal numbers:
+- Can be mapped one-to-one with evens
+- Can be mapped one-to-one with squares
+- Can be mapped one-to-one with primes
+- All these subsets have cardinality Aleph-null (??)
+
+ Formal Definition
+K is reflexive iff:
+```
+?f: K ? K such that:
+1. f is injective (one-to-one)
+2. range(f) ? K (proper subset)
+```
+
+ 2. The Power-Set Theorem and Transfinite Hierarchy
+
+ Statement of Power-Set Theorem
+For any cardinal n: n < 2?
+
+ Proof
+Let K be any class and assume function F bijects K with P(K):
+1. Define S* = {x ? K | x ? F(x)}
+2. S* must be assigned to some y ? K by F
+3. Then y ? S* ? y ? S* (contradiction)
+
+ Implications
+1. Aleph-null < 2^??
+2. Creates infinite hierarchy of transfinite numbers
+3. Each level generates larger infinity via power set
+
+ Cantor's Hierarchy
+```
+?? < 2^?? < 2^(2^??) < 2^(2^(2^??)) < ...
+```
+
+ 3. Cardinal Arithmetic
+
+ Addition of Transfinite Numbers
+1. Basic Properties
+   - ?? + 1 = ??
+   - ?? + n = ?? (for finite n)
+   - ?? + ?? = ??
+
+2. Proof Method
+   - Construct explicit bijections
+   - Show absorption of finite quantities
+
+ Multiplication
+1. Basic Properties
+   - ?? × 2 = ??
+   - ?? × n = ?? (for finite n)
+   - ?? × ?? = ??
+
+2. Cartesian Products
+   Example: ?? × 2:
+   ```
+   Consider pairs: {<A,1>, <A,2>, <B,1>, <B,2>, ...}
+   Can be reordered into countable sequence
+   ```
+
+ 4. Size Comparisons
+
+ Countable vs. Uncountable
+1. Rational Numbers
+   - Proof of countability via diagonal method
+   - Construction of explicit enumeration
+
+2. Real Numbers
+   - Cantor's diagonal argument
+   - Proves uncountability
+   - Shows |?| = 2^??
+
+ The Continuum Hypothesis
+1. Statement: There is no cardinal number between ?? and 2^??
+2. Independence from ZFC
+3. Implications for set theory
+
+ 5. Subtraction and Division
+
+ Subtraction Paradoxes
+1. ?? - ?? is indeterminate
+2. Can equal any finite number
+3. Can equal ?? itself
+
+ Examples
+1. Remove evens from naturals: ?? - ?? = ??
+2. Remove all but finite set: ?? - ?? = n (finite)
+
+ Division Properties
+1. ??/2 = ??
+2. ??/n = ?? (for finite n)
+3. ??/?? is indeterminate
+
+ Study Questions
+1. Why does Cantor's diagonal argument work?
+2. How can infinity minus infinity be ambiguous?
+3. What makes a class reflexive?
+4. Why is the Continuum Hypothesis significant?
+
+ Exercises
+1. Prove that rationals are countable
+2. Construct a bijection between N and N × N
+3. Show that algebraic numbers are countable
+4. Prove that the power set of a countable set is uncountable
+
+ Advanced Topics
+1. Cardinal arithmetic in ZFC
+2. Large cardinal axioms
+3. Independence results
+4. Alternative set theories
+
+ Applications
+1. Set Theory
+   - Foundation for mathematics
+   - Axiom systems
+
+2. Analysis
+   - Measure theory
+   - Function spaces
+
+3. Topology
+   - Infinite-dimensional spaces
+   - Compactness
+
+ Further Reading
+- Cantor, G. "Contributions to the Founding of the Theory of Transfinite Numbers"
+- Cohen, P. "Set Theory and the Continuum Hypothesis"
+- Gödel, K. "The Consistency of the Continuum Hypothesis"
+
+ Notes
+1. The study of infinite cardinals revolutionized mathematics
+2. Many paradoxes of infinity resolve through careful analysis
+3. Some questions remain independent of standard axioms
+ 
+ Chapter 9: Ordinal Numbers and Infinite Series
+
+ Introduction
+Ordinal numbers capture the essential structure of well-ordered sets, providing a more nuanced understanding of infinite collections than cardinal numbers alone. This chapter examines their properties and their crucial role in mathematical induction.
+
+ 1. The Concept of Ordinal Numbers
+
+ Basic Definition
+An ordinal number is the class of all series isomorphic to a given well-ordered series.
+
+ Key Properties
+1. Not identical with series themselves
+2. Abstract structural patterns
+3. Encode order information lost in cardinal numbers
+
+ Formal Structure
+For series S = <K,R>:
+- K is a class of objects
+- R is an ordering relation
+- Ordinal captures equivalence class under order isomorphism
+
+ 2. Series and Ordered Pairs
+
+ Definition of Series
+A series is given by ordered pair <K,R> where:
+1. K is a class of objects
+2. R orders K's members:
+   - If x,y,z ? K are distinct:
+     * xRy or yRx (but not both)
+     * not(xRx)
+     * if xRy and yRz, then xRz
+
+ Example
+```
+K = {1,2,3,...,10}
+<K,<> generates sequence 1 to 10
+<K,R%> might generate 1,3,2,4,5,7,8,10,9
+Both represent same ordinal
+```
+
+ 3. Finite vs. Infinite Ordinals
+
+ Finite Case
+1. Reordering preserves ordinal
+2. All orderings of n elements isomorphic
+3. Ordinal determined by size alone
+
+ Infinite Case: Omega
+1. <?,<> generates series 1,2,3,...
+2. Defines smallest infinite ordinal (?)
+3. Different orderings possible:
+   - Standard: 1,2,3,...
+   - ?+1: 1,2,3,...,n,a
+   - ?+2: 1,2,3,...,n,a,b
+
+ Beyond Omega
+1. ?+?: Natural numbers followed by another copy
+2. ?×2: Two copies of natural numbers
+3. ?², ?³, ?^?: Higher-order infinite ordinals
+
+ 4. Ordinal Arithmetic
+
+ Addition
+1. Sequential combination
+2. Not commutative:
+   - 1 + ? = ?
+   - ? + 1 > ?
+
+ Multiplication
+1. Repeated addition
+2. Also not commutative:
+   - 2 × ? = ?
+   - ? × 2 > ?
+
+ Exponentiation
+1. Repeated multiplication
+2. Creates higher-order infinities
+3. Example: ?^? yields ??
+
+ 5. Well-Ordered Series
+
+ Definition
+A series S is well-ordered if:
+- Every non-empty subset has a least element
+- Essential for transfinite induction
+
+ Properties
+1. Every element except first has predecessor
+2. Every bounded set has supremum
+3. No infinite descending sequences
+
+ Significance
+1. Enables transfinite induction
+2. Allows recursive definitions
+3. Fundamental for set theory
+
+ 6. The Axiom of Choice
+
+ Relationship to Well-Ordering
+1. AC equivalent to well-ordering theorem
+2. Every set can be well-ordered
+3. Enables comparison of arbitrary ordinals
+
+ Consequences
+1. Enables ordinal arithmetic
+2. Makes ordinal comparison possible
+3. Supports transfinite induction
+
+ Study Questions
+1. Why aren't infinite ordinals determined by size alone?
+2. How does ordinal addition differ from cardinal addition?
+3. Why is well-ordering important for ordinals?
+4. How does AC relate to ordinal theory?
+
+ Exercises
+1. Prove that 1 + ? = ?
+2. Show ? + 1 > ?
+3. Construct explicit well-ordering of rationals
+4. Compare ? × 2 and 2 × ?
+
+ Advanced Topics
+1. Ordinal hierarchies
+2. Von Neumann ordinals
+3. Ordinal collapsing functions
+4. Reflection principles
+
+ Applications
+1. Set Theory
+   - Foundation for mathematics
+   - Transfinite induction
+
+2. Proof Theory
+   - Ordinal analysis
+   - Consistency proofs
+
+3. Recursion Theory
+   - Well-orderings
+   - Hierarchies
+
+ Technical Notes
+
+ Cardinals vs. Ordinals
+1. Scalar vs. Vector Quantities
+   - Cardinals: size only
+   - Ordinals: size and structure
+
+2. Dimensionality
+   - One-dimensional manifolds
+   - Vector quantities
+   - Higher-order relations
+
+ Well-Ordering Principle
+Key features:
+1. Every non-empty subset has least element
+2. Essential for mathematical induction
+3. Equivalent to AC
+
+ Further Reading
+- Sierpi?ski, W. "Cardinal and Ordinal Numbers"
+- Conway, J.H. "On Numbers and Games"
+- Kunen, K. "Set Theory: An Introduction to Independence Proofs"
+
+ Notes
+1. Ordinals essential for understanding infinite structures
+2. Non-commutativity reveals deep structural properties
+3. Connection to mathematical induction fundamental
+
+ Chapters 10-11: Limits and Continuity
+
+ Introduction
+The concepts of limits and continuity form the foundation of mathematical analysis. This chapter examines these concepts through both their formal definitions and their philosophical implications.
+
+ 1. Convergent Series and Cauchy Sequences
+
+ Basic Definitions
+
+ Convergent Series
+Consider sequence S generated by F(x) = x + 1/x:
+```
+S = 2/1, 3/2, 4/3, 5/4, 6/5, ...
+```
+
+ Cauchy Sequences
+Definition: Series {a?} where:
+- For any ? > 0
+- There exists N such that
+- For all m,n > N: |a? - a?| < ?
+
+ Relationship Between Concepts
+1. Every convergent sequence is Cauchy
+2. Not every Cauchy sequence converges (in ?)
+3. All Cauchy sequences converge in ? (completeness)
+
+ Example: Root Sequence
+Consider S = {?1, ?2, ?3, ...}
+- Non-convergent but Cauchy
+- Demonstrates need for real numbers
+- Shows incompleteness of rationals
+
+ 2. Limits of Functions
+
+ Formal Definition
+Statement: "The limit of F(x), as x approaches a, is L"
+means:
+```
+?? > 0, ?? > 0: |x - a| < ? ? |F(x) - L| < ?
+```
+
+ Types of Limits
+
+ Function Limits
+1. Left-hand limits
+2. Right-hand limits
+3. Two-sided limits
+4. Infinite limits
+
+ Continuity Definitions
+
+ Point Continuity
+F is continuous at x = a if:
+1. The limit of F(x) as x ? a exists
+2. F(a) equals this limit
+
+ Function Continuity
+F is continuous if:
+- Continuous at every point in domain
+- Contains all non-terminal limiting points
+
+ 3. Philosophical Issues
+
+ Nature of Limits
+1. Not about reaching endpoint
+2. About arbitrarily close approach
+3. Potential vs. actual infinity
+
+ Continuity vs. Discreteness
+1. Mathematical continuity
+2. Physical continuity
+3. Relationship between models and reality
+
+ 4. Physical Applications
+
+ Laws of Physics in Limit Form
+Example: Instantaneous velocity
+1. Traditional statement:
+   "x's velocity at instant t is v"
+
+2. Precise meaning:
+```
+For intervals I?, I?, ..., I?, ... containing t:
+?? > 0, ?n: |avg_velocity(I?) - v| < ?
+```
+
+ Physical Interpretation
+1. No true instantaneous states
+2. Limits as idealization
+3. Mathematical vs physical continuity
+
+ 5. Technical Developments
+
+ Properties of Continuous Functions
+
+ Intermediate Value Theorem
+If F is continuous on [a,b]:
+- F(a) ? y ? F(b)
+- ?x ? [a,b]: F(x) = y
+
+ Extreme Value Theorem
+If F is continuous on closed interval:
+1. F attains maximum
+2. F attains minimum
+
+ Types of Discontinuity
+1. Jump discontinuity
+2. Removable discontinuity
+3. Essential discontinuity
+
+ 6. Space and Time Continuity
+
+ The Nature of Points
+1. Not primitive entities
+2. Constructed from overlapping regions
+3. Relative to chosen units
+
+ Temporal Continuity
+1. Instants as constructions
+2. No absolute minimal duration
+3. Relativity of temporal measurement
+
+ Study Questions
+1. Why must every convergent sequence be Cauchy?
+2. What distinguishes mathematical from physical continuity?
+3. How do limits eliminate infinitesimals?
+4. Why is completeness important?
+
+ Exercises
+1. Prove sequence (1 + 1/n) is Cauchy
+2. Show x² is continuous at x = 2
+3. Construct continuous function not differentiable at point
+4. Find limit of (sin x)/x as x ? 0
+
+ Advanced Topics
+1. Uniform continuity
+2. Completion of metric spaces
+3. Different types of convergence
+4. Non-standard analysis
+
+ Applications
+1. Physics
+   - Motion laws
+   - Field theories
+   - Quantum mechanics
+
+2. Engineering
+   - Control systems
+   - Signal processing
+   - Optimization
+
+3. Economics
+   - Continuous models
+   - Market equilibrium
+   - Growth theory
+
+ Technical Notes
+1. Distinction between pointwise and uniform limits
+2. Role of completeness in analysis
+3. Topological aspects of continuity
+
+ Further Reading
+- Dedekind, R. "Continuity and Irrational Numbers"
+- Weierstrass, K. "On Continuous Functions"
+- Robinson, A. "Non-standard Analysis"
+
+ Philosophical Implications
+1. Nature of mathematical existence
+2. Relationship between discrete and continuous
+3. Physical vs. mathematical reality
+
+ Notes
+1. Limits fundamental to calculus
+2. Continuity bridges discrete and continuous
+3. Physical applications require careful interpretation
+
+ Chapter 12: The Axiom of Choice and the Law of Excluded Middle
+
+ Introduction
+The Axiom of Choice (AC) and the Law of Excluded Middle (LEM) are fundamental principles whose relationship reveals deep connections between set theory and logic. This chapter examines their nature, justification, and implications.
+
+ 1. The Axiom of Choice
+
+ Basic Formulation
+For any class K of non-empty sets:
+- There exists a selection function f
+- Such that f(S) ? S for each S ? K
+
+ Different Cases
+
+ Finite Cases
+1. Finite collection, finite sets:
+   - Selection obviously possible
+   - Can be explicitly constructed
+
+2. Finite collection, infinite sets:
+   - Selection still clearly possible
+   - May not be explicitly definable
+
+ Infinite Cases
+1. Infinite collection, finite sets:
+   - Selection possible but may not be constructible
+   - Requires careful analysis
+
+2. Infinite collection, infinite sets:
+   - Most controversial case
+   - Core of AC debate
+
+ 2. Non-Constructive Proofs
+
+ Classic Example: Irrational Powers
+Theorem: There exist irrationals a,b such that a? is rational
+
+Proof:
+1. Consider ?2^?2
+2. If rational, done (with a=b=?2)
+3. If irrational, take:
+   - a = ?2^?2
+   - b = ?2
+4. Then a? = (?2^?2)^?2 = ?2^2 = 2
+
+ Analysis of Proof
+1. Doesn't construct specific numbers
+2. Uses LEM
+3. Shows existence without exhibition
+
+ 3. The Law of Excluded Middle
+
+ Formal Statement
+For any proposition P:
+- Either P is true or P is false
+- No third possibility exists
+
+ Constructivist Critique
+1. Mathematical objects are mind-dependent
+2. Truth requires constructibility
+3. Some propositions neither true nor false
+
+ Defense of LEM
+1. Numbers exist independently
+2. Truth transcends proof
+3. Lack of construction doesn't negate existence
+
+ 4. Relationship Between AC and LEM
+
+ Logical Connections
+1. AC implies many instances of LEM
+2. Some versions of LEM imply weak forms of AC
+3. Both support non-constructive methods
+
+ Common Features
+1. Assert existence without construction
+2. Enable powerful mathematical methods
+3. Philosophically controversial
+
+ 5. Mathematical Implications
+
+ With AC and LEM
+1. Every set can be well-ordered
+2. Zorn's Lemma holds
+3. Rich theory of infinite sets possible
+
+ Without AC and LEM
+1. Some sets may lack choice functions
+2. Some existence proofs impossible
+3. Mathematics more constructive but limited
+
+ 6. Philosophical Analysis
+
+ Constructivist Position
+1. Mathematics is human creation
+2. Existence requires constructibility
+3. Rejects both AC and LEM
+
+ Classical Position
+1. Mathematical objects exist independently
+2. Truth transcends verification
+3. Accepts both AC and LEM
+
+ Middle Ground
+1. Different contexts, different principles
+2. Practical vs. theoretical mathematics
+3. Multiple foundational approaches valid
+
+ Study Questions
+1. Why is AC obvious for finite collections?
+2. How does LEM support non-constructive proofs?
+3. Can mathematics proceed without AC?
+4. What justifies acceptance of LEM?
+
+ Exercises
+1. Prove Zorn's Lemma implies AC
+2. Construct explicit choice function for finite case
+3. Analyze role of LEM in standard proofs
+4. Compare constructive vs. classical approaches
+
+ Advanced Topics
+1. Choice functions in topology
+2. Independence proofs
+3. Intuitionistic logic
+4. Alternative set theories
+
+ Applications
+1. Set Theory
+   - Well-ordering theorem
+   - Cardinal arithmetic
+   - Transfinite methods
+
+2. Analysis
+   - Bases in vector spaces
+   - Ultrafilters
+   - Measure theory
+
+3. Topology
+   - Tychonoff's theorem
+   - Product spaces
+   - Separation axioms
+
+ Technical Notes
+1. Different equivalent forms of AC
+2. Hierarchy of choice principles
+3. Relationship to other axioms
+
+ Further Reading
+- Zermelo, E. "The Well-Ordering Theorem"
+- Brouwer, L.E.J. "On the Significance of the Principle of Excluded Middle"
+- Cohen, P. "Set Theory and the Continuum Hypothesis"
+
+ Philosophical Implications
+1. Nature of mathematical existence
+2. Role of construction in mathematics
+3. Multiple foundational approaches
+
+ Notes
+1. AC and LEM fundamentally shape mathematical practice
+2. Different contexts may require different principles
+3. Philosophical stance affects mathematical methodology
+
+ Chapter 13: The Axiom of Infinity and the Theory of Types
+
+ Introduction
+Russell's Theory of Types was proposed as a solution to set-theoretic paradoxes, while the Axiom of Infinity was introduced to ensure the existence of infinite sets. This chapter examines both, revealing fundamental issues with type theory and suggesting alternative approaches to paradox.
+
+ 1. The Axiom of Infinity
+
+ Russell's Problem
+1. Cardinals as classes of equinumerous sets
+2. Requires existence of sufficient objects
+3. Empirical assumption problematic for foundations
+
+ The Axiom
+Statement: There exists an infinite set
+- Contains empty set Ø
+- If contains n, contains {n}
+- Generates sequence: Ø, {Ø}, {{Ø}}, ...
+
+ Issues
+1. Empirical vs. Logical Status
+   - Can't be empirical assumption
+   - Logical necessity unclear
+
+2. Type-Theoretic Complications
+   - Construction violates type restrictions
+   - Creates tension in Russell's system
+
+ 2. Classical Paradoxes
+
+ Russell's Paradox
+Original form:
+```
+Let K = {x | x ? x}
+Then K ? K ? K ? K
+```
+
+ Burali-Forti Paradox
+1. Concerning ordinals:
+   - Class of all ordinals should have ordinal
+   - That ordinal must exceed all ordinals
+   - Leads to contradiction
+
+2. Resolution:
+   - "Class of all ordinals" needs precise definition
+   - Posterity definition resolves issue
+
+ Cantor's Paradox
+1. Statement:
+   - Let U be class of all things
+   - Power set theorem implies 2^U > U
+   - Contradicts U's universality
+
+2. Resolution:
+   - Universal class needs careful definition
+   - Posterity approach again resolves
+
+ 3. The Theory of Types
+
+ Basic Principles
+1. Hierarchical Structure:
+   - Objects of type 0
+   - Properties of type 1
+   - Properties of properties of type 2
+   - And so on
+
+2. Scope Restriction:
+   - Statement cannot refer to its own type
+   - Prevents self-reference
+
+ Example Applications
+
+ Typical Frenchman Paradox
+1. Original Statement:
+   "Smith has all properties of typical Frenchman"
+
+2. Type-Theoretic Analysis:
+   - First-order properties only
+   - Avoids contradiction but artificial
+
+ Liar Paradox
+1. Statement: "This statement is false"
+2. Type Theory Response:
+   - Statement can't refer to own truth
+   - Different levels of truth predicate
+
+ 4. Critique of Type Theory
+
+ Fundamental Problems
+1. Self-Referential Issue:
+   - Theory itself violates its principles
+   - Cannot consistently state its own rules
+
+2. Multiplication of Concepts:
+   - Different types of numbers
+   - Different levels of truth
+   - Artificial complexity
+
+ Alternative Analysis
+
+ Reflexive Pronouns
+1. Key Insight:
+   - "Itself" requires antecedent
+   - Free variables in paradoxes
+
+2. Application:
+   - Russell's paradox dissolves
+   - No type theory needed
+
+ Resolution of Paradoxes
+1. Russell's Paradox:
+   - Contains free variables
+   - No proposition expressed
+
+2. Liar Paradox:
+   - Distinguishes statement from assertion
+   - Simply false, not contradictory
+
+ 5. Technical Analysis
+
+ Grammar of Self-Reference
+1. Anaphoric Pronouns:
+   - Require antecedents
+   - Can't generate paradox
+
+2. Variable Binding:
+   - Free variables in paradoxes
+   - No truth value assigned
+
+ Formal Treatment
+```
+"K is member of K" means:
+"If K is class of classes k such that k doesn't have p,
+for some property p such that x belongs to k iff x has p,
+then K does not have p"
+```
+
+ Study Questions
+1. Why is type theory's self-reference problematic?
+2. How does the reflexive pronoun analysis resolve paradoxes?
+3. Why is the Axiom of Infinity controversial?
+4. What makes free variables crucial to paradox resolution?
+
+ Exercises
+1. Analyze other paradoxes using pronoun approach
+2. Compare type theory with alternative solutions
+3. Examine implications of Axiom of Infinity
+4. Construct formal analysis of self-reference
+
+ Advanced Topics
+1. Category theory approaches
+2. Non-well-founded set theory
+3. Paraconsistent logic
+4. Alternative foundations
+
+ Applications
+1. Set Theory
+   - Foundation axioms
+   - Class theory
+   - Large cardinals
+
+2. Logic
+   - Truth predicates
+   - Semantic paradoxes
+   - Type systems
+
+3. Computer Science
+   - Type safety
+   - Program verification
+   - Language design
+
+ Further Reading
+- Russell, B. "Mathematical Logic as Based on the Theory of Types"
+- Tarski, A. "The Concept of Truth in Formalized Languages"
+- Aczel, P. "Non-Well-Founded Sets"
+
+ Notes
+1. Paradoxes reveal deep logical structure
+2. Simple solutions often better than complex theories
+3. Foundations need careful philosophical analysis
+
+ Chapter 14: Incompatibility and the Consequence-relation
+
+ Introduction
+The nature of logical consequence and incompatibility lies at the heart of mathematical reasoning. This chapter examines the relationship between truth-functional logic and mathematical truth, challenging Russell's reduction of mathematical necessity to truth-functionality.
+
+ 1. Truth Values and Connectives
+
+ Basic Concepts
+1. Truth Values:
+   - True (T)
+   - False (F)
+
+2. Sentences:
+   - Have truth values
+   - Basic units of logical analysis
+
+ Truth-Functional Connectives
+A connective * is truth-functional if:
+- For n-tuple of sentences <s?...s?>
+- Truth value of *(s?...s?) determined by:
+  * Truth values of s?...s?
+  * Nothing else
+
+ 2. Analysis of Basic Connectives
+
+ Conjunction ("and")
+Example: "Snow is white and grass is transparent"
+- Structure: And<'snow is white', 'grass is transparent'>
+- True iff both components true
+- Truth table determination
+
+ Disjunction ("or")
+Example: "Snow is white or grass is transparent"
+- Structure: Or<'snow is white', 'grass is transparent'>
+- True iff at least one component true
+- Inclusive interpretation
+
+ Negation ("not")
+Example: "Grass is not transparent"
+- Structure: Not<'grass is transparent'>
+- True iff component false
+- Truth value inversion
+
+ 3. Non-Truth-Functional Connectives
+
+ Modal Connectives
+1. "Necessarily"
+2. "Possibly"
+3. "Probably"
+
+ Epistemic Connectives
+1. "Knows that"
+2. "Believes that"
+3. "Doubts that"
+
+ Causal Connectives
+Example: "Because"
+- Truth values insufficient
+- Requires analysis of meanings/relations
+
+ 4. The Scheffer Stroke
+
+ Definition
+p/q is true iff not both p and q are true
+
+ Completeness
+All truth-functional connectives expressible:
+1. not-p = p/p
+2. p and q = (p/q)/(p/q)
+3. p or q = (p/p)/(q/q)
+
+ 5. Mathematical Consequence
+
+ Russell's Position
+1. In mathematics:
+   - No distinction between:
+     * p/(q/q) (incompatibility with not-q)
+     * Necessary consequence
+
+2. Reasoning:
+   - Mathematical truths necessarily true
+   - No modal distinction needed
+
+ Critique of Russell
+
+ Formal vs. Model-theoretic Entailment
+1. Formal Entailment:
+   - p ? q: q derivable from p in system
+   - Relative to axiom set
+
+2. Model-theoretic Entailment:
+   - p ? q: no possible world where p true, q false
+   - Independent of formal system
+
+ Important Distinctions
+1. Different Axiom Sets:
+   - Same proposition
+   - Different derivability relations
+
+2. Strength of Entailment:
+   - Formal stronger than model-theoretic
+   - Smaller extension
+
+ 6. Technical Development
+
+ Truth-Functional Completeness
+1. Definition:
+   - Set of connectives complete if
+   - Can express all truth functions
+
+2. Minimal Complete Sets:
+   - Scheffer stroke alone
+   - Negation plus conjunction
+   - Other combinations
+
+ Formal Systems
+1. Components:
+   - Axioms
+   - Rules of inference
+   - Derived theorems
+
+2. Properties:
+   - Soundness
+   - Completeness
+   - Consistency
+
+ Study Questions
+1. Why isn't "because" truth-functional?
+2. How does formal entailment differ from model-theoretic?
+3. Why is Russell's position inadequate?
+4. What makes Scheffer stroke significant?
+
+ Exercises
+1. Express standard connectives using Scheffer stroke
+2. Compare different complete sets of connectives
+3. Analyze modal statements in mathematics
+4. Construct truth tables for complex expressions
+
+ Advanced Topics
+1. Modal logic systems
+2. Proof theory
+3. Model theory
+4. Categorical logic
+
+ Applications
+1. Mathematical Logic
+   - Formal systems
+   - Proof methods
+   - Foundation theories
+
+2. Computer Science
+   - Circuit design
+   - Programming languages
+   - Verification systems
+
+3. Philosophy
+   - Nature of necessity
+   - Logical consequence
+   - Mathematical truth
+
+ Technical Notes
+1. Distinction between syntax and semantics
+2. Role of formal systems
+3. Limits of truth-functionality
+
+ Further Reading
+- Tarski, A. "On the Concept of Logical Consequence"
+- Quine, W.V.O. "Mathematical Logic"
+- Kripke, S. "Naming and Necessity"
+
+ Notes
+1. Consequence relations fundamental to mathematics
+2. Multiple notions of logical necessity
+3. Truth-functionality insufficient for mathematics
+
+ Chapter 15: Propositional Functions
+
+ Introduction
+Propositional functions form the bridge between logic and mathematics, enabling us to understand quantification, existence claims, and the nature of mathematical truth. This chapter examines their structure and significance.
+
+ 1. Basic Concepts
+
+ Definition
+A propositional function is:
+- The meaning of an open sentence
+- Maps individuals to truth values
+- Example: "x is tall" maps each individual to T/F
+
+ Structure
+1. Components:
+   - Variable(s)
+   - Predicate
+   - Logical operators
+
+2. Formal Notation:
+   ```
+   ?(x): propositional function
+   ?(a): proposition (when 'a' substituted for x)
+   ```
+
+ 2. Quantified Generalizations
+
+ Formation
+1. Starting point: propositional function
+2. Bind variables with quantifiers
+3. Result: complete proposition
+
+ Example Analysis
+"Five men are tall" means:
+```
+?x?,x?,x?,x?,x?(
+   Man(x?) ? Tall(x?) ?
+   Man(x?) ? Tall(x?) ?
+   ...
+   ? x??x? ? x??x? ? ...
+)
+```
+
+ 3. Properties of Quantified Statements
+
+ Class-Level Properties
+1. About classes, not individuals
+2. Example: "For some x, x is tall"
+   - Not about any specific tall thing
+   - About class of tall things
+
+ Modal Properties
+1. Different from individual statements
+2. Example:
+   - "Smith is tall" contingent
+   - "Something is tall" different modal status
+
+ 4. Temporal Quantifiers
+
+ Analysis of "Always"
+1. "Jim always smokes" means:
+   ```
+   ?t(Jim-smokes-at(t))
+   ```
+2. Property of class of propositions
+3. Subset relation to true propositions
+
+ General Form
+"A is always B" means:
+```
+?x(A(x) ? B(x))
+```
+- Class relationship
+- Not about individuals
+
+ 5. Existence Claims
+
+ Structure
+1. "A solution exists" means:
+   ```
+   ?x(Solution(x))
+   ```
+2. About class intersection
+3. Not about specific entities
+
+ Properties of Existence
+1. Property of propositional functions
+2. Intersection with true propositions
+3. Not property of individuals
+
+ 6. Role in Reasoning
+
+ Four Basic Operations
+1. Positing existence
+2. Denying existence
+3. Attributing truth
+4. Attributing falsity
+
+ Relationship
+1. Truth attribution = existence positing
+2. Falsity attribution = existence denial
+3. All reasoning reduces to these
+
+ 7. Technical Analysis
+
+ Formal Structure
+For proposition P:
+```
+To affirm P = assert existence of fact making P true
+To deny P = assert non-existence of such fact
+```
+
+ Examples
+1. "A is on top of B":
+   - Assemblage of objects exists
+   - Not identical with objects themselves
+
+2. Complex statements:
+   - Built from simple existence claims
+   - Hierarchical structure
+
+ Study Questions
+1. Why aren't quantified statements about individuals?
+2. How do existence claims relate to classes?
+3. Why is "always" a class property?
+4. How do propositional functions enable reasoning?
+
+ Exercises
+1. Analyze complex quantified statements
+2. Compare individual and class properties
+3. Formalize temporal statements
+4. Examine existence claims structure
+
+ Advanced Topics
+1. Higher-order functions
+2. Type theory connections
+3. Modal aspects
+4. Semantic theory
+
+ Applications
+1. Mathematical Logic
+   - Formal systems
+   - Proof theory
+   - Model theory
+
+2. Philosophy
+   - Existence claims
+   - Abstract objects
+   - Truth theory
+
+3. Computer Science
+   - Programming logic
+   - Verification
+   - Type systems
+
+ Technical Notes
+1. Distinction from predicates
+2. Role in formal systems
+3. Relationship to classes
+
+ Further Reading
+- Frege, G. "Begriffsschrift"
+- Whitehead & Russell "Principia Mathematica"
+- Quine, W.V.O. "Methods of Logic"
+
+ Notes
+1. Functions ground mathematical logic
+2. Enable precise analysis of quantification
+3. Connect logic to mathematics
+
+ Chapter 16: Classes
+
+ Introduction
+While Russell claimed classes don't exist and are merely convenient fictions, this chapter demonstrates why this view is inadequate and offers a more nuanced understanding of the nature of classes.
+
+ 1. Russell's Position
+
+ Core Claim
+1. Classes don't exist
+2. They are convenient fictions
+3. Can be eliminated from rigorous discourse
+
+ Russell's Argument
+1. A class of three objects isn't their conglomeration
+2. Therefore, it isn't spatiotemporal
+3. Therefore (Russell claims), it isn't anything
+
+ Initial Assessment
+1. First premise correct
+2. Second premise correct
+3. Conclusion doesn't follow
+
+ 2. Critique of Russell's Reasoning
+
+ The Spatiotemporal Fallacy
+1. True: Classes aren't spatiotemporal
+2. False: Only spatiotemporal things exist
+3. Many non-spatiotemporal entities exist
+
+ Example: Relations
+1. Consider "taller than" relation
+2. Not a physical object
+3. Not better qualified than rocks/trees
+4. Yet clearly exists as abstract relation
+
+ Instance vs. Property
+1. Different instances of same relation
+2. Properties have instances
+3. Properties distinct from instances
+4. Properties necessarily non-spatiotemporal
+
+ 3. Positive Account of Classes
+
+ Essential Properties
+1. Independence from members:
+   - Class {my computer, my desk} unchanged
+   - Even if objects separated
+   - Even if objects destroyed
+
+2. Abstract nature:
+   - Non-spatiotemporal
+   - But not fictional
+   - Real abstract entities
+
+ Relationship to Properties
+1. Classes correspond to properties
+2. Different from properties
+3. Both equally real
+
+ 4. Technical Considerations
+
+ Empty Class
+1. Exists despite no members
+2. Different from non-existence
+3. Has definite properties
+
+ Class Identity
+1. Determined by membership
+2. Extension principle
+3. Independent of arrangement
+
+ 5. Philosophical Implications
+
+ Ontological Status
+1. Real entities
+2. Abstract existence
+3. Objective properties
+
+ Relationship to Mathematics
+1. Foundation for number theory
+2. Set-theoretic constructions
+3. Mathematical structure
+
+ 6. Alternative Views
+
+ Nominalism
+1. Denies abstract entities
+2. Classes as constructions
+3. Problems with mathematics
+
+ Conceptualism
+1. Classes as mental constructs
+2. Issues with objectivity
+3. Mathematical platonism
+
+ Study Questions
+1. Why does non-spatiotemporal ? non-existent?
+2. How do classes relate to properties?
+3. What makes empty class real?
+4. Why is Russell's view inadequate?
+
+ Exercises
+1. Analyze class identity conditions
+2. Compare class and property existence
+3. Examine empty class properties
+4. Evaluate competing ontologies
+
+ Advanced Topics
+1. Class theory variants
+2. Category theory
+3. Structural realism
+4. Abstract objects theory
+
+ Applications
+1. Mathematics
+   - Set theory
+   - Number theory
+   - Structure theory
+
+2. Logic
+   - Type theory
+   - Model theory
+   - Proof theory
+
+3. Philosophy
+   - Ontology
+   - Abstract objects
+   - Mathematical reality
+
+ Technical Notes
+1. Class vs. set distinction
+2. Membership relation
+3. Extension principle
+
+ Further Reading
+- Quine, W.V.O. "From a Logical Point of View"
+- Benacerraf, P. "What Numbers Could Not Be"
+- Lewis, D. "Parts of Classes"
+
+ Notes
+1. Classes are legitimate abstract entities
+2. Not reducible to spatiotemporal objects
+3. Essential for mathematics
+
+ Appendix: Formal Development
+
+ Basic Principles
+```
+Extension: ?x?y(?z(z?x ? z?y) ? x=y)
+Comprehension: ?y?x(x?y ? ?(x)) [with restrictions]
+```
+
+ Class Operations
+1. Union
+2. Intersection
+3. Complement
+4. Power set
+
+  Chapter 17: Descriptions
+
+ Introduction
+Russell's Theory of Descriptions addresses the logic and meaning of definite descriptions ("the ?"). While influential, the theory requires careful examination and reveals both insights and limitations.
+
+ 1. Russell's Theory of Descriptions
+
+ Core Propositions
+1. "The ? is ?" means:
+   - Exactly one thing has ?
+   - Anything that has ? also has ?
+   ```
+   ?x(?x ? ?y(?y ? y=x) ? ?x)
+   ```
+
+2. "The ? exists" means:
+   - For some x, x is a ?
+   ```
+   ?x(?x ? ?y(?y ? y=x))
+   ```
+
+3. "The ? doesn't exist" means:
+   - For no x, x is ?
+   ```
+   ¬?x(?x)
+   ```
+
+ 2. Russell's Motivation
+
+ Identity Problems
+1. Example:
+   - "The man in the white hat is tall"
+   - ? "Smith is tall" (even if Smith is the man)
+   - Different truth conditions
+
+ Reference Issues
+1. No direct reference
+2. Descriptions as incomplete symbols
+3. Contextual definition
+
+ 3. Analysis of Key Cases
+
+ Existence Claims
+1. "The gnome on the desk exists"
+   - False if no gnome
+   - True if exactly one gnome
+
+2. "The gnome on the desk doesn't exist"
+   - True if no gnome
+   - False if any gnome
+
+ Identity Statements
+1. "The morning star is the evening star"
+2. "The author of Waverley is Scott"
+3. Different cognitive value despite same reference
+
+ 4. Critique of the Theory
+
+ Problems with Russellian Analysis
+
+1. Meaning vs. Truth Conditions
+   - Theory confuses these
+   - Different semantic roles
+
+2. Reference Role
+   - Descriptions can refer
+   - Not merely quantificational
+
+3. Speaker Intentions
+   - Not captured by theory
+   - Pragmatic aspects ignored
+
+ Alternative Approach
+
+1. Semantic Distinction
+   - Reference vs. sense
+   - Truth conditions vs. meaning
+
+2. Pragmatic Elements
+   - Speaker reference
+   - Contextual factors
+
+ 5. Technical Development
+
+ Formal Analysis
+1. Scope distinctions:
+   ```
+   Primary: ?x(?x ? ?y(?y ? y=x) ? ?x)
+   Secondary: ?(?x.?x)
+   ```
+
+2. Uniqueness condition:
+   ```
+   ?!x(?x) ? ?x(?x ? ?y(?y ? y=x))
+   ```
+
+ Logical Properties
+1. Existence entailment
+2. Scope interactions
+3. Modal contexts
+
+ 6. Applications
+
+ Mathematical Descriptions
+1. "The smallest prime number"
+2. "The square root of 4"
+3. Functional notation
+
+ Natural Language
+1. Definite articles
+2. Proper names
+3. Complex descriptions
+
+ Study Questions
+1. Why aren't descriptions simply referring terms?
+2. How do scope ambiguities arise?
+3. What role does uniqueness play?
+4. How do descriptions work in mathematics?
+
+ Exercises
+1. Analyze complex descriptions
+2. Compare competing theories
+3. Examine modal contexts
+4. Evaluate mathematical cases
+
+ Advanced Topics
+1. Free logic
+2. Modal descriptions
+3. Complex descriptions
+4. Donnellan's distinction
+
+ Applications
+1. Mathematics
+   - Function notation
+   - Unique existence
+   - Definition theory
+
+2. Logic
+   - Formal semantics
+   - Proof theory
+   - Model theory
+
+3. Philosophy
+   - Reference theory
+   - Meaning theory
+   - Truth conditions
+
+ Technical Notes
+1. Scope distinctions crucial
+2. Uniqueness conditions
+3. Existence presuppositions
+
+ Further Reading
+- Russell, B. "On Denoting"
+- Strawson, P.F. "On Referring"
+- Donnellan, K. "Reference and Definite Descriptions"
+
+ Notes
+1. Theory reveals logical structure
+2. But oversimplifies semantics
+3. Needs pragmatic supplement
+
+ Appendix: Alternative Theories
+
+ Frege's Approach
+1. Sense and reference
+2. Semantic complexity
+3. Truth-value gaps
+
+ Strawson's Critique
+1. Presupposition
+2. Reference failure
+3. Truth-value gaps
+
+ Donnellan's Distinction
+1. Attributive use
+2. Referential use
+3. Pragmatic factors
+
+Index
+
+ A
+Abstraction, definition by, 45-48
+Actual infinity, 156, 189
+Axiom of Choice
+- and constructivism, 167-169
+- equivalence to well-ordering, 134
+- in set theory, 178-182
+- relationship to LEM, 170-173
+
+ B
+Burali-Forti paradox, 198-201
+
+ C
+Cardinal numbers
+- addition of, 89-92
+- comparison of, 93-95
+- infinite, 88-96
+- multiplication of, 92-93
+- subtraction of, 95-96
+- vs. ordinal numbers, 112-115
+
+Cauchy sequences
+- completeness, 145-147
+- convergence, 142-145
+- definition, 141-142
+- in construction of reals, 78-82
+
+Classes
+- as abstract entities, 220-223
+- existence of, 217-220
+- identity conditions, 224-226
+- Russell's view of, 215-217
+
+Continuity
+- definitions of, 148-150
+- in physics, 151-153
+- mathematical vs. physical, 153-156
+
+ D
+Dedekind
+- axioms, 23-27
+- cuts, 76-78
+- incompleteness proof, 28-31
+
+Descriptions, theory of
+- critique of, 232-235
+- motivation for, 229-231
+- Russell's analysis, 227-229
+
+ E
+Empty set, 42-43
+Existence
+- claims about, 208-210
+- mathematical, 211-213
+
+ F
+Formal systems
+- completeness of, 189-191
+- limitations of, 191-193
+
+Frege
+- analysis of cardinality, 38-41
+- on descriptions, 236-237
+
+ G
+Gödel
+- incompleteness theorems, 191-193
+- impact on logicism, 194-196
+
+ H
+Higher-order relations, 97-102
+
+ I
+Infinity
+- actual vs. potential, 156-158
+- axiom of, 197-200
+- different sizes of, 88-91
+
+ L
+Law of Excluded Middle
+- and constructivism, 170-172
+- defense of, 173-175
+
+Limits
+- definition of, 143-145
+- in physics, 151-153
+
+Logic
+- and mathematics, 251-255
+- formal vs. informal, 256-258
+
+ M
+Mathematical truth
+- nature of, 259-261
+- vs. logical truth, 262-264
+
+ N
+Natural numbers
+- definition of, 32-35
+- successor relation, 35-37
+
+ O
+Ordinal numbers
+- arithmetic of, 116-119
+- definition, 113-115
+- vs. cardinal numbers, 112-113
+
+ P
+Paradoxes
+- Burali-Forti, 198-201
+- Cantor's, 201-203
+- resolution of, 204-207
+- Russell's, 197-198
+
+Propositional functions
+- and existence, 208-210
+- nature of, 205-207
+
+ R
+Real numbers
+- as Cauchy sequences, 78-82
+- as Dedekind cuts, 76-78
+- Russell's construction, 75-76
+
+Reflexive classes, 88-89
+
+ S
+Series
+- convergent, 141-143
+- well-ordered, 134-136
+
+ T
+Theory of Types
+- critique of, 197-204
+- motivation for, 195-197
+
+Truth
+- formal vs. substantive, 256-258
+- mathematical vs. logical, 259-261
+
+ W
+Well-ordering
+- definition, 134-136
+- theorem, 136-138
+
+References
+
+Aczel, P. (1988). *Non-Well-Founded Sets*. CSLI Publications.
+
+Benacerraf, P. (1965). "What Numbers Could Not Be." *Philosophical Review*, 74(1), 47-73.
+
+Benacerraf, P. (1973). "Mathematical Truth." *Journal of Philosophy*, 70(19), 661-679.
+
+Cantor, G. (1895). "Contributions to the Founding of the Theory of Transfinite Numbers." *Mathematische Annalen*, 46, 481-512.
+
+Dedekind, R. (1888). *Was sind und was sollen die Zahlen?* Vieweg.
+
+Donnellan, K. (1966). "Reference and Definite Descriptions." *Philosophical Review*, 75(3), 281-304.
+
+Frege, G. (1884). *Die Grundlagen der Arithmetik*. W. Koebner.
+
+Gödel, K. (1931). "Über formal unentscheidbare Sätze der Principia Mathematica und verwandter Systeme I." *Monatshefte für Mathematik und Physik*, 38(1), 173-198.
+
+Hausdorff, F. (1914). *Grundzüge der Mengenlehre*. Veit & Comp.
+
+Kripke, S. (1980). *Naming and Necessity*. Harvard University Press.
+
+Quine, W.V.O. (1960). *Word and Object*. MIT Press.
+
+Russell, B. (1903). *The Principles of Mathematics*. Cambridge University Press.
+
+Russell, B. (1905). "On Denoting." *Mind*, 14(56), 479-493.
+
+Russell, B. (1908). "Mathematical Logic as Based on the Theory of Types." *American Journal of Mathematics*, 30(3), 222-262.
+
+Sierpi?ski, W. (1965). *Cardinal and Ordinal Numbers*. PWN.
+
+Tarski, A. (1935). "Der Wahrheitsbegriff in den formalisierten Sprachen." *Studia Philosophica*, 1, 261-405.
+
+von Neumann, J. (1923). "Zur Einführung der transfiniten Zahlen." *Acta Scientiarum Mathematicarum*, 1, 199-208.
+
+Whitehead, A.N. & Russell, B. (1910-1913). *Principia Mathematica*. Cambridge University Press.
+
+Zermelo, E. (1904). "Beweis, dass jede Menge wohlgeordnet werden kann." *Mathematische Annalen*, 59, 514-516.
+
+

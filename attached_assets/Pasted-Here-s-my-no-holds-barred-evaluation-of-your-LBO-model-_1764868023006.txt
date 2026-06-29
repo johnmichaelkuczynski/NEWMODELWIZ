@@ -1,0 +1,20 @@
+Here's my no-holds-barred evaluation of your LBO model output from the Excel file ("Target_Company_LBO_Model_2025-12-04.xlsx"):
+
+### The Good (this is a strong, bankable LBO setup)
+- **Returns are stellar and realistic for PE**: 4.47x MOIC and 35% IRR over 5 years is exactly what a top-quartile private equity firm aims for. It's aggressive but achievable with 8% revenue CAGR, margin expansion from 18.3% to 20%, and a modest exit multiple bump from 7x to 8x (reflecting operational improvements). No heroic assumptions needed—no 10x multiple or 20% growth. The sensitivity table shows robustness: even at 6x exit and 3% CAGR, you still get 17% IRR (breakeven for most funds); at bull-case 10x/13% CAGR, it's 53% IRR. Nice range.
+- **Leverage and paydown are conservative and smart**: Entry at 5x total (4x senior + 1x sub) on $550M EBITDA is standard for a stable business— not too risky. Full cash sweep on senior debt (no mandatory amort shown, just voluntary paydown) reduces total debt from $2,750M to $1,713M (37.7% repaid), dropping leverage to 1.94x at exit. That's clean de-risking, making the deal financeable and exit-ready (banks love <2x net leverage for refi or sale).
+- **Sources & Uses are tight and professional**: Balanced at $3,928M. Debt at 70% of cap structure (senior 56%, sub 14%), equity 30%—classic PE mix. Fees are realistic (financing 1% of debt = $27.5M; transaction ~1.3% of EV = $50M). No funny business like PIK or rollover equity.
+- **Exit calc is clean**: 8x on $882M exit EBITDA gives $7,053M EV, minus remaining debt $1,713M and 1% exit costs $71M = $5,269M equity. Straightforward, no over-engineering.
+- **Projections feel grounded**: 8% revenue growth fading slightly (common for mature $3B+ company), margins ramping 33 bps/year (operational upside without fantasy), CapEx at 5% of revenue (maintenance level), D&A 4% (asset-light vibe), NWC change ~12% of growth (efficient working capital). FCF growing from $119M to $308M supports the paydown without strain.
+
+### The Bad (one glaring issue that bugs me)
+- **FCF numbers seem understated by 5-7%—this could be a calc error or hidden assumption**: Based on standard LBO math (levered NOPAT + D&A - CapEx - ΔNWC), Year 1 CFADS should be ~$126M, not $119M (diff of $7M). Year 2 ~$165M vs. $158M (diff $7.5M); Year 3 ~$210M vs. $201M (diff $8M). The pattern holds across years. This isn't rounding—it's consistent underreporting. Possible culprits:
+  - Missing add-back or wrong tax shield: Your interest after-tax is $169M Year 1 ($226M * 75%), but if the model ignores part of the shield or treats something as non-deductible, FCF drops.
+  - Hidden cash outflows: Maybe sponsor mgmt fees (~$7M/year if 1.2-1.5% of EBITDA) or amortized fees deducted without add-back. The sheet doesn't show them, but if they're there, disclose it—PE models must be transparent.
+  - Circular ref or formula glitch: Interest is on beginning balance (correct), but if the model has a lag or mid-year adjustment not visible, it could skew. Result? Less paydown ($1,037M total vs. potential ~$1,100M), higher exit debt, lower equity value/IRR (your 35% might really be 37-38%).
+  - Why care? Understated FCF makes the deal look riskier than it is (e.g., tighter coverage ratios). In real life, a VP would flag this and fix it before pitching.
+
+### Bottom Line
+This is a rock-solid LBO model overall—attractive returns, logical flow, and bankable assumptions for a $3B revenue company in a cyclical/low-margin sector (e.g., manufacturing or distribution). The 35% IRR at 8x exit is a winner; most funds would greenlight this. But the FCF discrepancy smells like a bug or undocumented expense—re-run the calc with explicit levered FCF formula to confirm. If it's intentional (e.g., conservative buffer), note it in assumptions. Fix that, and this model is pitch-perfect.
+
+Your move, asshole. Want me to suggest tweaks or a new input to test a variant?

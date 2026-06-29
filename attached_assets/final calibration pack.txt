@@ -1,0 +1,105 @@
+Final Calibration Pack (Short Samples Version)
+
+---
+
+Sample 1: AI-Generated Personal Identity Paragraph
+
+> Life is like really strange because like sometimes you just don’t know what’s happening and sometimes it’s good and sometimes it’s bad but it’s just like that’s how it is you know and we just kind of go along with it even though it’s crazy and confusing.
+
+**Target Score:** 40
+
+**Justification:**
+Random surface fluency without any conceptual compression or inferential continuity. No meaningful claims or structure.
+
+---
+
+Sample 2: Free Will Bias Paragraph
+
+> Free will is often said to mean acting without external compulsion. However, even when external pressures are removed, internal constraints such as psychological biases remain. Thus, freedom of action is not equivalent to freedom of will, suggesting that common definitions of free will overlook crucial internal limitations.
+
+**Target Score:** 55
+
+**Justification:**
+Basic inferential step is made (action vs. will), but compression is low and structure is relatively flat. Moderate but not blueprint-level thinking.
+
+---
+
+Sample 3: Market Efficiency Meta-Critique
+
+> In economic theory, market efficiency is often idealized as the natural outcome of rational actors optimizing their resources. However, this abstraction ignores the recursive effects of meta-predictions, wherein actors not only optimize based on information but optimize based on others’ attempts to optimize. This feedback loop destabilizes classic efficiency models and suggests that genuine equilibrium may be systematically unattainable.
+
+**Target Score:** 78
+
+**Justification:**
+Shows solid compression and reframing (meta-predictions destabilizing efficiency), but not full blueprint-grade recursion or density.
+
+---
+
+Sample 4: Ninety Paradoxes of Philosophy (Excerpt)
+
+> The more useless a given employee is to the organization that employs her, the more unstintingly she will toe that organization’s line. This is a corollary of the loser paradox.
+
+**Target Score:** 90
+
+**Justification:**
+Original pattern recognition compressed into a sharp conceptual tool. High inferential compression across examples.
+
+---
+
+Sample 5: CTM Critique (Computational Theory of Mind Excerpt)
+
+> Words like 'form' and 'formal' are ambiguous, as they can refer to form in either the syntactic or the morphological sense. CTM fails on each disambiguation, and the arguments for CTM immediately cease to be compelling once we register that ambiguity.
+
+**Target Score:** 94
+
+**Justification:**
+Deep structural critique of CTM based on linguistic precision. Major compression and original reframing.
+
+---
+
+Sample 6: Revised Dianetics Book Review (Excerpt)
+
+> In Urban’s view, practically everything about the Church is ambiguous. It is ambiguous whether it benefits its own members. It is also ambiguous what it is exactly. In some respects, it is a religion; in others, a corporation. However, Urban contends, it ultimately isn’t exactly either; each of those identities was forced on it.
+
+**Target Score:** 92
+
+**Justification:**
+Shows independent sociological framing. Strong semantic compression and inferential continuity.
+
+---
+
+Sample 7: The Will to Project (Excerpt)
+
+> A projected being is ipso facto supernatural. A hallucinated Mr. Spock—in other words, a Mr. Spock who is a case of pure projection—can walk on water, fly like a bird, and walk through walls. A Spock who is projected onto an actual person—a Max-Spock, in other words—is more limited but is still supernatural.
+
+**Target Score:** 94
+
+**Justification:**
+Major compression of psychological and metaphysical concepts into a recursive explanatory model. Demonstrates blueprint-grade cognitive structure.
+
+---
+
+Sample 8: Pragmatism Paper ("Epistemology Posing as Metaphysics" Excerpt)
+
+> Pragmatism has tremendous value—as a description, not of truth per se, but of our knowledge of it—and, more precisely, of our acquisition of that knowledge. [...] Truth per se is discovered, not made. But knowledge is indeed made.
+
+**Target Score:** 94–96
+
+**Justification:**
+Blueprint-level compression and reframing of pragmatism. Deep recursive structure and high originality.
+
+---
+
+Scoring Expectations Summary:
+
+- True blueprint-grade writing must score 90–98
+- Strong graduate commentary must score 80–89
+- Routine commentary must score 60–79
+- Surface fluency without conceptual substance must score 40–59
+- Random or incoherent writing must score below 40
+
+Compression, originality, and inferential continuity are everything.
+
+**No smoothing to 80 allowed.**
+**No penalty for "lack of examples" or "completeness."**
+

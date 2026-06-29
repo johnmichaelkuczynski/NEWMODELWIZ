@@ -1,0 +1,11 @@
+
+INTELLIGENCE ANALYSIS REPORT
+============================
+Analysis Provider: OpenAI (GPT-4o)
+Overall Intelligence Score: undefined/100
+
+SUMMARY:
+
+
+ASSESSMENT:
+

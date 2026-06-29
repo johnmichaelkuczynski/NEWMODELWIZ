@@ -1,0 +1,129 @@
+Here are 50 parser-only tests targeting the exact failure mode that breaks your finance engine:
+
+✅ Unit conversion only
+✅ No modeling
+✅ Each test should output ONE number
+The agent must convert everything into millions (M).
+📌 RULE FOR THESE 50 TESTS
+
+All outputs must be in millions.
+Examples:
+
+“$1.3B” → 1300
+
+“$870m” → 870
+
+“775 million” → 775
+
+If the parser is correct, you will get 50 numbers that match exactly.
+
+🔥 50 UNIT-SCALING PARSER TESTS
+Tests 1–10: Straightforward B → M
+
+Extract the enterprise value from: “The deal was valued at $1.3B.”
+
+Extract the valuation from: “Company sold for $2.05B.”
+
+Extract the EV from: “Transaction size: $0.9B.”
+
+Extract the debt from: “Total borrowings amounted to $1.75B.”
+
+Extract the price from: “Paid $3.2B for the target.”
+
+Extract the consideration from: “Equity value stands at $4.0B.”
+
+Extract the synergies from: “Lifetime synergies estimated at $1.15B.”
+
+Extract the deal size from: “Overall deal value: $5.8B.”
+
+Extract the revenue from: “The firm generated $1.01B last year.”
+
+Extract the offer value from: “Bid came in at $0.55B.”
+
+Tests 11–20: Lowercase b / bn variants
+
+Extract the valuation: “Enterprise value was 1.4bn.”
+
+Extract: “Acquirer offered 2.75bn.”
+
+Extract: “The JV investment totals 0.6bn.”
+
+Extract: “Capital raise: 3.05bn.”
+
+Extract: “The takeover price: 1.02bn.”
+
+Extract: “The target is worth 0.33bn.”
+
+Extract: “Negotiated purchase price: 1.95bn.”
+
+Extract: “Merger consideration: 4.8bn.”
+
+Extract: “Deal volume: 2.0bn.”
+
+Extract: “Buyout offer: 0.27bn.”
+
+Tests 21–30: Word variants (billion)
+
+Extract: “EV estimated at 1.6 billion.”
+
+Extract: “Fair value: 3.4 billion.”
+
+Extract: “IPO proceeds expected to hit 2.1 billion.”
+
+Extract: “Total capital deployed: 0.8 billion.”
+
+Extract: “Anticipated sale price: 5.2 billion.”
+
+Extract: “Management buyout cost 1.03 billion.”
+
+Extract: “Company valued at 4.75 billion.”
+
+Extract: “Analysts estimate 2.9 billion in equity value.”
+
+Extract: “The tender offer was 6.0 billion.”
+
+Extract: “Acquisition budget capped at 0.42 billion.”
+
+Tests 31–40: M → raw number (already in millions)
+
+Extract: “Revenue this year: $875M.”
+
+Extract: “Cash on hand: $44M.”
+
+Extract: “Free cash flow: $112M.”
+
+Extract: “Capex totals $67M.”
+
+Extract: “Net debt: $985M.”
+
+Extract: “Market cap stands at $640M.”
+
+Extract: “Cost synergies: $39M.”
+
+Extract: “Revenue synergies: $120M.”
+
+Extract: “Transaction fees: $14M.”
+
+Extract: “Financing fees: $8.7M.”
+
+Tests 41–50: Mixed formats (hard cases)
+
+Extract: “Total value: $1,250M.”
+
+Extract: “Valuation: 1.25B.”
+
+Extract: “Offer price: $750m.”
+
+Extract: “Bid amount: 0.75bn.”
+
+Extract: “EV: 775 million.”
+
+Extract: “Acquisition cost: $0.875B.”
+
+Extract: “The proposal was $625M.”
+
+Extract: “The equity check is $0.615B.”
+
+Extract: “Combined revenue: 1.33 billion.”
+
+Extract: “Capital raise target: $980m.”

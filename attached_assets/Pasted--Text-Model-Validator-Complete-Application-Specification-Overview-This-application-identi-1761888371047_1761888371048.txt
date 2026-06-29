@@ -1,0 +1,551 @@
+# Text Model Validator: Complete Application Specification
+
+## Overview
+
+This application identifies "models" that validate texts through interpretive generosity. It treats obscure, confused, or complex texts as puzzles where the goal is finding frameworks that make them work. The app operates on a principle of systematic charitable interpretation: rather than dismissing difficult texts, it finds what structures, reinterpretations, or formalizations make them coherent and valuable.
+
+---
+
+## Core Philosophy
+
+The app handles three fundamental text types:
+
+1. **Structurally sound but semantically obscure** (e.g., Leibniz's Monadology, medieval humor theory, theological texts)
+   - Coherent internal logic but terms seem nonsensical under standard interpretation
+   - Solution: Find alternative semantic mappings that preserve logical structure while making claims coherent
+
+2. **Conceptually valuable but structurally muddled** (e.g., poorly organized dissertations, draft papers with good insights)
+   - Contains valuable ideas but poor organization, mixed metaphors, or conceptual tangles
+   - Solution: Extract underlying conceptual skeleton, tidy logic, generate the model the author was approaching
+
+3. **Already valid but interpretively rigid** (e.g., technical papers, philosophical arguments)
+   - Valid under standard interpretation but may have hidden flexibility
+   - Solution: Find non-obvious interpretations that also validate it, revealing multiple coherent readings
+
+**Reality:** Most texts will require combinations of all three approaches.
+
+---
+
+## The Four-Button Interface
+
+### Button 1: RECONSTRUCTION MODE
+**Purpose:** Extract underlying logic, tidy conceptual tangles, generate the model the author was groping toward
+
+**When to use:**
+- Text has valuable insights but poor organization
+- Logic is muddled or uses inconsistent terminology
+- Author seems to be reaching for a concept they can't quite articulate
+- Mixed metaphors or conceptual confusions obscure the core idea
+
+**User Customization Options:**
+- **Target domain:** "Reconstruct this as [cognitive science / information theory / process philosophy / computational model / etc.]"
+- **Fidelity level:** 
+  - "Stay close to original intent" (conservative reconstruction)
+  - "Maximally clarify even if speculative" (aggressive reconstruction)
+- **Output style:** Algorithmic, narrative prose, diagrammatic, bullet-point analysis
+
+**Technical Requirements:**
+- Concept extraction: Identify core claims, relationships, tensions
+- Coherence checking: Does the reconstructed version actually resolve stated problems?
+- Explicit transformation explanation: "Original said X, which was confused because Y; I've reframed it as Z"
+
+---
+
+### Button 2: ISOMORPHISM MODE
+**Purpose:** Preserve exact relational structure while swapping domain vocabulary
+
+**When to use:**
+- Text has coherent structure that could apply to multiple domains
+- User wants to demonstrate non-uniqueness of interpretation
+- Testing whether a pattern is genuinely general or domain-specific
+- Making an abstract argument concrete by showing it in familiar territory
+
+**User Customization Options:**
+- **Target domain:** "Map to [economics / evolutionary psychology / thermodynamics / neuroscience / etc.]"
+- **Constraint type:**
+  - **Pure swap:** Just replace terms systematically
+  - **True statements:** "Find TRUE claims from [domain] with this structure"
+  - **Historical:** "Find an actual historical theory from [era/field] with this pattern"
+- **Structure preservation level:**
+  - Exact (preserve sentence rhythm, paragraph structure)
+  - Loose (preserve logical relations only)
+
+**Technical Requirements:**
+- Relation graph extraction: Map dependencies, contradictions, mutual support
+- Domain mapping: Find concepts in target domain that fit relation types
+- **Truth-constraint variant** (hardest): Must verify actual true statements share the structure
+- Structure verification: Confirm isomorphism is genuine, not superficial
+
+---
+
+### Button 3: MATHEMATICAL MODEL MODE
+**Purpose:** Formalize as equations, operators, spaces, proofs
+
+**When to use:**
+- Text makes claims about relationships, processes, or systems
+- Ambiguity could be resolved through formal precision
+- User wants to test logical consistency rigorously
+- Translation to computational implementation is desired
+
+**User Customization Options:**
+- **Mathematical framework:** 
+  - Variational inference
+  - Game theory
+  - Category theory
+  - Dynamical systems
+  - Graph theory
+  - Optimization problems
+  - Probability theory
+  - Differential equations
+- **Constant types:** "Constants should be [chemical terms / economic variables / probability distributions / neural network parameters / etc.]"
+- **Rigor level:**
+  - Sketch (intuitive formalization)
+  - Semi-formal (notation with explanations)
+  - Proof-ready (complete formal specification)
+
+**Technical Requirements:**
+- Type inference: Is this about optimization? Equilibrium? Transformation? Information flow?
+- Formalism selection: Which mathematical language captures these relations?
+- Semantic consistency: If user specifies "constants must be chemical," variables should be concentrations, rates, molecular species
+- Mapping documentation: Explicit table showing [original term] → [mathematical object]
+
+---
+
+### Button 4: AUTO-DECIDE MODE
+**Purpose:** AI analyzes text and chooses optimal approach or combination
+
+**When to use:**
+- User is unsure which mode is appropriate
+- Text is complex and may benefit from multiple perspectives
+- User wants comprehensive validation across all angles
+
+**What the AI Assesses:**
+- **Structural integrity:** Is the logic sound or broken?
+- **Terminological clarity:** Are terms well-defined or placeholder-ish?
+- **Domain specificity:** Is this tied to one field or abstract?
+- **Conceptual coherence:** Do ideas fit together or conflict?
+- **User intent signals:** Does query suggest they want validation, clarification, or demonstration of generality?
+
+**Decision Logic:**
+- Structure coherent but terminology broken → Isomorphism or Math Model
+- Logic muddled but insights present → Reconstruction first, then optionally formalize
+- Text already valid but obscure → Multiple isomorphisms to show flexibility
+- **Blend case** (most common) → Multi-stage: Reconstruct → Formalize → Show isomorphic examples
+
+**Output Format:**
+1. Explain why this approach was chosen
+2. Execute the chosen operation(s)
+3. If multiple operations, show connections between them
+
+---
+
+## Sample Inputs and Outputs
+
+### Sample Input 1: Philosophy Dissertation Abstract
+
+```
+In this dissertation, I critically examine the philosophy of transcendental empiricism. 
+Transcendental empiricism is, among other things, a philosophy of mental content. It 
+attempts to dissolve an epistemological dilemma of mental content by splitting the 
+difference between two diametrically opposed accounts of content. John McDowell's 
+minimal empiricism and Richard Gaskin's minimalist empiricism are two versions of 
+transcendental empiricism. Transcendental empiricism itself originates with McDowell's 
+work. This dissertation is divided into five parts. First, in the Introduction, I state 
+the Wittgensteinian metaphilosophical orientation of transcendental empiricism. This 
+metaphilosophical approach provides a plateau upon which much of the rest of this work 
+may be examined. Second, I offer a detailed description of McDowell's minimal empiricism. 
+Third, I critique Gaskin's critique and modification of McDowell's minimal empiricism. 
+I argue that (1) Gaskin's critiques are faulty and that (2) Gaskin's minimalist 
+empiricism is very dubious. Fourth, I scrutinize the alleged credentials of McDowell's 
+minimal empiricism. I argue that McDowell's version of linguistic idealism is 
+problematic. I then comment on a recent dialogue between transcendental empiricism and 
+Hubert Dreyfus's phenomenology. The dialogue culminates with Dreyfus's accusation of 
+the "Myth of the Mental." I argue that this accusation is correct in which case 
+McDowell's direct realism is problematic. I conclude that minimal empiricism does not 
+dissolve the dilemma of mental content. Finally, I argue that Tyler Burge successfully 
+undermines the doctrine of disjunctivism, but disjunctivism is crucial for transcendental 
+empiricism. Ultimately, however, I aim to show that transcendental empiricism is an 
+attractive alternative to philosophies of mental content.
+```
+
+---
+
+### Sample Output 1A: RECONSTRUCTION MODE
+**User specification:** "Reconstruct as computational model"
+
+**Output:**
+```
+Transcendental empiricism can be read not as metaphysics but as an attempt to model 
+how experience self-corrects. McDowell's "minimal empiricism" becomes the rule that 
+perceptual input is already conceptually shaped; Gaskin's "minimalist empiricism" tests 
+whether language itself can update reality-conditions. The supposed "dilemma of mental 
+content" is simply a feedback problem: how symbolic systems adjust to new sensory data 
+without breaking coherence. 
+
+Seen this way, transcendental empiricism isn't a doctrine but an algorithm—a loop 
+linking world, concept, and correction. Its failure modes (McDowell's idealism, 
+Gaskin's recursion) are bugs in calibration, not philosophical dead ends.
+
+TRANSFORMATION EXPLANATION:
+- Original "philosophy of mental content" → Reframed as "feedback control system"
+- "McDowell vs Gaskin debate" → Two update strategies in learning algorithm
+- "Dilemma" → Engineering tradeoff between stability and adaptability
+- "Disjunctivism failure" → Statistical identifiability problem
+- Philosophical positions → Design choices with testable consequences
+```
+
+---
+
+### Sample Output 1B: ISOMORPHISM MODE (Exact Structure)
+**User specification:** "Pure swap—preserve sentence structure exactly, map to quantum cognition"
+
+**Output:**
+```
+In this dissertation, I critically examine the theory of quantum cognition. Quantum 
+cognition is, among other things, a theory of mental content. It attempts to dissolve 
+an epistemological dilemma about representation by splitting the difference between two 
+opposed accounts of information: deterministic processing and stochastic collapse. John 
+McDowell's minimal empiricism and Richard Gaskin's minimalist empiricism reappear here 
+as classical and quantum accounts of measurement. Quantum cognition itself originates 
+in the recognition that observation is participation—that data are not inert but 
+entangled with the act of knowing. The work proceeds in five parts. First, the 
+introduction lays out the epistemological stance of cognitive complementarity. Second, 
+I describe the classical model of representational realism. Third, I critique the 
+indeterminacy thesis and argue that uncertainty is not a defect but the system's mode 
+of updating. Fourth, I assess the claim that direct realism can survive quantum 
+entanglement, concluding that the observer and the observed are inseparable informational 
+states. Finally, I show that disjunctivism fails for the same reason superposition holds: 
+mental content is never one thing at a time. Ultimately, I argue that quantum cognition 
+offers an attractive alternative to traditional philosophies of mind.
+
+MAPPING TABLE:
+Transcendental empiricism → Quantum cognition
+Mental content dilemma → Measurement problem (deterministic vs stochastic)
+McDowell's minimal empiricism → Classical measurement theory
+Gaskin's minimalist empiricism → Quantum measurement with collapse
+Wittgensteinian orientation → Cognitive complementarity
+Direct realism → Representational realism
+Disjunctivism → Definite states hypothesis
+Myth of the Mental (Dreyfus) → Indeterminacy thesis
+Burge's critique → Superposition argument
+```
+
+---
+
+### Sample Output 1C: MATHEMATICAL MODEL MODE
+**User specification:** "Formalize using variational inference framework"
+
+**Output:**
+```
+TRANSCENDENTAL EMPIRICISM AS FIXED-POINT LEARNING SYSTEM
+
+Let M = ⟨Z, X, Θ, p(z), p_θ(x|z)⟩ where:
+- Z = latent world states
+- X = observations  
+- Θ = "concepts" (the conceptual scheme), parameterizing the likelihood p_θ(x|z)
+- p(z) = world prior
+
+Given data x ∈ X, TE seeks a joint fixed point of beliefs over the world and the 
+conceptual scheme by minimizing variational free energy:
+
+F(q,θ;x) = D_KL(q(z) || p(z)) - E_q(z)[log p_θ(x|z)]
+
+Define the TE update operator T by alternating minimization:
+q^(t+1) = argmin_q F(q, θ^(t); x)
+θ^(t+1) = argmin_θ F(q^(t+1), θ; x)
+
+A TE-solution is a fixed point (q*, θ*) with T(q*, θ*) = (q*, θ*).
+Intuitively: experience (data) and concepts co-tune each other until stable.
+
+ENCODINGS OF PHILOSOPHICAL POSITIONS:
+
+McDowell's minimal empiricism = Concept-fixed update
+- Hold θ = θ_0 (concepts already "in" perception)
+- Update only q: q^(t+1) = argmin_q F(q, θ_0; x)
+
+Gaskin's minimalist empiricism = Language-driven concept update
+- Let language model L constrain Θ via penalty R_L(θ)
+- Update θ primarily by usage rules while q is slaved to θ:
+  θ^(t+1) = argmin_θ [F(q^(t), θ; x) + λR_L(θ)]
+  q^(t+1) = argmin_q F(q, θ^(t+1); x)
+
+"Dilemma of mental content" = Two degenerate limits of TE
+- Pure world-fit (update q only) vs pure concept-fit (update θ only)
+- TE "splits the difference" by optimizing both until fixed point
+
+Direct realism (challenged by Dreyfus) = Trivial likelihood
+- p_θ(x|z) = 1[x = f(z)] with fixed θ
+- TE reduces to estimating z with no conceptual update
+- Dreyfus's "myth of the mental" claim: Θ is inert
+- TE prediction: brittleness (no adaptation in θ)
+
+Disjunctivism = Partition Z = V ⊔ I (veridical vs illusory)
+- Likelihoods p_θ(x|z∈V) and p_θ(x|z∈I) assumed to have disjoint supports in X
+
+Burge-style undermining (within TE):
+- Unless X factorizes into perfectly segregated feature subspaces, any nonzero noise 
+  or shared features force overlapping support:
+  supp p_θ(x|V) ∩ supp p_θ(x|I) ≠ ∅
+- This makes strict disjunctivism statistically unstable except in trivial cases
+
+Wittgensteinian "metaphilosophical orientation" = Reparameterization invariance
+- If φ: Θ → Θ' is smooth reparameterization with induced likelihood p_φ(θ), then:
+  F(q, θ; x) = F(q, φ(θ); x) + const
+- Captures idea that what matters is use in language-game (predictive/explanatory role), 
+  not metaphysical labels
+
+CONCLUSION (MODEL-LEVEL TRANSLATION):
+- TE = bilevel fixed-point learning (q*, θ*)
+- McDowell = fix θ (concept-saturated perception)
+- Gaskin = language-regularized θ-updates
+- Dreyfus critique = Θ inert → fragile
+- Burge vs disjunctivism = shared support ⇒ disjunctivism fails generically
+
+Thus the abstract's relational claims are realized as precise optimization and 
+identifiability statements.
+```
+
+---
+
+### Sample Output 1D: AUTO-DECIDE MODE
+
+**Output:**
+```
+ANALYSIS: This text has coherent relational structure but uses vague philosophical 
+terminology that acts as placeholders rather than precise concepts. The core pattern 
+is about feedback between experience and conceptual frameworks, but it's obscured by 
+disciplinary jargon.
+
+RECOMMENDED APPROACH: Multi-stage validation
+
+STAGE 1 - RECONSTRUCTION:
+[Output same as 1A above]
+
+STAGE 2 - MATHEMATICAL FORMALIZATION:
+[Output same as 1C above]
+
+STAGE 3 - ISOMORPHIC DEMONSTRATION (to show non-uniqueness):
+This same structure appears in:
+
+a) Bayesian brain hypothesis (neuroscience)
+   - World states Z = environmental causes
+   - Observations X = sensory input
+   - Concepts Θ = generative models in cortex
+   - Fixed-point = predictive processing equilibrium
+
+b) Niche construction theory (evolutionary biology)
+   - Z = ecological states
+   - X = phenotypic traits
+   - Θ = developmental programs
+   - Fixed-point = eco-evo equilibrium where organisms and environment co-determine fitness
+
+c) Market microstructure theory (economics)
+   - Z = fundamental asset values
+   - X = price observations
+   - Θ = trader belief models
+   - Fixed-point = rational expectations equilibrium
+
+CONCLUSION: The philosophical debate is really about algorithm design for learning under 
+concept-data feedback. The formal model reveals this and shows the pattern is domain-general.
+```
+
+---
+
+## Additional Features
+
+### Feature 1: Sequential Chaining
+Users can run multiple operations in sequence:
+1. **Reconstruct** muddled text
+2. **Formalize** the reconstruction mathematically  
+3. **Generate isomorphism** to show the model applies elsewhere
+
+**Interface:** After each operation, offer "Chain next operation" button with dropdown for next mode
+
+### Feature 2: Comparison Mode
+Generate multiple models simultaneously and compare:
+- "Here are three different mathematical formalizations"
+- "They make different predictions about [X]"
+- "Formalization A implies [constraint], B implies [different constraint]"
+- Side-by-side comparison table
+
+**Interface:** "Compare Multiple Models" button → generates 2-3 alternatives with explicit comparison
+
+### Feature 3: Historical Context Mode
+For historical texts (Leibniz, medieval theories), provide:
+1. The model/formalization
+2. Historical context explaining why original terms seemed sensible
+3. Modern translation
+
+**Interface:** Checkbox "Include historical context" (default ON for pre-1900 texts)
+
+### Feature 4: Truth Verification (for Isomorphism Mode)
+When user requests "true statements from domain X with this structure":
+- Use web search to verify claims
+- Flag uncertain mappings
+- Provide sources for verification
+- Distinguish between "structural match" and "verified truth"
+
+### Feature 5: Export Options
+- Markdown document with full analysis
+- LaTeX (especially for mathematical models)
+- JSON (for computational processing)
+- Annotated original text (highlights mapped to model components)
+
+---
+
+## Technical Architecture Notes
+
+### Core Pipeline:
+1. **Text ingestion** → Parse structure, extract claims
+2. **Mode selection** → User choice or auto-classification
+3. **Transformation engine** → Apply selected operation(s)
+4. **Verification** → Check coherence, truth constraints
+5. **Output generation** → Format according to user preferences
+
+### Key Algorithms Needed:
+
+**For Reconstruction:**
+- Concept dependency graph extraction
+- Coherence scoring
+- Paraphrase generation with constraint satisfaction
+
+**For Isomorphism:**
+- Abstract relation extraction (X depends on Y, X contradicts Z)
+- Domain ontology mapping
+- Structure preservation verification
+- Truth-checking (for constrained variant)
+
+**For Mathematical Modeling:**
+- Pattern recognition (optimization, equilibrium, dynamics, etc.)
+- Formalism selection based on relation types
+- Variable typing and constraint generation
+- Notation generation
+
+**For Auto-Decide:**
+- Text quality metrics (structural coherence, terminological clarity)
+- Domain classification
+- Intent detection from user query
+- Multi-modal output coordination
+
+### Error Handling:
+- If no coherent model found: "This text appears to have fundamental logical contradictions that cannot be resolved while preserving any substantial content"
+- If truth constraint cannot be satisfied: "No verified true statements from [domain] were found with this exact structure; here are nearest matches..."
+- If formalization is ambiguous: Present multiple models with "Disambiguation needed: does [term] refer to [option A] or [option B]?"
+
+---
+
+## UI/UX Specification
+
+### Main Interface:
+```
+[Text Input Area]
+_________________________________________________________________
+|                                                               |
+|  Paste or type text to validate...                          |
+|                                                               |
+|_______________________________________________________________|
+
+[Four Main Buttons - Prominent, Equal Size]
+┌─────────────────┬─────────────────┬─────────────────┬─────────────────┐
+│ RECONSTRUCTION  │  ISOMORPHISM    │  MATH MODEL     │  AUTO-DECIDE    │
+│                 │                 │                 │                 │
+│ Clean up logic  │ Swap domains    │ Formalize it    │ Let AI choose   │
+└─────────────────┴─────────────────┴─────────────────┴─────────────────┘
+
+[Customization Panel - Appears when button selected]
+▼ Customization Options
+  └─ Target domain: [Dropdown or free text]
+  └─ Constraint type: [Radio buttons]
+  └─ Output style: [Checkboxes]
+  └─ [Advanced options...]
+
+☐ Include historical context (for pre-1900 texts)
+☐ Generate comparison with alternative models
+☐ Enable sequential chaining
+
+[Generate] [Clear]
+```
+
+### Output Display:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MODE USED: [Reconstruction / Isomorphism / Math Model / Auto-Decide]
+
+[Main output here with clear sections]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OPTIONS:
+[Chain Next Operation ▼] [Compare with Alternative] [Export ▼]
+```
+
+---
+
+## Success Criteria
+
+The app successfully validates a text when it produces a model that:
+
+1. **Preserves what's valuable** in the original (insights, relational structure, core claims)
+2. **Resolves ambiguities** or incoherencies explicitly
+3. **Makes testable predictions** or clear implications
+4. **Is genuinely different** from trivial paraphrase (adds interpretive value)
+5. **Is honest** about uncertainty, speculation, or forced mappings
+
+The app fails when it:
+- Produces generic summaries without structural insight
+- Forces mappings that break under scrutiny  
+- Ignores fundamental logical contradictions
+- Makes unfalsifiable claims about "what the author really meant"
+
+---
+
+## Example Use Cases
+
+### Use Case 1: Philosophy Student
+Struggling with Hegel's *Phenomenology*. Pastes a dense paragraph, clicks **Reconstruction** with target domain "dynamical systems." Gets: "Hegel's dialectic as attractor dynamics in conceptual space..."
+
+### Use Case 2: Interdisciplinary Researcher  
+Has economic model, wonders if it applies to ecology. Clicks **Isomorphism** + "find true statements from ecology." Discovers competitive exclusion principle has identical mathematical structure.
+
+### Use Case 3: Grant Reviewer
+Receives confused proposal mixing metaphors. Clicks **Auto-Decide**. Gets reconstruction showing core idea is sound but presentation is muddled, plus formalized version for clarity.
+
+### Use Case 4: Historian of Science
+Studying medieval humoral theory. Clicks **Math Model** + historical context. Gets: modern physiological interpretation (homeostatic feedback) + explanation of why "humors" made sense pre-cellular biology.
+
+### Use Case 5: AI Safety Researcher
+Reading vague alignment proposal. Clicks **Math Model** to see if it's coherent. Discovers formalization reveals hidden assumptions that break the proposal's claimed safety guarantees.
+
+---
+
+## Implementation Notes for Developer
+
+### Recommended Stack:
+- **Frontend:** React (for button interface and dynamic customization panels)
+- **Backend:** Python with FastAPI
+- **AI Engine:** Claude API (Sonnet 4.5) with structured prompts for each mode
+- **Export:** Markdown, LaTeX, JSON generation utilities
+
+### Prompt Engineering Strategy:
+Each button mode needs a specialized system prompt:
+
+**Reconstruction Prompt Template:**
+```
+You are a conceptual reconstruction engine. Your task is to extract the underlying 
+logic from muddled text and generate the model the author was reaching for.
+
+RULES:
+- Preserve core insights and relational structure
+- Replace vague terms with precise concepts
+- Resolve contradictions by identifying the intended coherent pattern
+- Explain transformations explicitly
+- Target domain: {user_specified_domain}
+- Fidelity level: {conservative/aggressive}
+
+INPUT TEXT:
+{user_text}
+```
+
+**Isomorphism Prompt Template:**
+```
+You are a structural mapping engine. Your task is to find domain mappings that preserve 
+the exact relational structure of the input text.

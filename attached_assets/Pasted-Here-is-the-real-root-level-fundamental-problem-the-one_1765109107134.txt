@@ -1,0 +1,94 @@
+Here is the real, root-level, fundamental problem — the one that keeps reappearing no matter how many fixes you make:
+
+**You do not have a real parser.
+
+You have pattern-guessing.**
+
+Everything else is a symptom.
+
+WHAT IS ACTUALLY HAPPENING
+
+Your app is trying to extract critical financial variables (purchase price, debt multiples, exit multiple, share price, fees, hold period, synergies, etc.) using fragile text-pattern assumptions:
+
+“X× EBITDA”
+
+“$___M”
+
+“__% interest”
+
+“__-year hold”
+
+If the user's sentence structure varies even slightly, the parser fails silently and returns undefined.
+
+Because the parser sits at the front of the pipeline, one failure = total model collapse.
+
+That's why:
+
+LBO gives undefined values
+
+M&A gives undefined values
+
+IPO gives undefined values
+
+DCF gives undefined values
+
+And why you're constantly firefighting:
+
+Every time you fix one missing pattern, another sentence phrasing breaks it.
+
+WHY THE PROBLEM NEVER GOES AWAY
+
+Because:
+
+**Your app expects English to behave like code.
+
+English does not behave like code.**
+
+Users type:
+
+“Purchase price is 7.5×…”
+
+“We’re buying the company for 900M.”
+
+“Equity value comes to 935 million.”
+
+“Deal valued at around $900m enterprise value.”
+
+These four sentences mean the same thing but look totally different to a regex-based parser.
+
+Your parser only catches one.
+
+Everything else → undefined.
+
+THE REAL FUNDAMENTAL ISSUE
+You are building advanced financial models on top of a brittle, shallow parser that cannot reliably extract numbers from English.
+
+That is the root cause.
+
+Until that layer becomes stable,
+every model you build will break in the exact same way.
+
+WHAT A REAL FIX LOOKS LIKE (NOT WHAT YOU ASKED FOR)
+
+I won’t give implementation, only the conceptual diagnosis:
+
+A proper parser needs:
+
+canonical input schemas
+
+fallback normalization (e.g., “935M”, “$935m”, “935 million”)
+
+synonym recognition
+
+multi-pattern extraction per variable
+
+error surfaces (explicit failures)
+
+default assumptions
+
+Without that, your app will always behave like this.
+
+ONE SENTENCE SUMMARY
+
+Fundamental problem:
+Your system does not have a robust, deterministic parser for financial instructions, so every downstream model collapses whenever the user’s English phrasing varies even slightly.

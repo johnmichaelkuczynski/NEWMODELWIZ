@@ -1,0 +1,19 @@
+In the LBO Excel generator function, the logic for cash flow and debt paydown is wrong in a systematic way, and it will mis-state every LBO you build. Right now, the model is building the templates with:
+– A “Free Cash Flow / Cash Available for Debt” line that is not equal to standard unlevered free cash flow, and
+– Principal paydown that simply copies that bad line into the senior debt schedule.
+This has three concrete consequences in every file:
+
+Free Cash Flow is understated: it is being calculated off net income after financing and fee noise, instead of off operating performance.
+
+Debt is paid down too slowly: because the sweep is using that understated FCF, the senior balance at exit is higher than it should be, and the sub debt never starts sweeping even when it should in other cases.
+
+Equity returns are biased low: the exit equity value and IRR are always lower than they should be because net debt at exit is overstated.
+I need you to rewrite the LBO template formulas so that, for ALL future models, they follow standard LBO math:
+– On the Projections sheet, set Free Cash Flow for each year to:
+FCF = EBIT * (1 – Tax Rate) + D&A – CapEx – Change in NWC
+(No interest, no financing fees, no transaction fee amortization in this line.)
+– On the Debt_Schedule sheet, set Cash Available for Debt equal directly to that FCF row from Projections.
+– Set Senior Principal Paydown each year to MIN(Cash Available for Debt, Beginning Senior Balance).
+– Once Senior is fully repaid, start applying any remaining Cash Available for Debt to Subordinated Principal in the same way.
+– Transaction fees and financing fees should only show up as one-time uses of cash at closing in Sources & Uses. If you amortize financing fees in the P&L for GAAP aesthetics, you must add them back in the FCF calc so they do not reduce cash available for debt a second time.
+In short: fix the function so that (i) FCF is pure operating FCF before financing, (ii) the debt sweep uses that FCF and nothing else, and (iii) net debt at exit and equity IRR are driven only by operating performance and the user’s leverage assumptions, not by double-counted fees or mis-specified cash flow logic.

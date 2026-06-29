@@ -1,0 +1,90 @@
+ADD A FUNCTION called `axiomaticSystemTransformer` (or equivalent naming convention) that takes natural language theoretical/philosophical text as input and outputs a complete axiomatization separated into an uninterpreted formal calculus and a semantic model.
+
+**INPUT:** A string containing theoretical prose (philosophical, economic, psychological, scientific, etc.) that articulates a substantive position or theory.
+
+**OUTPUT:** A structured object containing three components:
+
+---
+
+**COMPONENT 1: AXIOMATIZATION (axiomatization)**
+
+Extract and organize:
+
+1. **Primitive Terms** — Identify the undefined foundational concepts that cannot be reduced to other terms within the system. List each with a brief parenthetical gloss indicating its intuitive role.
+
+2. **Axioms** — Extract the core claims of the theory and render them as numbered axioms (A1, A2, A3...). Each axiom should be:
+   - A single declarative assertion
+   - Expressed using the primitive terms
+   - Logically independent from the other axioms (no axiom should be derivable from the others)
+   - Jointly sufficient to generate the theory's main claims
+
+3. **Defined Terms** — Identify concepts that are built from primitives. Render as definitions (D1, D2...) using the format: "Term =df [definiens using primitives and previously defined terms]"
+
+---
+
+**COMPONENT 2: UNINTERPRETED FORMAL CALCULUS (calculus)**
+
+Transform the axiomatization into a purely syntactic system with no assigned meaning:
+
+1. **Signature (Σ)** — Specify:
+   - Sort symbols (representing distinct ontological categories)
+   - Constants (named individuals)
+   - Predicate symbols with arities (unary, binary, ternary, etc.)
+   - Function symbols if needed
+
+2. **Formation Rules** — State the logic being used (typically first-order logic with equality, note if modal operators are required)
+
+3. **Axiom Schemata** — Rewrite each axiom from Component 1 using only:
+   - Logical symbols (∀, ∃, →, ∧, ∨, ¬, =, ◇, □ if modal)
+   - Variables (x, y, z, b, etc.)
+   - The signature symbols
+   - NO natural language; pure symbolic notation
+   - Preserve the axiom numbering (A1, A2, A3...)
+
+---
+
+**COMPONENT 3: MODEL (model)**
+
+Provide a semantic interpretation that makes all axiom schemata true:
+
+1. **Domains** — For each sort symbol in the signature, specify the set of entities it ranges over in the intended interpretation. Use the format: |sort|^𝔐 = [description of domain]
+
+2. **Interpretation of Constants** — For each constant symbol, specify its referent in the domain. Use format: constant^𝔐 = [referent]
+
+3. **Interpretation of Predicates** — Create a table mapping each predicate symbol to its intended meaning (the property or relation it expresses). Include:
+   - Symbol
+   - Natural language interpretation specifying what the predicate is true of
+
+4. **Verification Note** — Include a brief statement confirming the model satisfies the axioms, with one concrete example showing how an axiom schema receives a true interpretation under the model.
+
+---
+
+**FORMATTING REQUIREMENTS:**
+
+- Use markdown with clear hierarchical headers
+- Use standard logical notation (∀, ∃, →, ∧, ∨, ¬, ◇, □, =)
+- Use subscripts for constants and mode-indicators (m₁, m₂, F₁, F₂)
+- Use superscript 𝔐 for model-relative interpretations
+- Tables for predicate interpretations
+- Preserve conceptual fidelity to the source text — do not add claims not present or implied in the original
+
+---
+
+**PROCESSING LOGIC:**
+
+The function should use an LLM call with a system prompt instructing it to:
+
+1. First read the entire input text and identify its central thesis
+2. Identify what ontological categories are being posited (these become sorts)
+3. Identify what entities are being named as fundamental (these become constants)
+4. Identify what properties and relations are being attributed (these become predicates)
+5. Identify the core claims (these become axioms)
+6. Identify any claims that are presented as following from definitions (these become defined terms)
+7. Perform the three-component transformation as specified above
+8. Verify internal consistency before outputting
+
+---
+
+**ERROR HANDLING:**
+
+If the input text is too vague or lacks sufficient propositional content to axiomatize, return an error message identifying what is missing (e.g., "Input lacks identifiable primitive terms" or "No clear axiom-candidates detected — text is purely descriptive without theoretical claims").

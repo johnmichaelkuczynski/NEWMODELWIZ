@@ -1,0 +1,603 @@
+
+
+Boguslawski’s analysis of quantification in natural language (translated
+and otherwise adapted for use by philosophers of language)
+John-Michael Kuczynski
+*
+Department of Philosophy, Virginia Commonwealth University, 915 W. Franklin St., Richmond, VA 23284, United States
+1. The five contentions that it is the purpose of this paper to establish
+The present paper will defend the following five points
+1,2
+:
+Point #1:‘‘Some phi is a psi’’ isnotan existence-claim; it isnotto the effect that there exists at least one phi and, moreover, at
+least one phi is also a psi.
+Journal of Pragmatics 42 (2010) 2836–2844
+ARTICLE INFO
+Article history:
+Received 18 February 2010
+Accepted 27 February 2010
+Keywords:
+Natural language quantifiers and numerals
+Presupposition
+Existence-claims
+Andrez Boguslawski
+Anti-Fregean analyses of quantification
+ABSTRACT
+In a recent paper, Andrzej Boguslawski has put forth some powerful reasons to reject some
+orthodoxies concerning the literal meanings of ‘‘some’’, ‘‘all’’, and other quantifier.
+Boguslawski’s paper is written for linguists, not for philosophers of language. For that
+reason, philosophers of language are unlikely to understand it or, therefore, to see the
+relevance to their own work of Boguslawski’s points. The present paper can be thought of
+as a ‘‘translation’’ of Boguslawski’s paper. Originally written in the language of linguistics,
+Boguslawski’s paper is hereby being translated into the language of the philosophy of
+language. That said, the translation is not a strict one. The present author has taken the
+liberty of extending and otherwise modifying some of Boguslawski’s arguments and, to a
+lesser extent, of doing the same with some of his key contentions.
+ß2010 Elsevier B.V. All rights reserved.
+* Tel.: +1 804 349 6066.
+E-mail addresses:jmkuczynski@jps.net,jsbach@jps.net.
+1
+In this paper, quotation marks are to be taken as quasi-quotation marks whenever it is appropriate to do so. When using Word, or any other standard
+writing software (that I know of), the only way to construct quasi-quotation marks is by means ofad hocmethods; and quasi-quotes thus formed don’t
+survive conversion into non-word (e.g. PDF) format.
+2
+Two points must be made clear at the outset. First, each of these contentions concerns theliteral meaningsof sentences with which they are concerned;
+they concern,notwhat is conveyed by suggestion (by way of ‘‘implicature’’), but only what issemantically encoded in(or, in other words,literally meant by)
+the sentences in question. So, for example, Point #4 is not to the effect that, if six elephants can dance, an utterance of ‘‘five elephants can dance’’ is, while
+being technically correct, nonethelessmisleadingorinsufficiently informativeor otherwise defective in some pragmatic (as opposed to semantic) way. Point
+#4 is to the effect that, if six elephants can dance, an utterance of ‘‘five elephants can dance’’ is, at the level of literal meaning (semantics), incorrect and, in
+that respect, in the same category as an utterance of ‘‘1 + 1 = 3’’ or of ‘‘Sweden is to the south of France.’’ The same thingmutatis mutandisholds of each of the
+other just-stated contentions.
+Second, it’s deeply important in this paper to bear in mind the distinction between sentences, on the one hand, and propositions, on the other. (By a
+proposition, I mean what is affirmed by an utterance of an indicative sentence
+2
+, by an utterance of, e.g. ‘‘Jefferson was a great statesman.’’ Obviously what
+such an utterance affirms is distinct from the utterance used to affirm it and also from the sentence-type of which that utterance is an instance.) The logical
+properties of propositions aren’t always in lockstep with those of the sentences (or sentence-tokens
+2
+) that express them. Here’s an example. According to (a
+version of) a view first put forth by Strawson and now held by many mainstream semanticists, the semantic rule for ‘‘that phi has psi’’ is given by the
+following rule:
+(STR) If, in the context of utterance, O is uniquely a salient phi, then an utterance U in that context of ‘‘that phi is psi’’ has for its literal meaning a
+proposition P that is true exactly if O has psi.
+Contents lists available atScienceDirect
+Journal of Pragmatics
+journal homepage: www.elsevier.com/locate/pragma
+0378-2166/$ – see front matterß2010 Elsevier B.V. All rights reserved.
+doi:10.1016/j.pragma.2010.02.012
+
+Point #2:‘‘Some phi is a psi’’ merelypresupposesthat there is at least one phi. It does not (see Point #1)sayit. (By contrast,
+‘‘there exists at least one phi and, moreover, at least one phi is also a psi’’ actuallysaysit.)
+Point #3:The sentence ‘‘all phi’s are psi’s’’ isincompatiblewith the sentence ‘‘some phi’s are psi’s.’’ So the former entails the
+negationof the latter anda fortioriisn’t compatible with the latter.
+Point #4:‘‘Five elephants can dance’’ is to the effect that exactly five elephants can dance. So that sentence is false, and not
+merely misleading, if six elephants can dance. For any numeral n, ‘‘n phi’s are psi’s’’ is to the effect that exactly n
+phi’s are psi’s.
+Point #5(an immediate consequence of Point #4): ‘‘Ten elephants can dance’’ is incompatible with the sentence ‘‘five
+elephants can dance.’’ In general, if m6¼n, ‘‘m phi’s are psi’s’’ is incompatible with ‘‘n phi’s are psi’s.’’
+Most contemporary logicians and philosophers either assume, or explicitly state, that each of #1–#5 is false, and much of
+what they say crumbles unless they’re right about this.
+2. Why Point #1 is correct
+But #1–#5 are correct. Right now let’s focus on #1.
+Consider the following two sentences:
+1.‘‘There is at least one diamond on the table, and at least one such diamond is extremely valuable.’’
+2.‘‘Some of the diamonds on the table are extremely valuable.’’
+For argument’s sake, assume that there are several diamonds on the table in question and that many of them, if not all, are
+extremely valuable.
+Do 1 and 2 have the same meaning? No. 1 explicitly says, among other things, that there is at least one diamond on the
+table. But 2 doesn’tsaythis; itpresupposesit. If it is in question whether there are any diamonds on the table, an utterance of 1
+wouldbe appropriate, whereas an utterance of 2 wouldnotbe appropriate. Why is it inappropriate to utter 2 under such
+circumstance? Because, clearly, such an utterance presupposes an answer to a question that, given such circumstances, has
+yet to be answered. Why is it appropriate to utter 1 under such circumstance? Because, clearly, such an utterancegivesan
+answer to a question that, given such circumstances, has yet to be answered. So, contrary to what is generally held, 2, unlike
+1, isnotan existence-claim.
+2.1. A similar argument
+If asked ‘‘do any felines exist?’’, one is responding in a completely non-defective manner if one says:
+(A)‘‘Yes. There exists at least one feline; moreover, at least one feline is ferocious.’’
+But oneisresponding in a defective manner if one instead says:
+(B)‘‘some felines are ferocious.’’
+So if STR is right, then, when I point to person x, thereby making him contextually salient, and I then say ‘‘that guy is an economist’’, the proposition
+encoded in my utterance is true exactly if x is an economist.Butmy utterance itself—the linguistic vehicle I am using to affirm the just-described
+proposition—has different truth-conditions from that proposition. My utterance is true exactly if:there is, in the relevant context (at the relevant juncture),
+exactly one salient individual x; moreover, x is an economist.So, supposing that Smith is the economist at whom I’m pointing, and about whom I’m talking in
+saying ‘‘that guy is an economist’’, the proposition literally meant by utterance is true exactly if:
+(&)   Smith is an economist,
+whereas the utterance I am producing is true exactly if, in the context in question:
+(&&)   there is a uniquely salient individual, and any such individual (it doesn’t matter who it is) is an economist.
+(& and && are to be taken to be propositions, not sentences or expressions of any other kind.).
+& neither entails, nor is entailed by, &&. & could be true even if there were never any circumstances under which Smith were a salient individual, and it
+could be false if he were, in the context in question, a salient individual (so long as he wasn’t also an economist); and && could be true even if Smith weren’t
+an economist, and it could be true even if Smith were an economist (so long as the individual who, in the relevant context was salientwasan economist—so
+long as, for example, Kenneth Arrow happened to be in the place at which I was pointing). The truth-conditions of myutterance—not of the proposition I’m
+affirming by means of it, but of my utteranceper se—are given by &&. The truth-conditions myutteranceare fulfilled exactly if && is true. But the
+truth-conditions of the proposition I’ve affirmed by means of that utterance are fulfilled exactly if & is true. So supposing that STR is right, given that & neither
+entails,norisentailedby,&&,itfollowsthattheinferentialliaisonsofmyutteranceareradicallydifferentfromthoseofthecorrespondingproposition.Andeven
+if STR isn’t right, we could easily do whatKaplan (1970)does, which is to invent an expression ‘‘dthat’’, such that the semantic rule for ‘‘dthat’’ is given by STR
+(mutatis mutandis). Which, even if STR is not the rule that is actually operative, suffices to show that sentence-logic and proposition-logic are very different
+things. This astonishing fact—which, I emphasize, was made clear by Peter Strawson—is responsible for the misunderstandings which I, following Dr.
+Boguslawski, am trying to correct in this paper.
+J.-M. Kuczynski / Journal of Pragmatics 42 (2010) 2836–2844
+2837
+
+Under the circumstances, what is in question is whether there are any felines. B presupposes an answer to that very question;
+that’s why it’s inappropriate. A does not presuppose an answer to that question; Aassertsthat there is at least one feline:
+unlike B, it doesn’tassumeit. And that’s why, under the circumstances, Aisan appropriate utterance.
+Thus, whereas it is (a part of) A’s job to state that there are felines, it is no part of B’s job to do this. This shows, in other
+words, that B is an existence-claim, whereas A is not. Points #1 and #2 have thus been established.
+Notice also that, if asked ‘‘do any felines exist?’’, one isoverresponding by uttering A, whereas, if asked that same question,
+one isunderresponding by uttering B. And if, having been asked that question, one were to utter A, one’s interrogator would
+notrespond with puzzlement, whereas one’s interrogatorwouldso respond had one instead uttered B. Why this difference?
+Because, whereas B isn’t on point—or, if itison point, it isonlybecause, in the process of interpreting it, the auditor is making
+ad hoccorrections to it–Aison point. In other words, whereas B is on pointonlyin so far as the auditor, when interpreting it,
+takes it as a stand-in for some other sentence, A is on pointwithoutthe auditor’s having to engage in any such artifices. Why is
+it that, setting aside suchad hocmaneuvers on the auditor’s part, A is on point, whereas B is not? Because, in uttering B, one is
+presupposing what, given the question, one should be affirming, whereas, in uttering A, one isnotmaking that mistake.
+3
+2.2. Presupposition vs. assertion
+The following story will help clarify how A and B are semantically different. If, while pointing at a certain man, I utter the
+sentence:
+(MS)‘‘that person is a menace to society’’,
+what I amsaying
+4
+(in other words, the proposition I’m affirming) is not to the same effect as what I’d be saying ifceteris
+paribusI were to utter the sentence:
+(TE)‘‘there exists a uniquely contextually salient individual x; moreover, x is a menace to society.’’
+In uttering TE, I am asserting, not presupposing, that there is such a man. And that’s why, if asked whether there a
+contextually salient man, I’d be responding in a non-defective manner by uttering TE. In uttering MS, on the other hand, I am
+presupposing, not asserting, that there exists a uniquely contextually salient person x. And that’s why, if asked that same
+question, I’d be responding in a defective manner by uttering MS.
+Bearing in mind what we just said, let’s revisit sentences A and B. As we saw, A is, whereas B is not, an appropriate
+response to the question ‘‘do any felines exist?’’ And the reason, as we said, is that, whereas A is itself an answer to that
+question, B assumes a certain answer to it. Hopefully, the points just made in connection with ME and TE reinforce what we
+said about A and B and, therefore, about 1 and 2.
+2.3. The concept of presupposition and the distinction between sentence-logic vs. proposition-logic
+‘‘There must be an error in your reasoning’’, it will be said:
+‘‘1 is obviously an existence-claim. You admit this. You also admit that 1 and 2 are equivalent. Given those facts, it surely
+follows that the proposition affirmed by 2 is equivalent with one to the effect that there exists at least one apple on the
+table and, moreover, that at least one such apple is rotten. And oncethatis granted, it becomes very hard to see how 2
+could fail to be an existence-claim. In fact, given that 1 and 2 are equivalent, it becomes unclear what it even means to say
+that 2 is not an existence-claim.’’
+1 and 2 are indeed equivalent. (In any case, they’re equivalent in the weak sense that the one cannot be true if the other
+fails to be true, even though, in circumstances where there is no unique contextually salient man, TE one is false whereas ME
+other is without truth-value.) But 1 and 2 aresentences. Sometimes equivalentsentenceshave non-equivalentpropositionsfor
+their meanings.
+5
+This is one of those cases. Once again, it will help to look at TE and MS. The semantic rule for MS is this
+6
+:
+(MSR) If, in a given context C, there is a uniquely contextually salient individual x, then the proposition meant by an
+utterance in C of ‘‘that person is a menace to society’’ is identical (or equivalent) with:x is a menace to society.
+3
+(The contents of this footnote are speculative.) If, having been asked, ‘‘do any felines exist?’’, one uttered B, one’s interrogator might respond with
+boredom, since the second conjunct (the part starting with ‘‘moreover’’) isn’t responsive to what was being asked. But that only confirms our point: sofar as
+the second conjunct elicits boredom, it’s only because the question that had been asked (‘‘do any felines exist?’’) hadalreadybeen answered in a satisfactory
+manner. If, in response to that question, one were to utter B, one’s interrogator would be puzzled. (‘‘Why did he saysome? Didn’t he hear my question? Or is
+it so widely known that there are felines that he appropriately thought my question not worth answering, and instead of wasting his time answering a
+stupid question, answered a non-stupid, but otherwise similar, question?...’’).
+4
+At least not ifStrawson (1950)andKaplan (1989a, 1989b)are right. It should be made explicit that, on this matter, the Strawson–Kaplan view is
+consistent with the conventional wisdom.
+5
+This was discovered byStrawson (1950).Kaplan (1989a, 1989b)develops Strawson’s point.
+6
+Assuming the truth of the conventional wisdom. SeeKaplan (1989a, 1989b), Taylor (1998), and Perry (2001). I’ve defended this view at considerable
+length. See Kuczynski (2007, Chapter 1; 2009, Chapter 4).
+J.-M. Kuczynski / Journal of Pragmatics 42 (2010) 2836–2844
+2838
+
+The semantic rule for TE is this:
+(TER) The proposition meant by an utterance, in a given context C, of ‘‘there exists a uniquely contextually salient
+individual x; moreover, x is a menace to society’’ is identical (or equivalent) with:there is a unique contextually salient
+individual x and, moreover, x is a menace to society.
+Thus, supposing that, while pointing at Smith, I utter ME, the proposition I’m thereby affirming is true iff Smith is a
+menace to society. That proposition has nothing to do with Smith’s being contextually salient; that proposition would
+be true even if Smith weren’t contextually salient. The material relating to contextual salience in the semantic rule for
+ME does not itself make it into the proposition meant by a given utterance of that sentence; that material serves the
+purpose only ofidentifyingthe person whom such an utterance (when non-abortive) describes as being a menace to
+society.
+But the proposition I’m affirming in uttering TE—even if, while doing so, I’m pointing at Smith—could be true even if Smith
+weren’ta menace to society; and that propositiondoescontain material relating to the concept of contextual salience (for it
+saysinter aliathat something x falls under that concept).
+At the same time, the semantic rules for MS and TE being what they are, there is no possible circumstance in which an
+utterance of the one sentence is true and in which an utterance of the other is false. (By ‘‘no possible circumstance’’, I mean
+‘‘no possible circumstancein whichthe semantic rules of the English language are operative.’’) So, even though the
+proposition literally meant, in a given set of circumstances, by a given token of ME is not equivalent with the proposition
+literally meant, in those very circumstances, by an utterance of TE, there is no possible set of circumstances in which an
+utterance of MS isn’t true exactly iff an utterance of TE is true.
+7
+A consequence of the reasonable presumption that MSR is the semantic rule for MS is that, if produced in
+circumstances in which there is no contextually salient individual x, an utterance of MS fails to haveanyproposition
+for its meaning and is therefore abortive (i.e. neither true nor false). MSR is to the effect that,givensuch an individual,
+a person who utters MS is thereby describing that individual as menace to society; MSR makes no provision
+for circumstances in which there is no such individual. It is for that reason that if, under such circumstances, one were
+to utter MS, that statement would register, not as false, but as out of place. And it is for that reasonmutatis mutandis
+that, were one to utter TS under such circumstances,thatstatement would register as false, and not as out of
+place.
+8
+7
+Strictly speaking, the equivalence is not strict, since, if there is contextually salient man, an utterance of the one is false whereas an utterance ofthe
+other, embodying as it does a presupposition-failure, is neither true nor false.
+8
+This raises the question: what is the semantic rule for 2? Until a plausible answer to that question is given, many a reader will be more inclined to look
+for errors in our arguments for Points #1–#5, and to accept the Fregean orthodoxies it is the purpose of those arguments to undermine, than to accept those
+Points. For this reason, I feel that it’s incumbent on me to try to answer this question. At the same time, we don’t need to know the answer to this to establish
+that Points #1–#5 are correct. For this reason, I feel justified in relegating my attempt to answer this question to a footnote. Also, I’d be obscuring the overall
+structure of my paper were I to include my attempt to answer this question anywhere other than in a footnote, the reason being that, as we’re about to see,
+this question is a hard one and cannot be answered succinctly. In any case, what follows is an outline of an answer to that question. (I will number the
+sections composing it as I would had they been included in the paper proper).
+2.3.1. MSR as relevantly similar to the semantic rule for 2.If made in a context where it was in question whether there were any diamonds on the
+relevant table, an utterance of 2 would register as out of place, as opposed to false, and an utterance of 1 would register as false, as opposed to out place.
+Moreover, in such a context, an utterance of 2 would register as being awry in much the way in which, in a context in which it was in question whether there
+is a contextually salient individual, an utterance of ME would register as awry. And the way in which, in a context where there were no diamonds on the
+table, an utterance of 1 wouldcontrastwith an utterance of 2 seems to coincide with the way in which, in a context where it’s in question whether there is a
+contextually salient man, the way an utterance of TE (favorably) contrasts with an utterance of MS.
+Taken together, these points suggest that, when trying to identify the semantic rule for 2, we should use MSR, not TSE, as a model. More precisely, the
+semantic rule for 2 is such that, if there are no diamonds on the relevant table, an utterance of 2 is neither true nor false—just as the semantic rule for MEis
+such that, if there is no contextually salient man, an utterance of ME is neither nor false. These points entail—what we know on independent grounds—that
+the semantic rule for 2 isnotgiven by the following:
+(SR2#)
+The proposition literally meant by an utterance (in a context where there is exactly one salient table) of ‘‘some of the diamonds on the
+table are extremely valuable’’ is true just in case:there exists at least one diamond on the relevant table and, moreover, at least one diamond
+on that table is extremely valuable.c
+And the reason, of course, is that, were SR2# the right rule, an utterance of 2 would be false, not out of place, in a context where it was in question whether
+there were any diamonds on the relevant table.
+But at this point we must be careful. Given what was just said, it’s tempting to suppose the semantic rule for 2 to be given by (some variant of) the
+following:
+(SR2*)
+Supposing thatx
+1
+...x
+n
+are diamonds on the relevant table, an utterance of ‘‘some of the diamonds on the table are extremely valuable’’ has
+for its literal meaning a proposition that is true just in case, for somek(1kn),x
+k
+is extremely valuable.
+But SR2* is demonstrably the wrong rule.
+8
+There is nospecifichuman being x such that, if I say ‘‘some people have good hearts’’, my utterance is correct
+only if x has a good heart. Even if I’m wrong as to who it is that has a good heart—even if, when saying ‘‘some people have a good heart’’, I’m thinking of Smith,
+whose heart, unbeknownst to me, is blackened by evil—my statement is as long assomebody or other—it doesn’t matter who—is good-hearted. Much the
+same holds of 2. Given any specific diamond x, an utterance of 2 could be true even if x were not valuable.A fortiori, given any specific diamondsx
+1
+...x
+n
+, such
+an utterance could be true even, for no k (1kn),x
+k
+was extremely valuable. So SR2* isn’t the right rule.
+Section 2.3.2. Some relevant preliminary points concerning the word ‘‘set’’.Before we can identify a rule that does not have the defect that we just
+saw SR2* to have and that is otherwise consistent with the data, we must make a few points of a general nature about the word ‘‘set’’.
+J.-M. Kuczynski / Journal of Pragmatics 42 (2010) 2836–2844
+2839
+
+3. Why Point #3 is correct
+The orthodoxy
+9
+these days is that (in a non-empty universe) the sentence:
+(SP)‘‘something is a phi’’
+is a logical consequence of the sentence:
+(EP)‘‘everything is a phi.’’
+(From now on, we’ll leave the parenthetical qualification unstated.)
+Let SE be the contention that SP entails EP. (Of course, SP is compatible with EP if it entails it.) SE concerns sentences of
+ordinary English; it doesn’t concern their artificial analogues. So SE isnotthe principle, which we’ll call ‘‘SEF’’, that
+(EPF)‘‘(x)(x has phi).’’
+entails
+(SPF)‘‘(Ex)(x has phi).’’
+10
+SEF is trivially correct, given that EPF and SPF arestipulatedto mean, respectively,
+(EPF#)given any object x, x has phi
+That word is ambiguous, having as it does, both ‘‘extensional’’ and ‘‘non-extensional’’ (or ‘‘intensional’’) interpretations. Suppose that 2 is Jerry’s favorite
+number. In that case, when read extensionally, the statement:
+(x
+1
+)   ‘‘x is a member of the smallest set containing Jerry’s favorite number’’
+is equivalent with
+(x
+2
+)   ‘‘x = 2.’’
+Read non-extensionally, x1 equivalent with:
+(x
+3
+)   ‘‘x is a number and Jerry likes x more than he likes any other number.’’
+x
+2
+doesn’t entail x
+3
+and x
+3
+doesn’t entail x
+2
+.
+Logicians and semanticists tend to use the word ‘‘set’’ extensionally. But the laity tendnotto use it that way. Read extensionally, the statement
+(x
+4
+)   ‘‘even though x = 2, x isn’t a member of the smallest set containing Jerry’s favorite number’’
+is tautologically false. But, as the word ‘‘set’’ is ordinarily used, x
+4
+isn’t tautologically false; and even if utterances of it are false today, they’ll be true the
+moment Jerry comes to like 3 more than he likes 2. So, as it is ordinarily used, the word ‘‘set’’ is not always to be read extensionally.
+There’s no denying that, when x
+1
+(or, indeed, any one of x
+1
+-x
+4
+) is read extensionally, the definite description occurring in it (‘‘the smallest set containing
+Jerry’s favorite number’’) picks out a certain entity. This suggests (though it doesn’t prove) that, when x
+1
+is readintensionally, that expression picks out an
+entity of some kind. Supposing this to be correct, let’s refer to that entity as ‘‘the smallest set* containing Jerry’s favorite number.’’ For any property phi, ‘‘the
+set* of phi’s’’ refers to that entity, if any there be, picked out by non-extensional occurrences of ‘‘the set of the phi’s.’’ So ‘‘the set* of people’’ picks out some
+entity of which I’m currently a member but which will continue to exist after I cease to exist and which could exist even if I didn’t exist.
+From now on, any occurrences of the word ‘‘set’’ (no asterisk) will be extensional. So, if 2 is Jerry’s favorite number, then ‘‘x is a member of the smallest
+set containing Jerry’s favorite number’’ will be equivalent with ‘‘x = 2.’’
+There are some important respects in which sets* differ from sets. First, whereas the membership of any given set (no asterisk) given is modally frozen,
+there are sets* whose memberships are not modally frozen. The smallest set* containing Jerry’s favorite number varies from possible world to possible
+world. But the corresponding set does not so vary.
+Second, whereas the membership any given set is temporally frozen, the same is not true of all sets*. Jerry’s feelings about numbers may change.
+Third, whereas there is a sense in which one cannot understand ‘‘...the set of phi’s...’’ unless one knows, for any entity x, whether or not x is a phi, there
+is no comparable sense in which one must have such knowledge to understand ‘‘...the set* of phi’s...’’ Given that (when read extensionally) x
+1
+is equivalent
+with x
+2
+, one cannot know exactly what conditions must obtain for x
+1
+to be trueunlessone knows that 2 is Jerry’s favorite number. But one doesn’t need such
+knowledge to know exactly what must hold if
+(x
+1
+*)   ‘‘x is a member of the smallest set* containing Jerry’s favorite number’’
+is to be true.
+Section 2.3.3. Our answer.Bearing all of these points in mind, consider the following statement:
+(SR
+2
+)
+If there exists a non-empty set* S of diamonds on the relevant table, and there are diamonds on the table that don’t belong to S, then an
+utterance of ‘‘some of the diamonds on the table are extremely valuable’’ is true exactly if all of S’s members are extremely valuable.
+(If there is no such set*, then such an utterance is neither true nor false.)
+I would suggest that SR
+2
+is the semantic rule for 2.
+9
+It may be going too far to say that the view about to be described is ‘‘theorthodox view.’’ But, if it is going too far, it’s going to far by only a tiny amount.
+For it is, at the very least, an extremely widespread view, and, before reading Dr Boguslawski’s paper, I had yet to read a (post-Fregean) article by a
+philosopher of language in which it is contested. In any case, I will refer to the view being disputed as ‘‘the orthodox view.’’ What is thereby lost in accuracy
+(which, I believe, is nothing) will made up for in brevity.
+10
+The ‘‘E’’ is supposed to be backwards. My writing-program doesn’t given one the option of typing the backwards ‘‘E’’ that, in formal logic, representsthe
+existential quantifier.
+J.-M. Kuczynski / Journal of Pragmatics 42 (2010) 2836–2844
+2840
+
+and
+(SPF#)there exists at least one thing x such that x has phi.
+SE says that SP is a consequence of EP. SE doesn’t say anything about SPF# or EPF#.
+3.1. Why Point #3 is correct: a preliminary argument
+Is SE correct? No. A story will help make this clear. You go to a costume party. Every single person at the costume party is
+wearing a vampire costume. Later, when you are talking with your roommate Smith, who wanted to attend the party but was
+unable to, Smith asks you: ‘‘how many people at the party wore vampire costumes?’’ You answer by saying:
+(SVC)‘‘some of the people at the party wore vampire costumes.’’
+Surely you’ve given the wrong answer. What you should have said is:
+(AVC)‘‘allof the people at the party wore vampire costumes.’’
+The fact that AVC is, whereas SVC is not, the right answer does not, by itself, prove that SE is false. That fact suggests, in other
+words, that Point #3 is correct.
+3.2. An objection to an objection to our preliminary argument
+It has been argued that SVC is technically correct (i.e. that the proposition that is its literal meaning is correct), even
+though, given the circumstances, SVC misleadinglysuggeststhat some people did not wear vampire costumes.
+But this position is demonstrably false. Consider the following sentences:
+(a
+1
+)Some cupcakes are yummy.
+(a
+2
+)Only some cupcakes are yummy.
+(a
+2
+*)Onlysomecupcakes are yummy. (The italics indicate that the occurrence of ‘‘some’’ is being emphasized.)
+(a
+3
+)at most some cupcakes are yummy.
+It should be noted that a
+2
+and a
+3
+are (virtually) synonymous and, in addition, that each of a
+1
+–a
+3
+is perfectly grammatical
+and perfectly meaningful.
+Bearing these points in mind, let us suppose for argument’s sake that:
+(S)‘‘some phi is psi’’ is to the same effect as ‘‘at least one phi is psi.’’
+If S is true, then
+(a
+2
+)‘‘Only some cupcakes are yummy’’
+is to the effect as:
+(a
+2
+?)onlythe members of a proper subset of the set of cupcakesorof the entire set of cupcakes in its entirety
+are yummy.
+So far as a
+2
+? has a clear meaning, it seems to be to the effect that:
+(a
+2
+?*)at the very least, the following holds: either every member of some proper subset of the set of all cupcakes
+are yummy or every member of the set of cupcakes (i.e. of animpropersubset of the set of cupcakes) are
+yummy.
+But this is obviouslynotwhat a
+2
+means. The occurrence of ‘‘only’’ in a
+2
+tells the auditor to take the word ‘‘some’’ at face value;
+it tells him, in other words, tointerpret it literally.
+3.2.1. The semantics of ‘‘literalizing’’ terms, such as ‘‘only’’, ‘‘at most’’, and ‘‘literally’’
+A story will help clarify some of the points just made. While driving together, you and I have the following dialogue:
+You:Is there a nearby place to get food?
+Me:There’s a McDonalds down the road.
+You:Given what you said, it follows that we will soon have access to food, the reason being that food is available at the
+nearby McDonalds.’’
+J.-M. Kuczynski / Journal of Pragmatics 42 (2010) 2836–28442841
+
+Me:No—that doesn’t follow. Givenonlywhat I said, it could be that the McDonald’s is closed; or it could be that we don’t
+have any money, and therefore can’t get food there, even if it’s open.
+You:I grant that theonlything yousaid—i.e. that theonlything that, at the level of literal meaning, you affirmed—was that
+there was a McDonald’s down the road. But, under the circumstances, I was right to make the inference that it wasn’t
+onlythe case that there was a McDonald’s down the road; I was entitled to make the inference that said McDonald’s
+would be a source of food.
+Me:Yes, you’re right. But so am I. For, as you yourself grant, I saidonlythat there was a McDonald’s down the road; and, as
+you yourself grant, given only what my wordsliterallymeant, I left it open whether or not said McDonald’s would be a
+place we could get food.
+In this story, I’m guilty of violating the usual conversational protocols and, in so doing, I’m being extremely obstreperous. But
+from a strictly semantic perspective, my end of the conversation is quite impeccable.
+In this conversation, the occurrences of the word ‘‘only’’ are very clearly there to direct you, the auditor, to confine your
+attention to theliteral meaningof what I said, and not to read non-literal meanings into what I said.
+It is in precisely this way that the occurrence of ‘‘only’’ in a
+2
+is functioning. In uttering a
+2
+*, one is unambiguously saying
+that all and only the members of apropersubset of the set of all cupcakes are yummy.
+Moreover, it would be bad methodology to deny that this was the literal meaning of a
+2
+. For such a denial would be
+tantamount to a denial of the fact that our intuitions (though clearly defeasible, especially in matters relating to semantics)
+are to be givensomeweight.
+So we must conclude that, at the level of literal meaning, a
+2
+is to the effect that all andonlythe members of someproper
+subset of the set of all cupcakes are yummy. An exactly similar argument holds with respect to a
+3
+and thus establishes the
+very same conclusion.
+3.2.2. Why, though semantically redundant, literalizers (e.g. ‘‘only’’, ‘‘literally’’) are not redundant tout court
+‘‘But’’, it might be asked, ‘‘doesn’t your analysis entail that the occurrence of ‘only’ in a
+2
+is redundant and, therefore, that it
+is serving no function?’’
+My analysis may entail that the aforementioned occurrence issemanticallyredundant. But that doesn’t mean that it is
+redundanttout court.(Sometimes what is redundant from the viewpoint of semantics is non-redundant from the viewpoint
+of pragmatics. This is one of those times.)
+Many expressions are such that their semantic function is to confine the auditor’s attention to literal meaning—are such
+their function is to tell the auditor not to draw inferences that go beyond what, at the level of literal meaning, was affirmed.
+Among such expression are: ‘‘exactly’’, ‘‘precisely’’, and, indeed, ‘‘literally.’’
+The following dialogues will make this clear:
+Dialogue #1
+Smith:How much money does that guy have?
+Jones:He has a billion dollars.
+Smith:No, really, how much money does he have?
+Jones:Heliterallyhas a billion dollars.
+Commentary: Clearly, Jones’ utterance of ‘‘[h]eliterallyhas a billion dollars’’ is to the effect that his previous utterance of ‘‘[h]
+e has a billion dollars’’ is to be taken literally.
+Dialogue #2:
+Smith:How much money does Brown owe to the bank?
+Jones:Brown owes $10,000 to the bank.
+Smith:I need to knowpreciselyhow much money Brown owes the bank.
+Jones:Brown owesprecisely$10,000 to the bank.
+Commentary: Clearly, Jones’ utterance of Brown owesprecisely$10,000 to the bank’’ is to the effect that his previous
+utterance of Brown owes $10,000 to the bank.’’ is to be taken literally.
+Dialogue #3:
+Smith:When were human beings first able to talk?
+Jones:Human beings were first able to talk 100,000 years ago.
+Smith:I need to knowexactlyhow when were human beings first able to talk.
+Jones:
+J.-M. Kuczynski / Journal of Pragmatics 42 (2010) 2836–28442842
+
+Human beings were first able to talkexactly100,000 years ago. In other words, whatever today’s date is, and whatever
+the exact moment was at which I uttered the previous sentence, subtract 100,000 from that, and that will give you the
+time—the exact time—when people first spoke.
+Commentary: The same as last time,mutatis mutandis.
+A conversation of any length or depth that consisted of statements all of which were to be taken literally would
+be very different from any actually conversation. Much of what is communicated is not what is literally meant by our
+words, and is instead (non-literally) suggested. (It is through ‘‘conversational implicatures’’, to use H.P. Grice’s now
+standard term, that we do much of our communicating.) But sometimes we want our words to be interpreted narrowly;
+we don’t want people to read extra-semantic meanings into them. It should therefore be no surprise that language
+contains devices whose very purpose is to make it clear that the utterances in whose scope they fall are to be taken
+literally.
+4. Why points #4 and #5 are correct
+These same dialogues make it clear that numerals mean exactly what they seem to mean. (They make it clear that
+‘‘10,000’’ means10,000: notat least 10,000orapproximately 10,000.) And the way in which these dialogues makes this clear is
+very similar to the way in which they make it clear that ‘‘some’’ meanssome, as opposed toat least some (and possibly all)).
+Here we need only repeat what we said a moment ago, making a few adjustments along the way.
+Consider the following sentences:
+(b
+1
+)‘‘Brown owes $10,000 to the bank.’’
+(b
+2
+)‘‘Brown owesprecisely$10,000 to the bank.’’
+(b
+3
+)‘‘Brown owesat most$10,000 to the bank.’’
+(b
+4
+)‘‘Brown owes at least $10,000 (i.e. he either owes exactly that amount or he owes more).’’
+For argument’s sake, suppose that ‘‘10,000’’ means ‘‘at least 10,000’’, and make the correlative supposition that the literal
+meaning of b
+1
+is to the same effect as the literal meaning of b
+2
+. In that case, b
+2
+is to the same effect as the sentence (or, in any
+case, sentence-like expression):
+(b
+2
+?)‘‘Brown owespreciselyat least $10,000 to the bank.’’
+So far as b
+2
+? has a clear meaning, it seems to be to the effect that:
+(b
+2
+?*)the following is unqualifiedly (literally, technically, etc.) correct:eitherBrown owes $10,000 to the bank
+(and not a penny less)orhe owes more than $10,000 to the bank.
+But b
+2
+?* clearly isn’t what b
+2
+means. b
+2
+says that Brown owes $10,000 to the bank: not one penny more and not one penny
+less. An exactly similar argument holds with respect to b
+4
+and thus establishes the very same conclusion, viz. that ‘‘10,000’’
+means10,000: notat least 10,000orroughly 10,000.
+Duly generalized, this argument establishes that, for any numeral n, n meansn: notat least norroughlyn. Thus, Point #4 is
+correct; and Point #5 is also correct, given that #5 is obviously an immediate consequence of #4.
+4.1. A similar argument
+Consider the following argument/sentence:
+(^)Given that Smith has seven cars, he has an odd number of cars.
+If ‘‘seven’’ meantat least seven, then ^ would not express a valid argument. But it clearly does express a valid argument.
+In response to this, one could take the position that, at the level of literal meaning, ^ does not convey a valid argument and
+that, to the extent that tokens of itcommunicatesuch an argument, it is by the grace of implicatures. But there is no
+independent support for such a position, which is an implausible one and for the negation of which we’ll now provide
+additional support.
+In the sentence
+(*)‘‘5 + 5 = 10’’
+the number-expressions (numerals) are, or at least appear to be, functioning as substantives (nouns). (The occurrences of ‘‘5’’
+and ‘‘10’’ seem to be synonymous with, respectively, ‘‘the number 5’’ and ‘‘the number 10’’; and, of course, those definite
+descriptions are noun-phrases.)
+J.-M. Kuczynski / Journal of Pragmatics 42 (2010) 2836–28442843
+
+But in the sentence
+(**)‘‘5 things plus 5 other things add up toexactly10 things.’’
+those same numerals are functioning as adjectives.
+That said, * and ** have extremely similar meanings. But if the occurrences in ** of ‘‘5’’ meantat least five, then, even
+though * is true, ** would be false, a consequence being * and ** had different meanings. * is indisputably to the effect that 5
++5= exactly10; but, given its similarity in respect of meaning to **, * would NOT be to that effect IF ‘‘5’’ meant ‘‘at least five.’’
+A similar argument: consider the sentence:
+(***)If Jim has five cars in Idaho, and he has five cars in Florida, and he has no other cars besides those just mentioned, then,
+Jim has exactly ten cars altogether.
+*** is correct. (We’re assuming that none of Jim’s Idaho-cars is numerically identical with any of his Florida-cars.) But if the
+occurrences in *** of ‘‘5’’ meantat leastfive, *** would be false.
+So ‘‘5’’ means what it seems to mean. It meansfive: notat least fiveorroughly five.The same line of reasoningmutatis
+mutandisholds for any given numeral n. Thus, point #5 is correct. We have thus established the truth of Points #1–#5.
+References
+Kaplan, David, 1970. Dthat. In: Martinich, A.P. (Ed.), The Philosophy of Language. Oxford University Press, New York, pp. 316–329.
+Kaplan, David, 1989a. Demonstratives. In: Almog, J., et al. (Eds.), Themes from Kaplan. Oxford University Press, New York, pp. 471–555.
+Kaplan, David, 1989b. Afterthoughts. In: Almog, J., et al. (Eds.), Themes from Kaplan. Oxford University Press, New York, 557-534.
+Strawson, Peter, 1950. On Referring. In: Martinich, A.P. (Ed.), The Philosophy of Language. Oxford University Press, New York, pp. 219–234.
+J.-M. Kuczynski / Journal of Pragmatics 42 (2010) 2836–2844
+2844

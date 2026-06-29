@@ -1,0 +1,95 @@
+Test Input #11: "Omega Neurotech" - The Ultimate Stress Test
+
+Financials:
+
+LTM Revenue: $320 million
+
+LTM EBITDA: -$85 million (heavy neuroscience R&D)
+
+Growth Rate: 140% year-over-year (explosive)
+
+Comparables:
+
+Industry Revenue Multiple: 28.0x (high-growth neurotech)
+
+Industry EBITDA Multiple: N/A (negative)
+
+Blended with AI proxy companies at 40% weight (AI multiple: 32.0x)
+
+Capital & Shares:
+
+Pre-IPO Shares: 45 million
+
+Founder super-voting shares: 12M shares with 20x votes
+
+Employee pool: 8M unexercised options (avg strike: $4.50)
+
+Complex Convertible Securities:
+
+Series D SAFEs: $200M converts at lower of $18.00 or 80% of IPO price
+
+Venture Debt: $150M at 8% interest, converts at $22.00 if IPO > $25.00
+
+Government Loan: $75M converts to 3.75M shares at IPO price if FDA approval milestone met (70% probability)
+
+Contingent Dilution:
+
+Acquisition Earnout: If revenue > $500M in Year 2, issue 6.2M shares to acquired company founders
+
+Performance Warrants: Management gets 4.8M shares at $15.00 if stock trades > $40.00 for 90 days post-IPO (45% probability)
+
+Strategic Elements:
+
+Google has right to purchase 5.5M shares at IPO price + 5% premium
+
+Pfizer co-development agreement includes 2.2M share grant at $0.01 if Phase 3 succeeds (60% probability)
+
+Sovereign Wealth Fund anchor order: $300M at IPO price
+
+IPO Structure:
+
+Primary Raise: $750 million (build quantum-neuro imaging facilities)
+
+Secondary Sale: 12.5 million shares (VC partial exits)
+
+Greenshoe: 20% (aggressive)
+
+Target Float: 18-22%
+
+Market Conditions:
+
+Base IPO Discount: 15%
+
+Sector window: Hot neurotech/AI convergence
+
+Investor appetite: "FOMO-driven" per bankers
+
+Additional Complexities:
+
+NOLs: $420 million tax loss carryforwards
+
+Royalty Stream: Pays 3.5% of revenue to Stanford through 2040
+
+Lease obligations: $280M for specialized lab space
+
+Litigation contingency: 25% chance of losing patent case requiring $120M payment
+
+Control Requirements:
+
+Founders must retain >45% voting power post-IPO
+
+CEO has golden share veto on certain M&A
+
+Test Requirements:
+
+Handle multiple convertible instruments with different triggers
+
+Account for probability-weighted contingent liabilities
+
+Incorporate strategic partner premiums
+
+Manage extreme growth vs. massive losses
+
+Ensure founder control amidst complex dilution
+
+Price to achieve massive $750M raise while maintaining credibility

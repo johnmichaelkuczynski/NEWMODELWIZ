@@ -1,0 +1,93 @@
+❌ M&A FUNCTION IS STILL BROKEN.
+
+This output reveals that only the LBO and DCF engines are fixed.
+The M&A engine is still failing the same way the LBO engine failed earlier — the parser→model mapping is not connected.
+
+Here is the forensic breakdown:
+
+❌ 1. Purchase Price is WRONG
+
+You gave the model:
+
+Purchase Price = 1.2B
+
+But the output shows:
+
+Purchase Price: $500M
+
+This means the M&A model is NOT reading the parsed input and is falling back to a default.
+
+❌ 2. EPS Accretion/Dilution = undefined%
+
+Both Year 1 and Year 2 show:
+
+undefined% (Dilutive)
+
+This means the EPS calculation engine is receiving null values for at least one of:
+
+deal consideration
+
+shares issued
+
+acquirer net income
+
+combined net income
+
+synergy contribution
+
+pro forma share count
+
+This is a direct sign of unmapped or missing fields.
+
+❌ 3. Total NPV of synergies = undefinedM
+
+You gave:
+
+Revenue synergies = 20M
+
+Cost synergies = 40M
+
+Yet:
+
+Total NPV: undefinedM
+
+This means the synergy inputs are not even reaching the M&A engine.
+
+❌ 4. Consideration structure is lost
+
+You specified "mixed consideration"?
+The output interprets it but does nothing with it.
+
+Meaning:
+stock %, cash %, premium %, shares issued — all missing.
+
+❌ ROOT CAUSE (100% CONFIRMED):
+✔ DCF → fixed
+✔ LBO → fixed
+❌ M&A → parser output is NOT mapped into the M&A calculation model
+
+Exactly the same root failure that LBO had before your last fix.
+
+This is now undeniable.
+
+✔ WHAT TO TELL THE REPLIT AGENT
+
+Paste this EXACT block:
+
+THE M&A ENGINE IS NOT USING THE PARSED INPUTS.
+
+Specific evidence:
+
+purchasePrice is parsed as 1.2B but the model uses a default of 500M
+
+revenueSynergies and costSynergies both parse correctly but TotalNPV is returned as undefined
+
+EPS accretion/dilution shows undefined% for both years because EPS inputs (net income, shares issued, synergy uplift) are not being passed into the model
+
+consideration structure is not being passed through
+
+All undefined numbers indicate the model is running with null or fallback values
+
+Conclusion:
+The parser → model mapping layer for the M&A function is broken.
+Fix the mapping; do not modify the model formulas.

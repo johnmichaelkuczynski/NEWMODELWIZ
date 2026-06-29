@@ -1,0 +1,633 @@
+# Long Text Coherence Handling: Implementation Specification
+
+## Problem Statement
+
+The current Coherence Meter rewrite function cannot handle texts longer than 500 words. This specification provides a solution that enables coherence analysis and rewriting for texts of unlimited length.
+
+---
+
+## Solution: Two-Stage Outline-Guided Rewriting
+
+This approach processes long texts in two stages:
+1. **Stage 1:** Generate and fix a high-level outline/summary (under 500 words)
+2. **Stage 2:** Rewrite individual sections guided by the coherent outline
+
+This ensures global coherence while keeping each processing step within the 500-word limit.
+
+---
+
+## How It Works
+
+### Stage 1: Outline Generation and Correction
+
+**Input:** Full text (any length)
+
+**Process:**
+1. Generate a structural summary of the text (under 500 words) that captures:
+   - Main thesis/argument
+   - Key claims in each section
+   - Logical structure and flow
+   - Major concepts and how they're used
+
+2. Analyze the outline for coherence using the selected coherence type
+
+3. If outline coherence score < 8/10, rewrite the outline to maximize coherence
+
+4. Result: A coherent structural blueprint for the full text
+
+### Stage 2: Section-by-Section Rewriting
+
+**Input:** Original text sections + coherent outline
+
+**Process:**
+1. Split the original text into sections (aiming for <500 words each):
+   - Split at natural boundaries (paragraph breaks, section headers)
+   - Preserve section context (what comes before/after)
+
+2. For each section:
+   - Provide the coherent outline as context
+   - Analyze section coherence
+   - Rewrite section to maximize coherence while conforming to outline
+   - Ensure terminology is consistent with outline
+
+3. Assemble rewritten sections into final document
+
+4. Add transition sentences between sections if needed
+
+---
+
+## Implementation Requirements
+
+### New UI Elements
+
+Add to the Coherence Meter interface:
+
+```
+Current text length: [X] words
+
+⚠ Text exceeds 500 words. Long text mode will be used automatically.
+
+Long Text Processing:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Stage 1: Analyzing document structure...
+Stage 2: Processing section 1 of 5...
+Stage 2: Processing section 2 of 5...
+[Progress indicator]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Algorithm Pseudocode
+
+```python
+def rewrite_long_text_for_coherence(text, coherence_type):
+    """
+    Rewrites text longer than 500 words using two-stage process.
+    
+    Args:
+        text: Full text (any length)
+        coherence_type: Type of coherence to maximize
+        
+    Returns:
+        Rewritten text with maximized coherence
+    """
+    
+    # STAGE 1: OUTLINE GENERATION AND CORRECTION
+    # ==========================================
+    
+    outline = generate_outline(text)
+    # Generate outline <500 words capturing:
+    # - Main thesis
+    # - Section summaries
+    # - Key arguments
+    # - Important concepts and their usage
+    
+    outline_analysis = analyze_coherence(outline, coherence_type)
+    
+    if outline_analysis.score < 8:
+        coherent_outline = rewrite_for_coherence(outline, coherence_type)
+    else:
+        coherent_outline = outline
+    
+    # STAGE 2: SECTION PROCESSING
+    # ============================
+    
+    sections = split_into_sections(text, target_length=450)
+    # Split at natural boundaries:
+    # - Paragraph breaks
+    # - Section headers
+    # - Logical argument boundaries
+    # Target 450 words to leave room for context
+    
+    rewritten_sections = []
+    
+    for i, section in enumerate(sections):
+        # Build context for this section
+        context = build_section_context(
+            outline=coherent_outline,
+            section_number=i+1,
+            total_sections=len(sections),
+            previous_section_summary=get_previous_summary(rewritten_sections)
+        )
+        
+        # Analyze section coherence
+        section_analysis = analyze_coherence(section, coherence_type)
+        
+        # Rewrite section with outline context
+        rewritten_section = rewrite_section_with_context(
+            section=section,
+            context=context,
+            coherence_type=coherence_type,
+            outline=coherent_outline
+        )
+        
+        rewritten_sections.append(rewritten_section)
+    
+    # STAGE 3: ASSEMBLY
+    # =================
+    
+    final_text = assemble_document(
+        sections=rewritten_sections,
+        outline=coherent_outline,
+        add_transitions=True
+    )
+    
+    return final_text
+
+
+def generate_outline(text):
+    """
+    Generate structural summary of text under 500 words.
+    """
+    prompt = f"""
+    Generate a structural outline of the following text (maximum 450 words).
+    
+    Include:
+    1. Main thesis or central argument
+    2. Key claims or points in each major section
+    3. Logical structure and flow of argument
+    4. Important concepts and how they are defined/used
+    5. Conclusions or implications
+    
+    Format as a hierarchical outline that captures the argumentative structure.
+    
+    TEXT:
+    {text}
+    """
+    
+    return call_llm(prompt)
+
+
+def split_into_sections(text, target_length=450):
+    """
+    Split text into sections at natural boundaries.
+    """
+    # Algorithm:
+    # 1. Identify paragraph breaks
+    # 2. Identify section headers (lines starting with #, all caps, etc.)
+    # 3. Split at these boundaries targeting ~450 words per section
+    # 4. If a natural section is >500 words, split it further at paragraph breaks
+    # 5. Keep track of section metadata (position, type, header text if any)
+    
+    sections = []
+    current_section = []
+    current_word_count = 0
+    
+    paragraphs = text.split('\n\n')
+    
+    for paragraph in paragraphs:
+        para_words = len(paragraph.split())
+        
+        # Check if this looks like a section header
+        is_header = is_section_header(paragraph)
+        
+        # If adding this paragraph would exceed target, start new section
+        if current_word_count + para_words > target_length and current_section:
+            sections.append({
+                'text': '\n\n'.join(current_section),
+                'word_count': current_word_count
+            })
+            current_section = []
+            current_word_count = 0
+        
+        # If starting new section after a header, include header with new section
+        if is_header and current_section:
+            sections.append({
+                'text': '\n\n'.join(current_section),
+                'word_count': current_word_count
+            })
+            current_section = []
+            current_word_count = 0
+        
+        current_section.append(paragraph)
+        current_word_count += para_words
+    
+    # Add final section
+    if current_section:
+        sections.append({
+            'text': '\n\n'.join(current_section),
+            'word_count': current_word_count
+        })
+    
+    return sections
+
+
+def build_section_context(outline, section_number, total_sections, previous_section_summary):
+    """
+    Build context string for section rewriting.
+    """
+    context = f"""
+    DOCUMENT OUTLINE (maintain consistency with this):
+    {outline}
+    
+    SECTION INFORMATION:
+    - This is section {section_number} of {total_sections}
+    - Previous section ended with: {previous_section_summary}
+    
+    INSTRUCTIONS:
+    - Rewrite this section to maximize coherence
+    - Maintain consistency with the overall document structure shown in outline
+    - Use terminology consistent with the outline
+    - Ensure smooth flow from previous section
+    - Support the main thesis identified in the outline
+    """
+    
+    return context
+
+
+def rewrite_section_with_context(section, context, coherence_type, outline):
+    """
+    Rewrite a single section guided by outline and context.
+    """
+    prompt = f"""
+    {context}
+    
+    COHERENCE TYPE: {coherence_type}
+    
+    SECTION TO REWRITE:
+    {section}
+    
+    Rewrite this section to:
+    1. Maximize {coherence_type} coherence
+    2. Fit within the document structure shown in the outline
+    3. Maintain consistent terminology with the outline
+    4. Connect smoothly with surrounding sections
+    5. Preserve the core content and claims
+    
+    Output only the rewritten section text.
+    """
+    
+    return call_llm(prompt)
+
+
+def assemble_document(sections, outline, add_transitions=True):
+    """
+    Assemble rewritten sections into final document.
+    """
+    if not add_transitions:
+        return '\n\n'.join(sections)
+    
+    # Add transition sentences between sections where needed
+    assembled = [sections[0]]
+    
+    for i in range(1, len(sections)):
+        # Check if transition is needed
+        transition = generate_transition_if_needed(
+            previous_section=sections[i-1],
+            next_section=sections[i],
+            outline=outline
+        )
+        
+        if transition:
+            assembled.append(transition)
+        
+        assembled.append(sections[i])
+    
+    return '\n\n'.join(assembled)
+
+
+def generate_transition_if_needed(previous_section, next_section, outline):
+    """
+    Generate transition sentence if sections don't flow smoothly.
+    """
+    # Extract last sentence of previous section
+    prev_sentences = previous_section.split('. ')
+    last_sentence = prev_sentences[-1] if prev_sentences else ""
+    
+    # Extract first sentence of next section
+    next_sentences = next_section.split('. ')
+    first_sentence = next_sentences[0] if next_sentences else ""
+    
+    # Check if transition is needed (heuristic: do they share topic?)
+    if needs_transition(last_sentence, first_sentence):
+        prompt = f"""
+        Generate a brief transition sentence (10-20 words) connecting these sections:
+        
+        Previous section ends: "...{last_sentence}"
+        Next section begins: "{first_sentence}..."
+        
+        Document outline: {outline}
+        
+        Transition sentence:
+        """
+        
+        return call_llm(prompt)
+    
+    return None
+```
+
+---
+
+## Prompt Templates
+
+### Outline Generation Prompt
+
+```
+You are creating a structural outline of a document for coherence analysis.
+
+Generate a summary under 450 words that captures:
+
+1. MAIN THESIS OR CENTRAL ARGUMENT
+   What is the document's primary claim or purpose?
+
+2. SECTION STRUCTURE
+   What are the major sections and what does each section argue/explain?
+
+3. KEY CONCEPTS AND DEFINITIONS
+   What important terms are used and how are they defined?
+
+4. LOGICAL FLOW
+   How does the argument progress from premises to conclusion?
+
+5. CONCLUSIONS
+   What are the final claims or implications?
+
+Format as a clear hierarchical outline.
+
+DOCUMENT:
+{full_text}
+
+OUTLINE:
+```
+
+### Section Rewriting Prompt
+
+```
+You are rewriting a section of a longer document to maximize coherence.
+
+DOCUMENT OUTLINE (maintain consistency):
+{coherent_outline}
+
+POSITION IN DOCUMENT:
+- Section {n} of {total}
+- Previous section: {summary of previous}
+
+COHERENCE TYPE: {coherence_type}
+
+SECTION TO REWRITE:
+{section_text}
+
+Rewrite this section to:
+1. Maximize {coherence_type} coherence
+2. Align with the document outline above
+3. Use terminology consistent with the outline
+4. Connect smoothly with surrounding context
+5. Preserve core content and claims
+
+REWRITTEN SECTION:
+```
+
+### Transition Generation Prompt
+
+```
+Generate a brief transition sentence (10-20 words) to smoothly connect these sections:
+
+DOCUMENT OUTLINE:
+{outline}
+
+PREVIOUS SECTION ENDS WITH:
+"...{last_sentence}"
+
+NEXT SECTION BEGINS WITH:
+"{first_sentence}..."
+
+Generate a transition that:
+- Bridges the topic shift
+- Maintains document flow
+- Fits the outline structure
+
+TRANSITION SENTENCE:
+```
+
+---
+
+## Output Format
+
+When processing long texts, show progress and results clearly:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LONG TEXT COHERENCE ANALYSIS
+
+Original Length: 1,847 words
+Coherence Type: Philosophical (Conceptual Rigor)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STAGE 1: DOCUMENT STRUCTURE ANALYSIS
+
+Outline Generated (423 words)
+Outline Coherence Score: 5/10 ⚠ WEAK
+
+Issues Found:
+• Equivocation on "consciousness" (fundamental vs emergent)
+• Contradiction between sections 2 and 4
+• Unaddressed standard objections
+
+Outline Rewritten for Coherence
+New Outline Score: 9/10 ✓ STRONG
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+STAGE 2: SECTION-BY-SECTION REWRITING
+
+Section 1 of 4 (438 words) - Rewritten
+Section 2 of 4 (412 words) - Rewritten
+Section 3 of 4 (456 words) - Rewritten
+Section 4 of 4 (541 words) - Rewritten
+
+Transitions Added: 2
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+FINAL COHERENCE ANALYSIS
+
+Overall Score: 8/10 ✓ STRONG
+Rewritten Length: 1,923 words
+
+MAJOR IMPROVEMENTS:
+• Resolved equivocation by distinguishing epistemic from ontological claims
+• Eliminated contradiction through neutral monist framework
+• Added responses to standard objections
+• Clarified key concepts throughout
+• Improved logical flow between sections
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REWRITTEN TEXT:
+
+[Full rewritten text appears here]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Copy Rewrite] [Download as Document] [View Outline] [Analyze Different Type]
+```
+
+---
+
+## Error Handling
+
+### If Text is Too Short
+```python
+if word_count <= 500:
+    # Use standard single-pass rewrite
+    return standard_rewrite(text, coherence_type)
+```
+
+### If Outline Generation Fails
+```python
+try:
+    outline = generate_outline(text)
+except Exception as e:
+    # Fallback: use first 400 words as "outline"
+    outline = ' '.join(text.split()[:400]) + "..."
+    log_error(f"Outline generation failed: {e}")
+```
+
+### If Section Too Long After Split
+```python
+if section_word_count > 550:
+    # Recursively split section further
+    subsections = split_into_sections(section, target_length=400)
+    return subsections
+```
+
+### If Rewriting Times Out
+```python
+timeout = 60  # seconds per section
+try:
+    rewritten = rewrite_section_with_context(section, context, coherence_type, outline)
+except TimeoutError:
+    # Return original section with warning
+    return f"[TIMEOUT: Section unchanged]\n\n{section}"
+```
+
+---
+
+## Testing Requirements
+
+Test the long text handler with:
+
+1. **500-1000 word texts** (2-3 sections)
+   - Should split naturally
+   - Verify outline captures main points
+   - Check transitions are smooth
+
+2. **1000-2000 word texts** (4-6 sections)
+   - Verify coherence maintained across sections
+   - Check terminology consistency
+   - Ensure outline guides rewriting
+
+3. **2000+ word texts** (7+ sections)
+   - Test processing time acceptable
+   - Verify memory usage reasonable
+   - Check no degradation in final sections
+
+4. **Edge cases:**
+   - Text with no paragraph breaks (must split mid-paragraph)
+   - Text with very short paragraphs (combine multiple)
+   - Text with section headers (preserve them)
+   - Text with lists, quotes, code blocks (handle formatting)
+
+5. **Coherence verification:**
+   - Final score should be ≥7/10 for most inputs
+   - No contradictions introduced between sections
+   - Terminology should be consistent throughout
+   - Logical flow should be maintained
+
+---
+
+## Performance Targets
+
+- **Processing Time:** ~10-15 seconds per 500 words
+- **Memory Usage:** <100MB for texts up to 5000 words
+- **Accuracy:** Final coherence score ≥7/10 for 80% of inputs
+- **Consistency:** Same input should produce similar output across runs
+
+---
+
+## Implementation Checklist
+
+**Stage 1 Implementation:**
+- [ ] Outline generation function
+- [ ] Outline coherence analysis
+- [ ] Outline rewriting if needed
+- [ ] Outline storage for Stage 2
+
+**Stage 2 Implementation:**
+- [ ] Text splitting algorithm
+- [ ] Section header detection
+- [ ] Natural boundary identification
+- [ ] Section context builder
+- [ ] Section rewriting with outline context
+- [ ] Terminology consistency checker
+
+**Stage 3 Implementation:**
+- [ ] Section assembly function
+- [ ] Transition detection
+- [ ] Transition generation
+- [ ] Final coherence check
+
+**UI Updates:**
+- [ ] Long text detection (>500 words)
+- [ ] Progress indicator for multi-stage processing
+- [ ] Section-by-section progress display
+- [ ] "View Outline" button to see structural analysis
+- [ ] Export options for long rewrites
+
+**Testing:**
+- [ ] Unit tests for splitting algorithm
+- [ ] Integration tests for full pipeline
+- [ ] Edge case handling tests
+- [ ] Performance benchmarks
+- [ ] User acceptance testing with real documents
+
+**Documentation:**
+- [ ] User guide for long text feature
+- [ ] Examples of before/after for long texts
+- [ ] Explanation of two-stage process
+- [ ] FAQ about processing time and limitations
+
+---
+
+## Future Enhancements (Phase 2)
+
+Once the basic two-stage approach is working:
+
+1. **User control over splitting**
+   - Let user manually mark section boundaries
+   - Allow user to approve/modify outline before Stage 2
+
+2. **Parallel processing**
+   - Process multiple sections simultaneously
+   - Reduce total processing time for very long texts
+
+3. **Incremental updates**
+   - Show rewritten sections as they complete
+   - Don't wait for all sections before displaying results
+
+4. **Section-level scoring**
+   - Show coherence score for each section
+   - Let user choose which sections to rewrite
+
+5. **Outline editing**
+   - Let user edit the coherent outline
+   - Regenerate sections based on edited outline
+
+---
+
+This specification is complete and ready for implementation by Replit Agent.

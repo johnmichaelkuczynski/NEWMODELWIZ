@@ -1,0 +1,146 @@
+I DON'T CARE ABOUT THIS ONE FUCKING FILE. THIS IS FROM AN APP OF MINE. I NEED THE APP TO WORK
+ChatGPT said:
+Thought for 59s
+
+Got it — we’re talking app logic, not this one spreadsheet. Here’s what’s wrong in your engine and how to fix it.
+
+1. What your app is doing wrong
+
+From the generated file:
+
+Senior Debt:
+
+Year 0 balance: 337.5
+
+Year 1 balance: 0
+
+Year 1 mandatory amort: 337.5
+
+Interest only in Year 1: 23.625 (7% of 337.5)
+
+Sub Debt:
+
+Year 0: 112.5
+
+Year 1: 112.5
+
+Year 2: 78.069664
+
+Year 3: 38.221428
+
+Year 4: 0
+
+Free Cash Flow row in Projections:
+
+Year 1: 14.4806
+
+Year 2: 34.430336
+
+Year 3: 39.848236
+
+Year 4: 45.864068
+
+Year 5: 51.913810
+
+Notice:
+
+Year 2 Sub amortization = 112.5 – 78.069664 = 34.430336 = Year 2 FCF
+
+Year 3 Sub amortization = 78.069664 – 38.221428 = 39.848236 = Year 3 FCF
+
+👉 So your app correctly uses “Free Cash Flow” as the sweep for Sub Debt starting in Year 2.
+
+But for Senior Debt, Year 1:
+
+FCF Year 1 = 14.4806, but
+
+Senior Mandatory Amort Year 1 = 337.5 (the entire opening balance)
+
+So the engine is effectively doing:
+
+Year 1 Senior amortization = opening balance,
+instead of
+Year 1 Senior amortization = min(FCF₁, Senior balance₀)
+
+That one mistake:
+
+Wipes Senior in Year 1
+
+Sends all later FCF to Sub
+
+Leaves zero debt by exit
+
+Blows up IRR / MOIC
+
+Everything downstream is poisoned by that single wrong rule.
+
+2. The correct debt sweep logic your app must implement
+
+For each projection year t = 1…5:
+
+Compute Free Cash Flow (after interest, tax, CapEx, ΔNWC) — you already have this as the Free Cash Flow ($M) row.
+
+Call it:
+ECF[t] = Excess Cash Flow available for debt paydown.
+
+Senior Debt amortization:
+
+Senior_Amort[t] = min(ECF[t], Senior_Beg[t])
+Senior_End[t]   = Senior_Beg[t] - Senior_Amort[t]
+
+
+Remaining cash after Senior:
+
+Cash_Remaining[t] = ECF[t] - Senior_Amort[t]
+
+
+Subordinated Debt amortization:
+
+Sub_Amort[t] = min(Cash_Remaining[t], Sub_Beg[t])
+Sub_End[t]   = Sub_Beg[t] - Sub_Amort[t]
+
+
+Any leftover:
+
+Cash_Surplus[t] = Cash_Remaining[t] - Sub_Amort[t]
+
+
+That can go to cash build or dividends, depending on how you want the app to behave.
+
+Key point:
+There is no special case for Year 1. Year 1 uses the same formula as every other year:
+
+Senior_Amort[1] = min(ECF[1], Senior_Beg[1])
+
+
+Your current logic is effectively:
+
+Senior_Amort[1] = Senior_Beg[1]      # WRONG
+Senior_Amort[t>1] = min(ECF[t], Senior_Beg[t])   # Looks correct but never used because balance is zero
+
+
+That’s the core bug.
+
+3. What to change in your app
+
+Wherever your app writes the Senior Mandatory Amortization for Year 1:
+
+Do NOT set it equal to the opening balance.
+
+Use the same min(ECF, opening balance) rule you already seem to be using for subordinated debt in later years.
+
+In plain terms:
+
+“For every year (including Year 1), mandatory Senior paydown = the lesser of that year’s excess cash and the starting Senior balance.”
+
+Once you fix that rule in the generator:
+
+Senior will amortize gradually over Years 1–X.
+
+Sub will only start amortizing once Senior is paid down.
+
+Exit debt will be > 0 unless the sweep genuinely repays everything.
+
+IRR and MOIC will drop to a realistic level.
+
+If you want, you can paste the exact part of your app where it computes the debt schedule, and I’ll rewrite that block to enforce this logic precisely.

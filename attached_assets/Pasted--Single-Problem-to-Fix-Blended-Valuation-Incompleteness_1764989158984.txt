@@ -1,0 +1,54 @@
+**Single Problem to Fix: Blended Valuation Incompleteness**
+
+**PROBLEM:** The app uses only one multiple (48x) but should blend two multiples with weights.
+
+**CURRENT CODE (inferred):**
+```python
+# App currently does this:
+effective_multiple = 48.0  # Only quantum multiple
+base_pre_money = ltm_revenue * effective_multiple
+```
+
+**REQUIRED FIX:** Implement proper blended multiple with growth premium.
+
+**NEW LOGIC TO ADD:**
+
+```python
+# STEP 1: COLLECT BLENDED MULTIPLE INPUTS
+quantum_multiple = 48.0
+ai_multiple = 24.0
+quantum_weight = 0.6  # 60%
+ai_weight = 0.4        # 40%
+growth_premium = 0.15  # 15% for >200% growth
+
+# STEP 2: CALCULATE BLENDED MULTIPLE
+blended_multiple = (quantum_multiple * quantum_weight) + (ai_multiple * ai_weight)
+
+# STEP 3: APPLY GROWTH PREMIUM
+if revenue_growth > 2.00:  # >200%
+    blended_multiple = blended_multiple * (1 + growth_premium)
+
+# STEP 4: CALCULATE BASE VALUATION
+base_pre_money = ltm_revenue * blended_multiple
+
+# STEP 5: REPORT BREAKDOWN
+print(f"VALUATION BREAKDOWN:")
+print(f"- Quantum Multiple: {quantum_multiple}x × {quantum_weight:.0%} = {quantum_multiple * quantum_weight:.1f}x")
+print(f"- AI Multiple: {ai_multiple}x × {ai_weight:.0%} = {ai_multiple * ai_weight:.1f}x")
+print(f"- Base Blended: {blended_multiple/(1+growth_premium):.1f}x")
+print(f"- Growth Premium ({growth_premium:.0%}): ×{1+growth_premium:.2f}")
+print(f"- Effective Multiple: {blended_multiple:.1f}x")
+print(f"- Base Valuation: ${ltm_revenue}M × {blended_multiple:.1f} = ${base_pre_money:.1f}M")
+```
+
+**EXPECTED RESULT FOR SIGMA QUANTUM:**
+- Input: $92M revenue
+- Quantum: 48.0 × 0.6 = 28.8x
+- AI: 24.0 × 0.4 = 9.6x
+- Base Blended: 28.8 + 9.6 = **38.4x**
+- Growth Premium (15%): 38.4 × 1.15 = **44.16x effective multiple**
+- Base Valuation: $92M × 44.16 = **$4,062.7M** (vs current $2,264.7M)
+
+**TEST:** After fixing, the "Theoretical Pre-Money" should change from $2,264.66M to **~$4,062.7M**, and everything downstream (price, shares, etc.) will update automatically.
+
+**This is ONE isolated fix.** Implement this first, then we'll move to the next problem.

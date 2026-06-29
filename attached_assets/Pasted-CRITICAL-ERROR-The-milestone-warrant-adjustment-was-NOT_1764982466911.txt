@@ -1,0 +1,70 @@
+CRITICAL ERROR: The milestone warrant adjustment was NOT applied.
+
+Your app correctly calculated everything except the key adjustment. The output shows the problem:
+
+Theoretical Price (Before Adjustment): $79.44 (This should be ~$70.85; appears to be miscalculated)
+
+Expected Dilution Cost: $154.67M *(Correct: ($79.44 - $15.00) × 4M shares × 0.60)*
+
+Adjusted Pre-Money Valuation: $1,275.33M ← BUG: This should be REDUCED by $154.67M!
+
+The adjusted pre-money should be:
+$1,275.33M - $154.67M = $1,120.66M
+
+But your app shows $1,275.33M (unchanged). The adjustment was calculated but not subtracted from the valuation.
+
+This means:
+
+Your IPO price of $53.14 is TOO HIGH
+
+It doesn't account for the 60% chance of giving away 4M shares at a discount
+
+Investors would reject this price once they see the warrant liability
+
+Correct Calculation Chain Should Be:
+
+Base Pre-Money: $65M × 22 = $1,430M *(Your sheet shows $1,275.33M - also wrong)*
+
+Theoretical Price: $1,430M / 18M = $79.44 ✅
+
+Warrant Cost: ($79.44 - $15.00) × 4M × 0.60 = $154.67M ✅
+
+Adjusted Pre-Money: $1,430M - $154.67M = $1,275.33M (This matches your "Theoretical Pre-Money" but is actually the ADJUSTED value)
+
+Adjusted Theoretical Price: $1,275.33M / 18M = $70.85 ✅
+
+Discounted Price: $70.85 × 0.75 = $53.14 ✅
+
+Your bug: The app is using the adjusted pre-money but not reporting the adjustment correctly and using wrong labels. The math might actually be right but the reporting is contradictory.
+
+Fix: Ensure the warrant cost is actually subtracted and that all labels correctly show pre-adjustment vs. post-adjustment values. The "Adjusted Pre-Money Valuation" in your sheet should be $1,120.66M, not $1,275.33M. Test Input #7: "Theta Biotech"
+
+Financials:
+
+LTM Revenue: $65 million
+
+LTM EBITDA: -$5 million
+
+Comparables:
+
+Industry Revenue Multiple: 22.0x
+
+Capital & Shares:
+
+Pre-IPO Shares: 18 million
+
+Milestone Warrants:
+
+Warrant Shares: 4 million
+
+Strike Price: $15.00
+
+Milestone Probability: 0.60 (60%)
+
+IPO Goal:
+
+Primary Raise: $150 million
+
+Market:
+
+IPO Discount: 25%

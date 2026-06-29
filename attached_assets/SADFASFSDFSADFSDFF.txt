@@ -1,0 +1,79 @@
+**REPLIT SCORING ENGINE FAILURE: "CASE FOR FINANCIAL REGULATION"**
+
+---
+
+### 🚨 CRITICAL FAILURE
+
+The Replit evaluator assigned a score of **67/100** to the document titled *"The Case for Financial Regulation"* — a piece that, on manual review, scores **94/100**.
+
+This discrepancy is **not minor**. It proves that your scoring logic is still **catastrophically misaligned** for long, recursively structured, economically dense content.
+
+---
+
+### ❌ WHAT'S WRONG WITH THE SCORE
+
+#### ❌ 1. Summary Contradicts Itself
+> "The text exemplifies blueprint-grade characteristics... semantic density, clear definitions, logical progression, and recursive structure."
+
+Yet the final score is 67. This is logically incoherent.
+
+#### ❌ 2. Scoring Breakdown is Contradictory
+- **Inferential Continuity**: Very Strong
+- **Semantic Load**: Weak
+- **Claim Formation**: Weak
+- **Definition Coherence**: Weak
+
+These are mutually exclusive. A document **cannot** have very strong continuity **and** weak claims and definitions. That structure cannot exist.
+
+#### ❌ 3. The Score Suppresses Compression and Depth
+This document:
+- Tracks 100 years of financial law across 5 crises
+- Connects deregulation to structural economic failure
+- Differentiates market liberalism from regulatory realism
+- Explains Glass-Steagall, Dodd-Frank, Volcker, derivatives, MBSs, CDOs, etc.
+
+That’s blueprint-grade intellectual compression.
+
+#### ❌ 4. The Score Punishes Domain Fluency
+- The document reads like a graduate-level economic history primer.
+- There is **zero jargon**, **zero hand-waving**, and **zero redundancy**.
+- It uses formal logic to defend a normative economic claim — this is what your evaluator claims to reward.
+
+Instead, it treats the document like it was written by someone with “basic fluency and some flow.”
+
+---
+
+### 🔦 WHAT THIS PROVES
+
+1. Your model **does not scale** to long recursive argument chains.
+2. Your compression metric **isn't aggregating across sections**.
+3. Your scoring logic **flattens paragraphs to topic detection** rather than recognizing systemic logic.
+
+---
+
+### ❗ WHAT YOU MUST DO NOW
+
+1. **Create separate calibration logic** for:
+   - Economic history
+   - Policy argument
+   - Longform analytical writing (5k+ words)
+
+2. **Remove scoring suppression when recursion is detected.**
+
+3. **Block “Weak” labels** from applying when inferential continuity is rated "Very Strong."
+
+4. **Validate coherence of the scoring summary** before rendering the final score.
+
+---
+
+### 🔒 FINAL NOTE
+This was a document that explained the entire modern American financial system while dissecting 100 years of legislative cause-effect — clearly, concisely, without ideological padding.
+
+If that gets a 67, your evaluator is **a liability to the entire app.**
+
+Fix this immediately.
+
+---
+
+**END OF DIRECTIVE**
+

@@ -1,0 +1,66 @@
+You are upgrading the translation system so that it can handle and translate extremely large documents (up to 500,000 words) without crashing or truncating.
+
+To do this, you must implement a multi-tiered chunking system, modeled on the working rewrite logic.
+
+🧱 TIERED CHUNKING OVERVIEW
+The system must process long documents using three levels of chunking:
+
+🔹 TIER 1: Top-Level Document Splitting — “Macrochunks”
+If the input document is longer than 10,000 words:
+
+Divide it into macrochunks of approximately 10,000 words each.
+
+Try to split on paragraph or section breaks.
+
+Each macrochunk becomes an isolated unit for further translation.
+
+🔹 TIER 2: Mid-Level Chunking — “Subchunks”
+Each macrochunk must then be split into subchunks of no more than 500–1000 words.
+
+These are the actual payloads to be sent to the translation API.
+
+Use sentence boundaries, paragraph breaks, or regular expressions to avoid cutting in the middle of a sentence.
+
+🔹 TIER 3: API Translation per Subchunk
+Translate each subchunk individually using either OpenAI or DeepL.
+
+Handle each subchunk with:
+
+Retry logic (up to 2 times)
+
+Error detection (e.g., HTML response = failure)
+
+Progress tracking (e.g., "Translating chunk 8 of 147")
+
+🔹 FINAL STEP: Reassembly
+After all subchunks in a macrochunk are translated:
+
+Recombine them in order into the full macrochunk translation.
+
+After all macrochunks are complete:
+
+Stitch them into the final translated document.
+
+✅ This must happen without user needing to intervene.
+
+🔧 TECHNICAL REQUIREMENTS
+
+Requirement	Must Be Met
+Chunk size limits	Max 1000 words per translation call
+Retry logic	Retry any failed subchunk 1–2 times
+Error handling	Catch JSON/HTML errors and skip or retry
+Progress UI	Display “Processing 1 of 147 chunks” live
+Memory-safe	Do not hold full document in memory as one string
+Full recombination	Output must be complete and preserve original structure
+🛑 DO NOT:
+❌ Do not send the full document in one call.
+
+❌ Do not silently drop failed chunks.
+
+❌ Do not show a fake progress bar unless tied to actual chunk completion.
+
+❌ Do not truncate the translation with “try again later” errors.
+
+📌 DELIVERABLE TITLE:
+“Multi-Tiered Translation System for Documents up to 500,000 Words: Macrochunk → Subchunk → Retryable Translation → Reassembled Output.”
+

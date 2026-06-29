@@ -1,0 +1,206 @@
+# INSTRUCTION FOR REPLIT AGENT: M&A MODEL FUNCTION FIXES
+
+---
+
+## CRITICAL BUG #1: ZERO EXCEL FORMULAS
+
+**The Problem:**
+The M&A Model function generates Excel files with **ZERO formulas**. Every cell contains a hardcoded value instead of an Excel formula. This makes the output useless as a financial model because users cannot:
+- Change assumptions and see results update
+- Perform scenario analysis
+- Audit the calculation logic
+- Use it for board presentations
+
+**How to Verify the Bug:**
+```python
+import zipfile
+
+with zipfile.ZipFile('output.xlsx', 'r') as z:
+    for i in range(1, 20):
+        sheet_file = f'xl/worksheets/sheet{i}.xml'
+        if sheet_file in z.namelist():
+            content = z.read(sheet_file).decode('utf-8')
+            formula_count = content.count('<f>')
+            print(f"Sheet {i}: {formula_count} formulas")
+```
+
+**Current Output:** 0 formulas across all sheets
+**Required Output:** 300+ formulas for a proper M&A model
+
+**The Fix:**
+When writing cells to the Excel file, you must write FORMULAS, not computed values. 
+
+For example, if using `openpyxl`:
+
+```python
+# WRONG - This writes a hardcoded value:
+ws['C5'] = acquirer_revenue * (1 + growth_rate)
+
+# CORRECT - This writes a formula:
+ws['C5'] = '=B5*(1+$B$3)'
+```
+
+Or if using a different approach:
+
+```python
+# WRONG:
+data['Year 1 Revenue'] = 2400 * 1.12  # Computed value = 2688
+
+# CORRECT:
+data['Year 1 Revenue'] = '=C4*(1+Assumptions!$B$5)'  # Formula referencing cells
+```
+
+**Key Areas That MUST Have Formulas:**
+
+| Sheet | Cells That Need Formulas |
+|-------|-------------------------|
+| Sources_Uses | Total Sources (=SUM), Total Uses (=SUM), Balance Check (=Sources-Uses) |
+| Acquirer_Standalone | Revenue growth (=Prior*(1+rate)), EBITDA (=Revenue*margin), Net Income, EPS |
+| Target_Standalone | Same as Acquirer |
+| Synergies | Phase-in calculations (=RunRate*PhaseIn%), Total synergies (=SUM) |
+| Pro_Forma_Combined | Combined Revenue (=Acq+Tgt+RevSyn), Combined EBITDA, Net Income, Pro Forma EPS |
+| Accretion_Dilution | EPS Impact $ (=ProFormaEPS-StandaloneEPS), EPS Impact % (=Impact/Standalone) |
+| Purchase_Price_Allocation | Goodwill (=PurchasePrice-NetAssets-Intangibles), Amortization schedules |
+| Debt_Schedule | Ending Balance (=Beginning-Amortization), Interest (=AvgBalance*Rate) |
+| Credit_Analysis | Leverage (=Debt/EBITDA), Coverage (=EBITDA/Interest) |
+| Sensitivity_Analysis | ALL cells in sensitivity tables must be formulas that recalculate |
+
+---
+
+## CRITICAL BUG #2: GOODWILL CALCULATION ERROR
+
+**The Problem:**
+Goodwill is being calculated incorrectly. It's consistently ~$100-120M lower than specified.
+
+**The Correct Calculation:**
+```
+Goodwill = Purchase Price (EV) 
+         - Fair Value of Net Assets Acquired
+         - Identified Intangible Assets
+         + Deferred Tax Liability on Intangibles
+```
+
+**Example from Test #3:**
+```
+Purchase Price (EV):                    $1,110M
+- Fair Value of Net Assets:               ($95M)
+- Identified Intangibles:                ($545M)
+  - Developed Technology: $280M
+  - Customer Relationships: $220M  
+  - Trade Name: $45M
++ Deferred Tax Liability:                 $120M  (24% × $500M amortizable)
+= GOODWILL:                              $590M   ← This is correct
+
+Current Output:                          $470M   ← This is wrong (missing DTL add-back?)
+```
+
+**The Fix:**
+Ensure the Deferred Tax Liability is being ADDED back (it's a liability, which reduces net assets acquired, thus increasing goodwill).
+
+---
+
+## ISSUE #3: SOURCES & USES - EV vs EQUITY VALUE CONFUSION
+
+**The Problem:**
+Sometimes the model shows Enterprise Value in the "Uses" section where it should show Equity Value, or vice versa.
+
+**The Correct Structure:**
+
+```
+SOURCES:
+  Cash on Hand                    $XXX
+  New Debt Raised                 $XXX
+  Stock Consideration             $XXX
+  [Target Cash Acquired]          $XXX  ← If target has net cash
+  ─────────────────────────────────────
+  TOTAL SOURCES                   $XXX
+
+USES:
+  Target Equity Value             $XXX  ← NOT Enterprise Value
+  Target Debt Assumed/Refinanced  $XXX  ← If applicable
+  Transaction Fees                $XXX
+  ─────────────────────────────────────
+  TOTAL USES                      $XXX
+
+BALANCE CHECK:
+  Sources - Uses = $0             ← MUST BE ZERO
+```
+
+**Key Relationships:**
+- Enterprise Value = Equity Value + Net Debt
+- If target has NET CASH: Equity Value = EV + Net Cash (Equity > EV)
+- If target has NET DEBT: Equity Value = EV - Net Debt (Equity < EV)
+
+---
+
+## VERIFICATION CHECKLIST
+
+Before outputting the M&A model, verify:
+
+1. **Formula Count:**
+   ```python
+   assert total_formula_count > 300, "Model must contain formulas, not hardcoded values"
+   ```
+
+2. **Balance Check:**
+   ```python
+   assert sources_total == uses_total, "Sources must equal Uses"
+   ```
+
+3. **Goodwill Check:**
+   ```python
+   calculated_goodwill = purchase_price - net_assets - intangibles + deferred_tax_liability
+   assert abs(calculated_goodwill - stated_goodwill) < 1, "Goodwill calculation error"
+   ```
+
+4. **Accretion Sanity Check:**
+   ```python
+   # If synergies are material (>5% of target EBITDA), deal should be accretive by Year 3
+   if total_synergies > target_ebitda * 0.05:
+       assert year_3_accretion > 0, "Deal with material synergies should be accretive by Year 3"
+   ```
+
+5. **EPS Calculation Check:**
+   ```python
+   pro_forma_eps = pro_forma_net_income / post_deal_shares
+   # NOT: pro_forma_net_income / pre_deal_shares
+   ```
+
+---
+
+## EXAMPLE: HOW A CELL SHOULD BE WRITTEN
+
+**Pro Forma EPS Calculation (Cell G5 on Accretion_Dilution sheet):**
+
+```python
+# WRONG - Hardcoded value:
+ws['G5'] = 5.82
+
+# CORRECT - Formula referencing other cells:
+ws['G5'] = '=Pro_Forma_Combined!E4/Sources_Uses!$B$15'
+#          ↑ Pro Forma Net Income    ↑ Post-Deal Shares Outstanding
+```
+
+**Sensitivity Table (Purchase Multiple Sensitivity):**
+
+```python
+# WRONG - Hardcoded values in sensitivity table:
+ws['B10'] = 0.05  # 5% accretion at 6x
+ws['C10'] = 0.02  # 2% accretion at 7x
+
+# CORRECT - Formulas that recalculate based on inputs:
+ws['B10'] = '=Accretion_Dilution!$C$5+($B$9-Assumptions!$B$12)*$B$20'
+# This formula adjusts accretion based on the multiple in that column vs base case
+```
+
+---
+
+## SUMMARY OF REQUIRED FIXES
+
+| Priority | Issue | Fix |
+|----------|-------|-----|
+| 🔴 CRITICAL | Zero formulas | Write Excel formulas (=A1+B1) instead of computed values |
+| 🟠 HIGH | Goodwill calculation | Add back Deferred Tax Liability in PPA |
+| 🟡 MEDIUM | EV vs Equity confusion | Use Equity Value in Uses, handle net cash/debt correctly |
+
+**The model is 90% correct on structure and logic. The formula issue is the blocking bug that must be fixed for the output to be usable.**

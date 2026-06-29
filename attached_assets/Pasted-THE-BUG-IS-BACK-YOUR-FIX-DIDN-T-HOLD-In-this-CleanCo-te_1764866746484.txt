@@ -1,0 +1,112 @@
+THE BUG IS BACK — YOUR FIX DIDN’T HOLD
+
+In this CleanCo test, the same original failure has returned:
+
+Senior Debt Schedule (your output)
+Year	Balance	Amort	Interest
+0	300	—	—
+1	150	150	15
+2	0	150	7.5
+3	0	0	0
+4	0	0	0
+5	0	0	0
+And your FCF row:
+Year	FCF
+1	48.67M
+2	58.10M
+3	67.71M
+4	76.91M
+5	83.47M
+🚨 Critical contradiction:
+
+Year 1 FCF = 48.67M
+
+But Senior amortization = 150M
+
+So the model again force-pays the entire Senior tranche, regardless of cash.
+
+This means:
+
+Your “fix” applied to the previous test did not generalize.
+
+Your app is still running fixed amortization = (Senior Debt / 2) for this example.
+
+The correct rule (amort = min(ECF, balance)) is being ignored for CleanCo.
+
+This proves the fix is not in the core engine, but only in a special case or a conditional path.
+
+🧨 WHAT THIS REALLY MEANS ABOUT YOUR APP
+
+Your engine is doing something like this internally:
+
+if loan_term_years = 2:
+    amortization = opening_balance / 2
+else:
+    amortization = ECF
+
+
+or:
+
+if senior_debt <= some_threshold:
+    amortization = senior_debt   # wipes instantly
+else:
+    amortization = min(ECF, senior_debt)
+
+
+or even:
+
+mandatory_amort = model_year == 1 ? opening_senior_balance : min(ECF, senior_balance)
+
+
+Because:
+
+In Horizon, Senior amortized smoothly (600 → 480 → 360 → 240 → 120 → 0)
+
+In CleanCo, it instantly collapses to 0 in two years, ignoring actual FCF
+
+This consistency pattern tells me the amortization rule is not centralized in your logic.
+
+You have multiple amortization code paths, and only one was fixed.
+
+🎯 WHAT YOU MUST FIX IN YOUR ENGINE (SHORT AND SIMPLE)
+
+You need one global rule applied in every debt schedule:
+
+senior_amort[t] = min(ECF[t], senior_balance[t-1])
+senior_balance[t] = senior_balance[t-1] - senior_amort[t]
+
+
+And NOTHING ELSE.
+No special casing.
+No “fixed amortization.”
+No term-based amortization.
+No interest-only year exceptions.
+No Year 1 override.
+
+If Senior Debt = 300 and ECF = 48.67, then:
+
+Senior amort Yr1 = 48.67, not 150
+
+Senior end Yr1 = 251.33, not 150
+
+Period.
+
+🔥 THE CLEANCO FILE FAILS THE TEST
+
+Which means:
+
+Your fix didn’t reach the real amortization logic.
+
+To actually fix the app:
+
+Paste the exact part of your code where Senior amortization is computed, or
+
+Tell me what language and structure your LBO engine uses, and I’ll rewrite the correct version.
+
+If you want, I can also give you:
+
+✔ A drop-in replacement function
+✔ A universal amortization module
+✔ 5 new randomized stress tests
+
+Just say:

@@ -1,0 +1,125 @@
+INPUT: Build me an LBO model for Precision Manufacturing Corp. Purchase price is 8.0x LTM EBITDA of $75M (EV = $600M). Finance with 4.5x Senior Debt at 7% interest, 1.5x Subordinated Debt at 11% interest, and the rest as Sponsor Equity. Current revenue is $400M growing at 6% annually. EBITDA margin stays flat at 18.75%. D&A at 3% of revenue, CapEx at 4%, NWC at 12%. Tax rate 26%. Mandatory debt paydown is 100% of excess cash flow to Senior first, then Sub. 5-year hold with exit at 7.5x EBITDA. Assume $5M of transaction fees and $3M financing fees (amortized over 5 years). OUTPUT: UPLOADED EXCEL. EVALUATE Here is the evaluation of your uploaded LBO model — short, direct, no padding.
+
+✅ TOP-LEVEL DIAGNOSIS
+
+Your model does NOT reflect a functioning LBO structure.
+It instantly repays 100% of Senior Debt in Year 1, producing zero interest thereafter, and Sub debt is never drawn.
+This breaks the economics and produces an inflated IRR.
+
+❗ CRITICAL ERRORS
+1. Senior Debt is wiped to zero in Year 1
+
+Your Senior Debt schedule shows:
+
+Year	Senior Debt Balance
+0	337.5M
+1	0
+2–5	0
+
+This means your sheet assumes:
+
+ALL free cash flow at close is used to repay debt.
+
+The company generates enough ECF in Year 1 to eliminate $337.5M—which is impossible given the cash flows you show.
+
+Your FCF in Year 1 = $14.48M, not $337M.
+
+This error invalidates interest expense, deleveraging, and IRR.
+
+2. Subordinated Debt is never drawn
+
+Sub Debt should be:
+
+1.5× EBITDA = 112.5M
+Your Sub Debt section shows only headers; no actual balances.
+
+Without Sub Debt:
+
+Capital structure is wrong
+
+Required equity contribution is incorrect
+
+Returns are miscomputed
+
+3. FCF Calculation Likely Incorrect
+
+Your FCF appears reasonable at a glance, but the debt schedule shows you are feeding the wrong lines into mandatory paydown.
+You likely fed total EBITDA or cash before interest instead of true ECF.
+
+4. Exit Valuation Correct, But Deleveraging Wrong
+
+Exit EBITDA = 100.37M
+Exit Multiple = 7.5×
+EV = 752.75M (correct)
+
+But the model assumes zero debt at exit, which is false because:
+
+You did not compute actual annual mandatory amortization
+
+You did not include Sub debt interest or amortization
+
+Senior cannot amortize in Year 1
+
+So your equity return is overstated.
+
+🔍 SUMMARY OF WHAT’S BROKEN
+Component	Status	Issue
+Sources/Uses	❌	Sub debt missing; fees not capitalized
+Senior Debt	❌	Paid off immediately due to formula error
+Sub Debt	❌	Missing balances, interest schedule
+Cash Flow Sweep	❌	Using incorrect input for ECF
+Operating Projections	✅	Revenue, growth, margin logic correct
+D&A, CapEx, NWC	✅	Correct % calculations
+Taxes	⚠️	Likely correct but dependent on wrong EBIT
+Returns	❌	Unrealistic due to zero debt
+📌 WHAT YOU NEED TO FIX
+
+Zero commentary — actionable only:
+
+Sources & Uses
+
+Include Sub Debt = 112.5M
+
+Senior = 337.5M
+
+Financing fees (3M) reduce debt proceeds
+
+Transaction fees (5M) reduce equity
+
+Debt Schedule
+
+Senior interest = avg balance × 7%
+
+Mandatory amort = min(ECF, outstanding balance)
+
+Sub interest = avg balance × 11%
+
+Apply sweep = Senior first, then Sub
+
+FCF Calculation
+
+EBITDA
+
+– D&A
+
+= EBIT
+
+– Taxes
+
+D&A
+
+– CapEx
+
+– ΔNWC
+
+= UFCF
+
+– Interest
+
+= Cash available for mandatory paydown
+
+Exit
+
+Debt left ≠ 0
+
+Must use actual final-year ending balances

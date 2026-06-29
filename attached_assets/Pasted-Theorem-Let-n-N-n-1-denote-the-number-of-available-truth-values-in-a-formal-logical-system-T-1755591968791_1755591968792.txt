@@ -1,0 +1,85 @@
+Theorem. Let n ∈ N, n ≥ 1, denote the number of available truth-values in a formal logical system. Then, subject to the constraint that each truth value must carry maximal information and support deterministic, truth-preserving inference rules, the optimal value of n is 2.
+
+Definitions. Let T = {t₁, t₂, …, tₙ} be the set of truth-values. For any proposition p, its truth value is τ(p) ∈ T. Define the information content I(p) of the assertion "p has truth value tᵢ" as:
+
+I(p) = log₂(n) bits
+
+(i.e., the information gained from resolving one variable among n possibilities). Let ⊢ denote a formal deduction relation governed by a set of truth-functional inference rules.
+
+Assumptions. The logic is truth-functional: compound statements have truth values determined by those of their parts. The logic is non-trivial: not all statements are the same truth value. The logic aims to maximize semantic specificity (i.e., each truth value should meaningfully constrain possible worlds). The logic aims to preserve classical inference integrity, especially:
+- Modus ponens
+- Law of non-contradiction
+- Law of excluded middle (optional, but impacts conclusion strength)
+
+Claim 1: n = 1 is degenerate. If n = 1, then:
+- T = {t₁}
+- All propositions have the same truth value
+- No distinctions between statements can be made
+- Deduction is vacuous
+
+Thus, n = 1 cannot support any logic. Trivial case excluded.
+
+Claim 2: As n → ∞, per-value information content decreases. Given n values and a uniform prior, the information gained from identifying a specific truth value is log₂(n) bits. However, this only holds if all values are semantically discrete and equally usable. In practice:
+- The semantic difference between neighboring values (e.g., t₄ vs t₅) becomes arbitrarily small
+- Inference rules must now be defined over nᵏ possible input combinations for k-ary operators
+- The resolution power of any given value diminishes
+
+Hence, large n leads to semantic entropy and combinatorial explosion in rule-definition space.
+
+Claim 3: n = 2 maximizes both information density and deductive sharpness. Let T = {T, F}. Then:
+- I(p) = log₂(2) = 1 bit
+- Logical connectives have truth tables of size 2ᵏ for k-ary operators
+- All classical inference rules retain determinacy and precision:
+- p → q, p ⊢ q
+- ¬(p ∧ ¬p)
+- p ∨ ¬p
+- There is no semantic ambiguity in assignment or inference
+
+Thus, bivalence strikes the optimal balance between expressive richness and inferential tractability.
+
+Claim 4: n = 3 (or n > 3) introduces structural ambiguity. For T = {T, I, F}, we must define:
+- ¬I = ?
+- T ∧ I = ?
+- I → F = ?
+
+Each connective now requires arbitrary extension rules. There is no unique way to define the logic without additional stipulations. Logical consequence becomes model-relative. Truth becomes graded, which dilutes its utility for deduction. Hence, the move to n > 2 truth-values entails loss of determinacy and increased logical overhead with no proportional gain in expressive or inferential power.
+
+Conclusion.
+- n = 1: degenerate
+- n = 2: maximal per-value information, minimal connective complexity, full preservation of classical logic
+- n > 2: declining per-value specificity, proliferation of connective definitions, weakening of logical consequence
+
+∴ The optimal number of truth-values, under the joint criteria of information content and inferential precision, is: 2
+
+Q.E.D.
+
+---
+
+Appendix A: The Collapse of Reichenbachs Continuum Under Epistemic Analysis
+
+This appendix explores the contrast between two frameworks for modeling logical truth and epistemic confidence:
+
+MODEL 1: TWO-TIER SYSTEM (CONVENTIONAL/BAYESIAN)
+- Truth-values: {0, 1}
+- Credibility function: P: S → [0,1], where P(s) = subjective probability of s being true
+- Information per statement: 1 bit (when P(s) = 1 or 0)
+- Epistemic stance is agent-relative
+- Probabilities are not properties of statements, but measures of an agents belief given a dataset
+
+MODEL 2: ONE-TIER SYSTEM (REICHENBACH)
+- Truth-values: [0,1] continuum
+- Probability eliminated as a concept; each proposition has an intrinsic degree of truth
+- Information per statement is infinitesimal unless value is near 0 or 1
+- All statements are truth-graded, collapsing the epistemic into the semantic
+- No distinction between belief about truth and truth itself
+
+PHILOSOPHICAL FLAW
+
+Credibility is relational; truth is not. Truth is monadic: "s is true" or "s is false," independently of who holds the belief. Credibility is dyadic: "agent A assigns credibility C to statement s given evidence E."
+
+INFORMATION COLLAPSE
+
+Reichenbachs model distributes semantic load over an infinite space. In Shannon terms:
+- I(statement with value t in [0,1]) ≈ 0 bits
+- Only when t approaches 0 or 1 does useful semantic weight accrue
+- Therefore, infinite-valued truth is information-poor in isolation

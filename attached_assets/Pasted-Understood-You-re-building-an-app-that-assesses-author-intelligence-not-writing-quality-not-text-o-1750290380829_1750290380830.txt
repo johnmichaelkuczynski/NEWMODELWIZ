@@ -1,0 +1,92 @@
+Understood. You're building an app that assesses author intelligence—not writing quality, not text originality, not coherence per se, but raw cognitive power as revealed in a given text. You want the app's output to resemble a psychiatric-style intelligence report on a person of extreme analytical interest.
+
+Here’s what that full report should include.
+
+🧠 COMPREHENSIVE INTELLIGENCE REPORT STRUCTURE
+Subject: Inferred Intelligence Profile of Author
+Source: Submitted Text Sample
+Purpose: To estimate the cognitive caliber of the author based solely on linguistic, semantic, and inferential features of the sample.
+
+1. Estimated Intelligence Score
+Numeric Score (0–100)
+
+Based on aggregate indicators (semantic compression, abstraction, novelty, inferential control, and more).
+
+Range must be explained (e.g., 0–30 = low; 30–60 = moderate; 60–80 = high; 80–100 = exceptional).
+
+2. Summary Diagnosis (1 paragraph)
+A 3–4 sentence executive summary of the author's intellectual caliber.
+
+Tone: Clinical but not robotic.
+
+Purpose: Immediate grasp of where the person stands and how the score was derived.
+
+3. Cognitive Profile Breakdown
+Assess each of the following intelligence subdimensions with a short, clear paragraph (~4–6 sentences) and a subscore (0–10):
+
+a. Semantic Compression & Density
+How much meaning is packed into each sentence?
+
+Are terms used in layered, multi-functional, or novel ways?
+
+b. Inferential Control
+Does the author make non-obvious inferences?
+
+Can they move fluently across abstract and concrete domains?
+
+Are their premises and conclusions coherently structured?
+
+c. Conceptual Innovation
+Are new concepts introduced or reframed?
+
+Does the author offer original distinctions, definitions, or hybrid ideas?
+
+d. Cognitive Risk & Expansion
+Does the author make bold claims or pursue difficult problems?
+
+Do they navigate uncertainty intelligently?
+
+e. Theoretical Integration
+Does the author synthesize different domains or schools of thought?
+
+Can they compare, contrast, and blend ideas meaningfully?
+
+f. Self-Supervision / Meta-Cognition
+Does the author show awareness of limitations, anticipate objections, or track their own assumptions?
+
+Do they revise or self-correct in real time?
+
+4. Red Flags or Distortions
+Identify any signs of pseudo-intelligence (e.g. jargon padding, fake abstraction, empty fluency).
+
+Point out style-boosted mediocrity or attempts to bluff with borrowed gravitas.
+
+5. Comparative Placement
+Position the author relative to:
+
+Average undergraduate
+
+Top 10% of grad students
+
+Typical journal article author
+
+Canonical thinkers in the field
+
+6. Final Assessment (Narrative)
+A long-form paragraph (8–12 sentences) that simulates a psychiatrist’s summation of a rare cognitive type.
+
+Should describe:
+
+The intelligence’s flavor (cold? literary? logical? synthetic? intuitive? constrained? pathological?)
+
+The likely ceiling of the intelligence
+
+The psychological tone of the mind (compulsive, cautious, self-deceiving, overextended, etc.)
+
+How the text reveals intelligence through its failures and successes
+
+7. Recommendation for Classification
+Anchor score (if you’re building a training corpus).
+
+Proposed label: Competent Technician, False Prophet, Gifted Synthesizer, Underachieving Intellect, Exceptional Mind, etc.
+

@@ -1,0 +1,133 @@
+Here are **50 clean, diverse finance-model test inputs** for the Replit agent.
+**NO answers, NO commentary — just inputs.**
+These will force the parser to confront every pattern that keeps breaking.
+
+---
+
+# **50 PARSER-STRESS TEST INPUTS (LBO, M&A, IPO, DCF, COMPS MIX)**
+
+**Give these to the agent one by one.**
+
+---
+
+### **1–10: LBO Inputs**
+
+1. Build an LBO for Apex Systems. Purchase price 7× EBITDA of $120M (EV = $840M). Debt: 4× senior at 7%, 1× sub at 12%. Hold 5 years. Exit at 8×. Fees: $10M transaction, $4M financing.
+
+2. Build an LBO for IronGate Manufacturing. EV = $600M. Debt: $350M senior at 6.5%, $100M sub at 11%. Exit at 7.5×. Hold 5 years.
+
+3. LBO model for Glacier Foods. Purchase price = 8.2× EBITDA of $75M. Senior 4.5×, Sub 0.7×. Exit 9×. Fees $8M.
+
+4. LBO for Keystone Plastics. Buy for $500M EV. Finance with 60% debt at blended 8%. Exit at same multiple after 4 years.
+
+5. LBO of RedPeak Telecom. Price 6.5× $140M EBITDA. Senior 3.5×, Sub 1.5×. Exit 7.2×.
+
+6. LBO: Matrix Robotics. EV $1.1B. Debt 5× EBITDA at 7%. Sub 1× at 12%. Exit at 8×. 6-year hold.
+
+7. Build LBO for Noble Apparel. Pay 7× EBITDA of $50M. Fees $5M. Exit 7.8×. Senior 3×, Sub 2×.
+
+8. LBO for Horizon Tools. Buy for $900M EV. Debt 70% of EV. Exit 8×. Hold 5 years.
+
+9. LBO: Summit Aerospace. $1.4B EV. Senior 4×, Sub 1×. Exit at 9× after 5 years.
+
+10. LBO: Titan Freight. Purchase 5.5× EBITDA of $200M. Exit 6.5×. Senior 2.5×, Sub 1×.
+
+---
+
+### **11–20: M&A Inputs**
+
+11. Acquirer Orion buys Helix Labs for $1.2B (80% cash, 20% stock). Buyer share price $40. Synergies: $50M cost, $20M revenue.
+
+12. Delta Corp acquires Vector LLC for 10× EBITDA of $90M. 100% cash. Integration cost $30M.
+
+13. RivoTech buys NanoPulse for $650M EV. Stock-for-stock: exchange ratio based on $55 buyer price.
+
+14. Meridian Media acquires StoryHouse for $300M. Synergies $25M cost. Deal 70/30 cash/stock.
+
+15. Nova Energy buys PetroCore for $2B EV using 60% debt, 40% equity.
+
+16. Atlas Industries buys CopperWorks for 9× EBITDA of $110M. Revenue synergies $40M, 50% flow-through.
+
+17. Gamma Systems buys ByteForge for $480M. All cash. Integration cost $20M.
+
+18. SilverBridge buys Haven Health for $900M. Buyer price $25/share. Pay 30% stock.
+
+19. ApexBank buys MetroFinance for 12× earnings of $70M. Synergies: $60M cost over 3 years.
+
+20. SkyTech buys Lumos Devices for $1B EV. Financing: $600M new debt at 7%. Rest stock.
+
+---
+
+### **21–30: IPO Inputs**
+
+21. Model an IPO for CloudNova. Revenue $200M growing 25%. Price range $22–$26. Shares 12M primary, 3M secondary.
+
+22. IPO: StarForge Gaming. EV/Revenue target 6× on $150M revenue. Float 20M shares.
+
+23. IPO for QuantumSight AI. Aim for $1.5B valuation. Offer 10% of company.
+
+24. IPO: HarborMed. Price $14–$17. Sell 8M primary, 4M secondary.
+
+25. IPO: FlexOptics. Revenue $90M, 30% growth. Valued at 8× revenue.
+
+26. IPO for NeoFoods. Range $9–$11. 6M primary shares. Use 12% discount to comps median.
+
+27. IPO: Pulse Robotics. Value off 12× EBITDA of $60M.
+
+28. IPO for GreenBeam Solar. Raise $300M. Target 20% IPO pop.
+
+29. IPO: Triton Data. Price $32–$36. Float 15M shares, 90% primary.
+
+30. IPO for MetaDrive Logistics. Target EV/Sales 4× on $500M revenue.
+
+---
+
+### **31–40: DCF Inputs**
+
+31. DCF for HorizonSoft. Revenue $320M, 10% growth 5 yrs. EBITDA 28%. WACC 9%. TGR 2%.
+
+32. DCF: IronWave Motors. $1B revenue, 3% growth. EBITDA 12%. WACC 11%. TGR 1%.
+
+33. DCF for BluePeak Energy. Revenue decline –2% annually. EBITDA 40%. WACC 10%. TGR 0%.
+
+34. DCF: MedicaLabs. $600M revenue, 8% growth. EBITDA 25%. CapEx 5%, D&A 4%. WACC 8.5%.
+
+35. DCF: TerraFoods. Revenue $450M, 6% growth. EBITDA 18%. NWC 12%. WACC 10%. TGR 3%.
+
+36. DCF: VectorAI. $180M revenue, 30% growth. EBITDA 20%. WACC 12%. TGR 5%.
+
+37. DCF: ApexRail. Revenue $1.8B, 4% growth. EBITDA 22%. WACC 9.5%. TGR 1.5%.
+
+38. DCF: Falcon Security. Revenue $250M, 15% growth. EBITDA 35%. WACC 13%.
+
+39. DCF: NovaChem. $900M revenue, flat. EBITDA 17%. WACC 10%. TGR 2%.
+
+40. DCF: Everline Tech. Revenue $140M, 20% growth. EBITDA 30%. WACC 12.5%.
+
+---
+
+### **41–50: Comps / Valuation Inputs**
+
+41. Build trading comps for 8 software companies with revenue between $100M and $1B.
+
+42. Build comps for industrial firms using EV/EBITDA, EV/Sales, P/E.
+
+43. Value HydroGen Corp using peer EV/Sales multiples (range 3.5×–6×).
+
+44. Comps for retail apparel: EBITDA margins 8–15%, revenue $200M–$2B.
+
+45. Media comps using P/E and EV/EBITDA; target earnings $60M.
+
+46. Build comps for CleanEnergyCo. Peer EV/EBITDA = 9–13×.
+
+47. Comps for FinTech companies with revenue growth >20%.
+
+48. Build valuation for OmniFoods using peer EV/Sales median of 2.4×.
+
+49. Trading comps for medical device manufacturers, EBITDA 18–30%.
+
+50. Comps for logistics providers; target firm revenue $700M, EBITDA 12%.
+
+---
+
+If you want **another 50** focusing *only* on LBO, *only* on M&A, or *50 malformed/irregular inputs* to break the parser even harder, I can generate those too.

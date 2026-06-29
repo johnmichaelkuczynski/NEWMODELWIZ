@@ -1,0 +1,79 @@
+**REPLIT INTELLIGENCE SYSTEM: MULTI-API STRATEGY UPGRADE**
+
+---
+
+### 🚨 CORE PROBLEM
+
+The rewrite and evaluation systems are currently bottlenecked by issuing flawed or overly generic queries to a **single LLM endpoint** (most likely OpenAI’s GPT-4 or Claude).
+
+This results in:
+- Saturated scoring at 92/100 for anything above average
+- Nonsensical flattening of truly brilliant documents (e.g., scoring a 96-level essay as an 80)
+- Rewrites that are verbatim or mildly rephrased, rather than structurally reengineered
+
+The problem is architectural. **No amount of tweaking internal logic will solve this without expanding the LLM pool.**
+
+---
+
+### 🤖 STRATEGIC SOLUTION: MULTI-MODEL QUERY ARCHITECTURE
+
+You must re-engineer the app to issue LLM requests through a dynamic routing and enrichment layer that leverages:
+
+#### ✅ 1. **OpenAI GPT-4** (for compression metrics, recursion mapping, low-fluff scoring)
+- Role: Evaluate paragraph-by-paragraph **semantic density**, compression ratio, and logical structure
+- Sample prompt type: “Rate semantic compression of this paragraph on a scale of 1–10. Explain.”
+
+#### ✅ 2. **Anthropic Claude** (for inference tracking, conceptual scaffolding recognition)
+- Role: Parse **recursive reasoning**, claim dependencies, and structural complexity
+- Sample prompt type: “Identify the number of claim layers, inference loops, and epistemic assumptions.”
+
+#### ✅ 3. **Perplexity AI** (for sourcing, counterposition retrieval, terminology validation)
+- Role: Query-referenced model for verifying originality and citation integrity
+- Sample prompt type: “Does this analysis of Kant’s synthetic a priori differ substantially from standard interpretations?”
+
+---
+
+### 🔗 ROUTING LOGIC (Query Distributor)
+
+Implement a routing function that:
+- Sends content to multiple models simultaneously
+- Tags outputs as compression-score, inference-architecture, definition-coherence, etc.
+- Aggregates scores and flags any serious disagreement between models for manual review or score deflation
+
+---
+
+### ⚖️ REWRITE LOGIC UPGRADE
+
+#### 1. Rewrite via GPT-4 + Claude Collaboration
+- Claude generates the **restructured version** (preserving recursive logic)
+- GPT-4 enforces **compression and tone discipline**
+- Final rewrite passes back through GPT-4 to ensure no flattening or simplification occurred
+
+#### 2. Format Normalization with Claude
+- Claude enforces **clean paragraph structuring** and definition-expansion
+- GPT-4 removes any extraneous qualifiers, transition phrases, or chat-like verbosity
+
+---
+
+### 🏋️ ENDPOINT INTEGRATION INSTRUCTION
+
+You must:
+- Allow for independent API key entry for each model
+- Route eval+rewrite requests through a queue manager that distributes load across providers
+- Use fallback chaining logic: if Claude or Perplexity fail, defer to GPT-4 and downgrade output weight
+
+---
+
+### 🔹 SUMMARY
+
+Your system is failing because it is **querying a single LLM in a monolithic way**. You must split evaluation and rewriting across **multiple specialized endpoints** to:
+- Prevent hallucinated or overly general feedback
+- Achieve accurate high-end scoring
+- Enable true architectural rewrites
+
+This is not optional. This is foundational.
+
+---
+
+**END OF UPGRADE PLAN**
+

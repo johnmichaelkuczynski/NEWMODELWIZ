@@ -1,0 +1,119 @@
+### **1. Minimal Input**
+
+Company: "Alpha Inc."
+
+**Financials:**
+*   Last Twelve Months (LTM) Revenue: $100 million
+*   LTM EBITDA: $15 million
+
+**Comparables Benchmark:**
+*   Industry Revenue Multiple: 10.0x
+
+**Capital & Shares:**
+*   Pre-IPO Fully Diluted Shares: 10 million
+
+**IPO Offering Goal:**
+*   Primary Cash to Raise: $50 million
+
+**Market Condition:**
+*   Target Investor Discount to Fair Value: 20%
+
+---
+
+### **2. Formula Application Step-by-Step**
+
+**Formula 1 (Revenue Multiple):**
+`Pre-Money Valuation = LTM Revenue × Selected Revenue Multiple`
+= $100M × 10.0
+= **$1,000M ($1 Billion)**
+
+**Formula 2 (Basic IPO Price):**
+`IPO Price (Theoretical) = Pre-Money Valuation / Pre-IPO Shares`
+= $1,000M / 10M
+= **$100.00 per share**
+
+**Formula 3 (Apply Market Discount):**
+`IPO Price (Discounted) = Theoretical Price × (1 - Discount)`
+= $100.00 × (1 - 0.20)
+= **$80.00 per share**
+
+**Formula 4 (Shares to Issue):**
+`New Shares Issued = Primary Raise Target / Discounted IPO Price`
+= $50M / $80.00
+= **625,000 shares**
+
+**Formula 5 (Post-Money Valuation):**
+`Post-Money Valuation = (Discounted IPO Price × Pre-IPO Shares) + Primary Raise`
+= ($80.00 × 10M) + $50M
+= $800M + $50M = **$850M**
+
+*(Formulas 6, 7, and 8 are not needed for this minimal case. No greenshoe, no special voting.)*
+
+---
+
+### **3. Final Minimal IPO Price Recommendation**
+
+**IPO Pricing Recommendation for Alpha Inc.**
+
+**1. Key Valuation Metrics:**
+*   **Implied Pre-Money Valuation:** $800 million
+*   **Implied Post-Money Valuation:** $850 million
+*   **Offer Price per Share:** **$80.00**
+
+**2. Offering Structure:**
+*   **Primary Shares to Issue:** 625,000
+*   **Primary Proceeds to Company:** $50.0 million
+*   **Expected Post-IPO Shares Outstanding:** 10,625,000
+*   **Percentage of Company Sold in IPO:** 5.9%
+
+**3. Justification:**
+*   Valuation based on LTM Revenue of $100M and a 10.0x industry multiple, resulting in a $1.0B theoretical value.
+*   A standard 20% "IPO discount" has been applied to ensure successful execution and a first-day trading gain for investors, resulting in the final $80.00 offer price.
+*   This price achieves the company's target primary raise of $50M with minimal dilution (selling less than 6% of the company).
+
+**Recommendation: Set the IPO price at $80.00 per share.**
+
+---
+
+### **4. Instructions to Build the IPO Pricing Function (Verbatim)**
+
+**Phase 1: Define Core Inputs**
+1.  Create variables for these five **REQUIRED** inputs from the user:
+    *   `ltm_revenue`
+    *   `industry_revenue_multiple`
+    *   `pre_ipo_shares`
+    *   `primary_raise_target`
+    *   `ipo_discount`
+
+**Phase 2: Build the Core Calculation Engine**
+2.  Calculate the **Pre-Money Valuation**:
+    `pre_money_val = ltm_revenue * industry_revenue_multiple`
+3.  Calculate the **Theoretical Undiscounted Price**:
+    `theoretical_price = pre_money_val / pre_ipo_shares`
+4.  Apply the **Market Discount** to get the **Final Offer Price**:
+    `offer_price = theoretical_price * (1 - ipo_discount)`
+5.  Calculate the **Number of New Shares to Issue**:
+    `new_shares = primary_raise_target / offer_price`
+6.  Calculate the **Post-Money Valuation**:
+    `post_money_val = (offer_price * pre_ipo_shares) + primary_raise_target`
+
+**Phase 3: Generate the Output Report**
+7.  Output the final **Offer Price** as the main result.
+8.  Output a simple summary report showing:
+    *   Pre-Money Valuation
+    *   Offer Price
+    *   Number of New Shares to Issue
+    *   Post-Money Valuation
+
+**Phase 4: Add Robustness (Basic)**
+9.  Ensure all calculations handle numbers in **millions** consistently.
+10. Add a check: If `offer_price` is calculated as less than $1.00, output a warning: "Warning: Low price per share. Inputs may be unrealistic."
+
+**Test your function with the minimal input:**
+*   ltm_revenue = 100
+*   industry_revenue_multiple = 10.0
+*   pre_ipo_shares = 10
+*   primary_raise_target = 50
+*   ipo_discount = 0.20
+
+**It should output an offer price of $80.00.**

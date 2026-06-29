@@ -1,0 +1,74 @@
+**REPLIT APP FIX: PDF PARSING MODULE NOT WORKING**
+
+---
+
+### 🚨 PROBLEM
+
+The app cannot extract text from PDFs. It consistently throws errors like:
+
+> "Cannot find module '/home/runner/workspace/node_modules/pdfjs-dist/legacy/build/pdf.js'"
+
+This failure has occurred across **eight or more patch attempts**, none of which fixed the root issue. The app's PDF functionality is broken due to **missing dependencies and incorrect import paths.**
+
+---
+
+### 🔧 STEP-BY-STEP FIX
+
+#### ✅ Step 1: Install the Correct PDF Module
+
+In the Replit shell, run:
+```bash
+npm install pdfjs-dist
+```
+
+Or, add the dependency manually in `package.json`:
+```json
+"pdfjs-dist": "^3.0.279"
+```
+Then restart the app.
+
+---
+
+#### ✅ Step 2: Correct the Import Path
+
+In `documentParser.ts` or whatever file is trying to parse PDFs:
+
+**DO NOT USE THIS (BROKEN):**
+```ts
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.js';
+```
+
+**INSTEAD USE THIS:**
+```ts
+import * as pdfjsLib from 'pdfjs-dist';
+```
+
+**And initialize like this:**
+```ts
+const loadingTask = pdfjsLib.getDocument({ data: buffer });
+```
+
+---
+
+#### ✅ Step 3: Handle Encrypted or Image-Only PDFs
+
+Add fallback logic so the app doesn't crash on scanned/image-based or encrypted PDFs:
+```ts
+if (!pdf.numPages) {
+  throw new Error("This PDF may be encrypted or contain no extractable text.");
+}
+```
+
+You should also wrap the entire text-extraction logic in a try/catch and return a clean error message to the UI.
+
+---
+
+### 🔒 FINAL NOTES
+
+- Do not attempt further PDF patching unless you verify that `pdfjs-dist` is installed and correctly imported.
+- Do not claim PDF compatibility unless the app can reliably process **both plain and complex PDFs**.
+
+---
+
+**END OF INSTRUCTIONS**
+

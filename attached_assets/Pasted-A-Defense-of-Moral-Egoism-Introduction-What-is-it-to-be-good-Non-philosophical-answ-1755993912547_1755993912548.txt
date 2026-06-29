@@ -1,0 +1,495 @@
+A Defense of Moral Egoism 
+ 
+ 
+ 
+Introduction 
+ 
+What is it to be good? Non-philosophical answers What is it to be good? Philosophical Answers 
+Confucius and Jesus Plato 
+Aristotle Kant 
+Bentham and Mill Sartre 
+Nietzsche General Remarks 
+Evaluating the Relative Merits of These Views 
+ 
+A Desideratum That All Moral Systems Must Satisfy Why egoism doesn’t have these problems 
+A Second Desideratum that Moral Theories Must Satisfy A Related Virtue of Egoism 
+Some Corollaries 
+ 
+Conclusion: The Virtues of Altruistic Ethical Theories 
+Introduction 
+ 
+ 
+ 
+What is it to be good? In this paper, we will defend a definite answer to this question, namely: To be good is to align oneself with nature and others by being true to oneself, even though doing so often involves, at least in the short term, being egocentric and sometimes even antisocial. In other words, one’s prime moral directive is to align oneself with oneself, with the qualification that if one complies with this directive one will automatically align oneself with others and with nature. The reason for this automatic alignment, we will argue, is that a certain need to harmonize with others and with nature is embedded in one’s very biological structure. 
+According to the conventional moral wisdom, one’s moral responsibilities are primarily to others and only secondarily to oneself. In other words, moral responsibilities are fundamentally altruistic in nature. Our view therefore represents an inversion of the conventional moral wisdom. Altruistic ethical systems, we will argue, fail to satisfy two conditions satisfied by any viable moral theory, namely: (i) an ethical system must not punish people for complying with it, and (ii) it must indeed be possible to comply with it. By contrast, egoism, so we will argue, satisfies both desiderata. 
+This paper will have the following structure. First, we will briefly consider answers commonly given by non-philosophers to the question “what is it to be good?”, and we will then carefully consider answers to that question put forth by philosophers. As we scrutinize these various answers, the shortcomings of altruistic theories of ethics will naturally emerge, as will the virtues of egocentric theories. We will pay special attention to Nietzsche’s work, since, as we will see, it does so much in the way of showing the superficiality and outright incoherence of altruistic ethical systems. 
+ 
+ 
+What is it to be good? Non-philosophical answers 
+ 
+ 
+ 
+What is it to be good? The answers most commonly given by non-philosophers are: 
+ 
+ 
+ 
+1. To be good is to be kind to others (Daniel 1997). 
+
+
+ 
+2. To be good is to contribute to society (Jiang 2019). 
+
+
+ 
+3. To be good is to obey the law (D’Amato 1975). 
+
+
+ 
+4. To be good is to obey God (or comply with the dictates of religious faith) 
+
+
+ 
+5. To be good is to live in accordance with tradition (Barabas 2011). 
+
+
+ 
+6. To be good is to live in accordance with nature (Orlov 2016). 
+
+
+ 
+7. To be good is to do right by one’s family (Tompson 2003). 
+
+
+ 
+8. To be good is to live in service to others (Ewin 1992). 
+
+
+ 
+9. To be good is to fulfill one’s duties to others (Slote 2003). 
+
+
+ 
+10. To be good is to triumph over others (Dugatkin 2011). 
+
+
+ 
+11. To be good is to have an enjoyable life (Smith 2010). 
+
+12. To be good is to be happy (Cahn & Vitrano 2015). 
+
+13. To be good is to triumph over adversity (Peikoff 1993). 
+
+14. To be good is to accomplish as much as possible (Rotenstreich 1979). 
+
+15. To be good is to be everything that one can be (Sherman 2014). 
+
+
+These answers are of varying degrees of merit. Each of 1-7 is obviously either insufficiently general or simply false. (For example, 1 is insufficiently general since kindness is not all there is to goodness, and 3 is simply false since it is sometimes morally wrong to obey the law). 9 and 10 are not self-evidently absurd, but we find that they are indeed false. 10 is self- evidently absurd. 11-15 initially appear to be too revisionist to be taken seriously, but this, we will find, is largely an illusion, it being the purpose of this paper to show that a certain morality is inherent in self-actualization and, therefore, in its emotional concomitants, the main such concomitant being happiness. 
+Be all of this as it may, the immediately relevant fact is that these answers fall into two groups: 1-9, which are altruistic, and 10-15, which are non-altruistic or, as will say, egocentric.1 
+ 
+ 
+What is it to be good? Philosophical Answers 
+ 
+ 
+ 
+Right now, we will simply state the best-known philosophical answers to our question. 
+ 
+ 
+ 
+Confucius and Jesus 
+ 
+ 
+“Do unto others as you would have them do unto you,” said Jesus. “Treat others as you wish to be treated”, said Confucius. This is the so-called “Golden Rule” of morality. 
+In our culture at this time, we regard the Golden Rule as self-evidently valid and therefore as not requiring any justification. Nonetheless, Confucius and Jesus seem to have had different reasons for advocating it. For Confucius, it was incumbent on each individual to align himself—or “be in harmony”---with the social and cosmic orders; and Confucius believed that in 
+order to do this, the individual had to comply with the Golden Rule (Huang 1997). Jesus, on the other hand, seems to have regarded the Golden Rule as a corollary of his radical egalitarianism--- of his belief that we are all equal in God’s eyes (Jefford 1989). 
+ 
+ 
+Plato 
+ 
+ 
+ 
+Plato had a very different conception of goodness. In his view, goodness was identical with health, of both mind and body, which he attributed to internal balance. Wickedness and other moral shortcomings are in his view simply manifestations of mental illness, of a lack of psychological and physiological integrity, with moral excellences being a sign of their presence. In the Timaeus, Plato writes that: 
+ 
+ 
+The good is the beautiful, and the beautiful is the symmetrical, and there is no greater or fairer symmetry than that of body and soul, as the contrary is the greatest of deformities. A leg or an arm too long or too short is at once ugly and unserviceable, and the same is true if body and soul are disproportionate. For a strong and impassioned soul may 'fret the pigmy body to decay,' and so produce convulsions and other evils. The violence of controversy, or the earnestness of enquiry, will often generate inflammations and rheums which are not understood, or assigned to their true cause by the professors of medicine. And in like manner the body may be too much for the soul, darkening the reason, and quickening the animal desires. The only security is to preserve the balance of the two, and to this end the mathematician or philosopher must practice gymnastics, and the 
+gymnast must cultivate music. The parts of the body too must be treated in the same way- 
+ 
+-they should receive their appropriate exercise (Timaeus). 
+ 
+ 
+ 
+In Plato’s view, therefore, moral integrity is simply an aspect of a deeper form of integrity---of a wholeness, in a very literal sense, of mind and body. Notably, Plato describes bad people as “weak”, “cowardly” and “disfigured” (in both mind and body), seldom if ever describing them as being “unkind”; and he describes good people as “noble”, “valiant”, and “beautiful”, seldom if ever describing them as “kind.” In a word, goodness, for Plato, is more akin to strength of character than it is to kindness. 
+Plato seems to hold that nature as a whole strives to have cohesiveness and integrity, and he seems to believe a corollary of this to be that creatures that have those attributes are more in line with nature as a whole than are those that lack them: 
+ 
+ 
+Completeness seems to require that something should be briefly said about other animals: first of women, who are probably degenerate and cowardly men. And when they degenerated, the gods implanted in men the desire of union with them, creating in man one animate substance and in woman another in the following manner:--The outlet for liquids they connected with the living principle of the spinal marrow, which the man has the desire to emit into the fruitful womb of the woman; this is like a fertile field in which the seed is quickened and matured, and at last brought to light. When this desire is unsatisfied the man is over-mastered by the power of the generative organs, and the woman is subjected to disorders from the obstruction of the passages of the breath, until the two meet and pluck the fruit of the tree. And so the world received animals, mortal 
+and immortal, and was fulfilled with them, and became a visible God, comprehending the visible, made in the image of the Intellectual, being the one perfect only-begotten heaven (Timaeus). 
+ 
+ 
+In this passage, be it noted, Plato equates virtue with manliness and vice with womanliness. This further underscores how opposed his conception of morality is to that embodied in the Golden Rule. Niceties aside, the Golden Rule enjoins us to be kind and empathic, kindness and empathy being quintessentially feminine virtues. 
+ 
+ 
+Aristotle 
+ 
+ 
+ 
+Aristotle’s conception of virtue is similar to Plato’s. According to Aristotle, the essence of virtue is inner strength. “Happiness”, Aristotle writes, “is an activity of the soul in accordance with perfect virtue.” Aristotle then writes that: 
+ 
+ 
+Virtue, then, is a state of character concerned with choice, lying in a mean, i.e., the mean relative to us, this being determined by a rational principle, and by that principle by which the man of practical wisdom would determine it. Now it is a mean between two vices, that which depends on excess and that which depends on defect; and again it is a mean because the vices respectively fall short of or exceed what is right in both passions and actions, while virtue both finds and chooses that which is intermediate. Hence in respect of its substance and the definition which states its essence virtue is a mean, with regard to what is best and right an extreme. 
+Aristotle links virtue with happiness, and he believes moderation to be the key to be key to happiness. The reasoning seems to be that moderation leads to inner balance, which leads to self-control, which leads to inner strength, which in its turn coincides with virtue. The relevant point is that, for Aristotle, “virtue” is not, at least not directly, about how one treats others, but about how one treats oneself: the virtuous person is the one who, because of self-discipline and self-knowledge, is true to himself. 
+Aristotle also holds that someone who is virtuous in this sense is also likely to be virtuous in the sense that he gives others their due (i.e., he isn’t petty, he repays his debts, and so on). But for Aristotle, virtue is primarily about how one treats oneself and only secondarily about how one treats others. 
+Both Plato and Aristotle, it should be noted, believe that virtue involves inner harmony, and they also hold that inner harmony involves harmony with the natural order. 
+ 
+ 
+Kant 
+ 
+ 
+ 
+According to Kant, there are two “categorical imperatives”, i.e., two moral imperatives that must be obeyed no matter what, these being: 
+ 
+(i) Treat people as subjects, not as objects (i.e., always respect others’ autonomy)2; and 
+
+
+
+ 
+(ii) Always comply with norms that wouldn’t be self-defeating were everyone to comply with them (or, more simply, only act in ways in which you could coherently wish everyone else to act) (Kant, 1949).3 
+
+
+
+(i) and (ii) are prima facie very different. (i) is a version of the Golden Rule. (ii), by contrast, is a version of the injunction that one align oneself with a larger order. Nonetheless, Kant believed (i) and (ii) to be equivalent; i.e., that one could not comply with (i) without complying with (ii) or vice versa.4 Confucius, it will be recalled, held a similar view. 
+ 
+ 
+Bentham and Mill 
+ 
+ 
+ 
+According to Bentham and Mill, the supreme moral imperative is to maximize net happiness (Bentham & Mill, 2004). This doctrine is known as “utilitarianism.” According to this doctrine, a given act is morally right just in case, out of all the actions that the agent can perform, it is the one that does the most in the way of increasing humanity’s overall level of happiness.5 
+ 
+ 
+Sartre 
+ 
+ 
+ 
+According to Sartre, no human being is bound by any ethical system.6 A moral code is to the effect that, your nature being what it is, it behooves you to act in certain ways. According to Sartre, a human being self-determines---indeed, he determines his identity anew with every decision---and he therefore has no fixed nature, for this reason not being bound by any moral code. 
+Unable to deal with the anxiety of being free, Sartre says, people subject themselves to moral codes, rationalizing doing so by telling themselves that these moral codes have some sort of objective validity. For Sartre, the one moral injunction is to avoid this trap and accept that 
+there are no moral injunctions. It is, to put it non-paradoxically, to accept the fact that one is free and under no obligations, save those that one imposes on oneself. 
+ 
+ 
+Nietzsche 
+ 
+ 
+ 
+According to Nietzsche, what we currently refer to as “morality”—the essence of which is the Golden Rule---consists largely of invidious attempts on the part of the weak to weaken the strong, his position and his reasoning for it being as follows: 
+ 
+ 
+We believe the morality that we currently have to be both universally binding and self-evidently correct. This is the opposite of the truth. Our current morality is actually an anti-morality; for it is an inversion of our actual morality.7 
+Our actual morality is the morality of the conqueror; it is a morality that aligns with our inner nature and therefore strengthens us. According to this morality, people who have natural gifts to express should indeed express them; and to do otherwise is the ultimate failure and, therefore, the ultimate sin.8 
+The morality that we currently accept (or at least try to) is the morality of the conquered. According to this morality, one should subordinate oneself to the herd. 
+Thinking oneself better than others and acting accordingly is, according to this morality, the ultimate sin.9 
+According to the first morality, human nature, with all of its rapacity and lust for life, is to be celebrated: our bestiality is our vitality. According to the second morality, 
+human nature, at least to the considerable extent that it is non-altruistic, is an abomination.10 
+The political system corresponding to the first morality is aristocracy, since such a system legitimates the fact that some people dominate others. The political system corresponding to the second morality is democracy, since such a system delegitimates that fact.11 
+The second morality is a con perpetrated by the weak against the strong, with the purpose of getting the strong to lay down their arms, as it were, and put themselves on an equal footing with their natural inferiors. The second morality is therefore a way for the weak, while remaining weak, to become dominant. It is therefore fundamentally deceptive. Indeed, it not only represents an attempt to deceive other people, but an attempt to deceive nature, which is naturally evolutionary, into being counter- evolutionary.12 
+The historical roots of the second morality lie in Christianity. “The meek shall inherit the Earth”, Jesus said. “The first shall be last and the last shall be first.” One must “turn the other cheek” and “render unto Caesar what is Caesar’s.” In other words, to be virtuous is to be a submissive loser, and to be a winner is to be immoral. 
+Utilitarianism (“do what maximizes other people’s welfare”) is an embodiment of the second morality; for it is submission to others that conduces to their welfare. The same is true of Kantianism (“only do what you could coherently want everyone to do”); for one cannot coherently want everyone to be a conqueror or, more generally, to slake their basal drives. But for the reasons previously given, these moralities are actually anti- 
+moralities whose purpose is to displace a morality, inherent in our very natures, that encourages the strong to be strong.13 
+ 
+ 
+General Remarks 
+ 
+ 
+ 
+All of the views discussed fall into one of two categories: those that advocate egoism and those that advocate altruism. Kant, Mill, Jesus, and Confucius all advocate altruistic views, their view being that ethics is about one’s treatment of others. Plato, Aristotle, Nietzsche, and Sartre advocate egocentric view, their view being that ethics is about one’s treatment of oneself and only secondarily about one’s treatment of others. 
+According to all of these views, with the possible exception of Sartre’s existentialism, being ethical involves aligning oneself with a larger order. In the case of the altruistic views, this larger order is either society or (what is sometimes different) other people in general. In the case of the egocentric views, this larger order seems to be nature, with the qualification that one aligns oneself with nature as a whole by aligning oneself to one’s own nature. 
+As just noted, Sartre’s existentialism is the only one of those just considered that appears to embody no concern for a greater good. But this appearance may well be misleading. 
+According to Sartre, people voluntarily forfeit their freedom when they treat moral, religious, or cultural norms as having objective and binding significance. This implies that when people do forfeit their freedom in this way, they strengthen invidious, freedom-curtailing social institutions. 
+So, most if not all of these positions are to the effect that being ethical involves aligning oneself with some larger and therefore ego-external entity. According to the egocentrists, one 
+achieves this alignment by conforming to one’s inner nature. According to the altruists, one achieves this alignment by conforming to others. 
+ 
+ 
+Evaluating the Relative Merits of These Views 
+ 
+ 
+ 
+A Desideratum that All Moral Systems Must Satisfy 
+ 
+ 
+ 
+Let us start with the assumption that: 
+ 
+ 
+ 
+(D1) A moral system must be good to those who comply with it---not just to those who are on the receiving end of the behavior of those who comply with it. 
+ 
+ 
+More simply: A moral system must not punish people for complying with it. 
+ 
+Egocentrism is on the right side of this desideratum. Egocentrism says: Do what is good for you. Complying with this dictate cannot but be good for you. Of course, if you much as try to comply with it, others may see you as a threat and try to hurt you. But this doesn’t mean that egocentrism per se is bad for those who follow it, only that following it---as opposed to trying to do so but failing---may require considerable judgment. 
+Altruism, on the other hand, is decidedly bad for those who follow it---setting aside those, if they exist, who are thoroughly by nature. Altruism says: Do what is good for others; don’t do what is good for yourself, except in so far as your self-interest conduces to other people’s. Of course, altruists often benefit from their own altruism, since people tend to help 
+their helpers. But an ethics of altruism per se cannot but diminish those who comply with it, since its cardinal injunction is: Make others big by making yourself small. 
+Consider utilitarianism: An act is right if it maximizes net happiness. This is a way of saying: Your own happiness should not be more important to you than anyone else’s. Which is a way of saying: Your happiness doesn’t matter. Complying with a moral doctrine whose central tenet is your happiness doesn’t matter is not likely to benefit you. Similar points hold of each of Kant’s two categorical imperatives.14 
+ 
+ 
+Why egoism doesn’t have these problems 
+ 
+ 
+ 
+Consider the following two statements: 
+ 
+ 
+ 
+(1) If everyone tries to become wealthy, society as a whole will be wealthy. 
+
+
+ 
+(2) If everyone tries to make others wealthy, society as a whole will be wealthy. 
+
+
+ 
+ 
+ 
+(1) is at least approximately true. The reason: Wealth-acquisition depends on wealth- production, which tends to happen only if it is monetarily incentivized (Friedman 1994, 2017). 
+
+(2) , on the other hand, is not even approximately true. The reason: Charities don’t produce; they only give away what other entities have produced; and there would therefore be nothing to give away in a society in which each person was functioning as a charity (Friedman 1994, 2017). 
+
+
+This is not to say that charity is wrong: it obviously has its place. But charity presupposes commerce, and charity exists not to displace commerce but to soften some of its harder edges--- which has the effect, and in some contexts the purpose, of allowing commerce to continue. 
+Now consider the following generalizations of (1) and (2): 
+ 
+ 
+ 
+(1*) If everyone pursues his self-interest, people as a whole will be better off. 
+ 
+(2*) If everyone pursues other people’s self-interest, people as a whole will be better off. 
+ 
+ 
+ 
+When evaluating (1*), we have to be realistic about human nature. If everyone were a murderous psychopath, then (1*) would be false. But even though murderous psychopathy is present to varying degrees in people, it exists alongside countervailing factors that almost always redirect that psychopathy, either rendering it harmless or pressing it into the service of productive aims (cf. the angry person who at some level would like to be Ted Bundy but, knowing that he can’t do this and also not entirely wanting to do it, becomes an FBI profiler or an edgy novelist). Also, people want to be connected with other people. In fact, we have an enormously powerful instinctual desire for human ties; and our consequent wish to be decent to others therefore does not have a strictly, or even a primarily, prudential basis (Smith, 2010). 
+Also, people aspire to live meaningful lives, and they tend to equate having a meaningful life with contributing to the welfare of others. The proverbial misanthropic genius is misanthropic precisely because he feels that others are stymying him in his attempt to produce great music, great philosophy, or great science---in his attempt, in other words, to benefit humanity. Pure self-interest, when it does exist, tends not to be a person’s original motivation and is usually a cynical response to failed attempts to pursue self-interest in a way that also 
+promotes others’ welfare (cf. the politician who, after years of trying and failing to promote his idealistic causes, finally sells out) (Smith, 2010). 
+In general, people want to have meaningful and constructive existences, and they rightly believe this to involve bettering humanity’s lot in some way. This is not to say that people are more altruistic than self-interested: they are not. But their self-interest tends to embody a certain regard for others. And self-interest also leads to the institution of laws that tend to prevent instances of entirely antisocial self-interest from being expressed in action. Given these points, (1*) is at least reasonably plausible. 
+The same cannot be said of (2*). A society in which everybody helps everybody before helping themselves is a society in which everybody is too hollowed out to help anybody; for nobody in such a society would have had the dose of healthy self-interest requisite to developing the strength to be in a position to help others (Rand 1963). Indeed, the very concept of helping someone who isn’t self-interested is incoherent, since such a person has no interests of his own to serve (Peikoff 1993). For this reason, and for others that we’re about to discuss, altruistic theories simply cannot be complied with, bringing us to an important fact about moral theories in general. 
+ 
+ 
+A Second Desideratum that Moral Theories Must Satisfy 
+ 
+ 
+ 
+We may take it for granted that: 
+ 
+ 
+ 
+(D2) A moral theory isn’t viable unless it can be complied with. 
+Altruistic theories fail this test, since they cannot be complied with. They cannot be complied with because people can act only when they have incentives to act, and few if any incentives are strictly altruistic. 
+“Turn the other cheek”, Jesus said, his meaning being after being struck, one should “turn the other cheek” and offer it to one’s attacker. But Jesus did not simply enjoin his followers to do this; he gave them a reason: “The meek shall inherit the Earth.” In other words, those who let themselves be trampled on in this life will be dominant in the hereafter. Jesus’s ethics, then, is not actually altruistic; it is egoism posing as altruism. If it were anything else, nobody would have any reason to comply with it. 
+The same is true of utilitarianism and of both versions of Kantianism: nobody has any incentive to comply with them. To be sure, everybody has every reason to want others to do so, and it might therefore make sense for society as a whole to impose such a system on itself. But it cannot make sense for an individual to do so; indeed, it might not even be possible, given that all action is incentive-driven. 
+Egocentric theories do satisfy D2, given that people are clearly capable of complying with the directive that they attempt to benefit themselves. 
+ 
+ 
+A Related Virtue of Egoism 
+ 
+ 
+ 
+According to all moral theories, whether egocentric or altruistic, virtue involves aligning oneself with some larger entity. According to altruistic theories, this alignment is achieved by suppressing one’s true nature. According to egocentric theories, it is achieved by being true to one’s nature. So, for egocentric theories, alignment with non-self is accomplished through 
+alignment with self, whereas for altruistic theories, alignment with non-self is accomplished through misalignment with self. This obviously represents a certain incoherence on the part of altruistic theories. 
+It also represents a profound cynicism on the part of such theories. For such theories are therefore to the effect that one’s nature is an abomination and that, since nature has therefore errored in producing one, the same is true of nature as a whole. Egocentric theories enjoin the individual to celebrate his nature and therefore to celebrate nature as a whole. 
+ 
+ 
+Some Corollaries 
+ 
+ 
+ 
+As we’ve seen, acceptance of a strictly altruistic ethics is psychologically impossible. 
+ 
+With regard to those who claim to accept such an ethics, one of the following holds: 
+ 
+ 
+ 
+(i) They are trying to accept it but failing; 
+
+
+
+ 
+(ii) They are lying about accepting it. 
+
+
+
+ 
+ 
+ 
+When (i) is the case, the person will succumb to psychopathology, as is inevitable when one’s instincts are frustrated and one’s nature thwarted. Nietzsche discusses such cases at length, as does Freud (2014), each plausibly claiming that acceptance of “modern morality” (read: Christian altruism and its derivatives, e.g., utilitarianism and Kantian universalism) has turned would-be heroes into neurotic cripples. 
+When (ii) is the case, the person in question is likely to be using altruistic ethics non- altruistically---more specifically, to hurt others by condemning them, thereby demoralizing them and sometimes also mobilizing social and even legal forces against them. 
+Importantly, (i) and (ii) are not mutually exclusive. Somebody can try to accept an altruistic moral code and, in furtherance of this, tell both himself and others that he really does accept it. In fact, such a person is likely to be particularly shrill in his advocacy of that ethics, as a way of warding off his own and other people’s doubts about the authenticity of his views (Kernberg, 1985). Such a person may therefore be particularly lethal, falling into the category of the proverbial “church lady”, “witch hunter”, or “social justice warrior.” That same person, half- believing as he does in his own altruism, may also be hobbled by the psychopathologies pursuant to being out of alignment with his own nature (Gosling, 2002). 
+The consequences for society are correspondingly dire. A society that actually accepts an altruistic ethics is one that condemns healthy ego and all of the productivity associated therewith. 
+Egoism doesn’t have any of these problems. People are in fact egoists by nature. 
+ 
+Therefore, acceptance of an egocentric moral system does not require people to lie to themselves or others about what they are. Nor does it require societies that accept it to condemn its own members for being true to their own natures. 
+ 
+ 
+Conclusion: The Virtues of Altruistic Ethical Theories 
+ 
+ 
+ 
+We should obviously treat others as subjects, not objects, and we should obviously try to contribute to a larger good. These propositions per se are not false. But they are subsidiary moral directives. One’s primary morality must be to preserve and strengthen oneself; for fulfillment of 
+this responsibility is a precondition for fulfillment of all others. Obviously, self-interest can assume psychopathic and antisocial forms. But it need not do so and indeed tends not to do so. Human beings are naturally interdependent and the interests of one person have at least some tendency to align with those of others. (Our belief that everybody is naturally at odds with everybody likely represents selection bias: when we are at peace with others, which is usually, we take no note of it, but we do take note when we lock horns with others.) 
+Charity is not wrong, but charities should supplement gainful enterprises, not replace them. Similarly, altruism is not wrong, but altruism should supplement self-interest, not replace it. Self-interest should indeed be tempered by a certain altruism---and therein lies the truth of doctrines such as utilitarianism and Kantianism. Nietzsche’s position, though ultimately correct, fails to make any allowances for this fact, the reason presumably being that it is a reaction to altruism. But it is also possible that, at its inception, altruism was a reaction to Nietzscheanism, that is, to an ethical code that made no allowances at all for the fact that even the best of us need a helping hand. The right moral path is clearly in between these two extremes, with the qualification that an altruistic ethics must ultimately be subordinate to an egocentric one. 
+ 
+ 
+References 
+ 
+ 
+Antony, L. (2009). Is goodness without God good enough?: A debate on faith, secularism, and ethics. Rowman & Littlefield. 
+ 
+ 
+Barabas, M. (2011). In search of goodness. Philosophy, ethics and common humanity, 82-105. 
+Bentham, J. (1789). Chapter 1: The Principle of Utility, An Introduction to the Principles of Morals and Legislation. Bennett, J. (ed.), 2017. 
+ 
+ 
+Bentham, J. (2016). Preparatory principles. 
+ 
+ 
+ 
+Bentham, J., & Mill, J. S. (2004). Utilitarianism and other essays. Penguin UK. 
+ 
+ 
+ 
+Cahn, S. M., & Vitrano, C. (2015). Happiness and goodness: philosophical reflections on living well. Columbia University Press. 
+ 
+ 
+Campbell, J. (1983). Kantian Conceptions of Moral Goodness. Canadian Journal of Philosophy, 13(4), 527-550. 
+ 
+ 
+Clark, K. J. (2001). God is great, God is good: medieval conceptions of divine goodness and the problem of hell. Religious studies, 37(1), 15-31. 
+ 
+ 
+D'Amato, A. (1975). Obligation to obey the law: A study of the death of Socrates. S. Cal. L. Rev., 49, 1079. 
+ 
+ 
+Dugatkin, L. A. (2011). The altruism equation. In The Altruism Equation. Princeton University Press. 
+ 
+ 
+Ewin, R. E. (1992). Loyalty and virtues. The Philosophical Quarterly (1950-), 42(169), 403-419. 
+Foot, P. (2003). Natural goodness. Clarendon Press. 
+ 
+Freud, S. (2014). Sexuality in the aetiology of the neuroses. Read Books Ltd. 
+ 
+ 
+ 
+Friedman, M. (1994). Money mischief: Episodes in monetary history. HMH. 
+ 
+ 
+ 
+Friedman, M. (2017). Milton Friedman on freedom: Selections from the collected works of Milton Friedman. Hoover Press. 
+ 
+ 
+Gosling, J. (2002). The Weakness of the Will. Routledge. 
+ 
+ 
+ 
+Huang, C. (Ed.). (1997). The analects of Confucius. Oxford University Press on Demand. 
+ 
+ 
+ 
+Jefford, C. N. (1989). The sayings of Jesus in the teaching of the twelve Apostles (Vol. 11). Brill. 
+ 
+ 
+ 
+Jiang, B. (2019). A recursive definition of goodness of space for bridging the concepts of space and place for sustainability. Sustainability, 11(15), 4091. 
+ 
+ 
+Kaczynski, T. (2003). The unabomber manifesto: Industrial society and the future (Doctoral dissertation, The University of Maine). 
+ 
+ 
+Kant, I. (1949). The philosophy of Kant: Immanuel Kant's moral and political writings. 
+Kernberg, O. F. (1985). Borderline conditions and pathological narcissism. Rowman & Littlefield. 
+ 
+ 
+Leibniz, G. W. (2010). Theodicy. Cosimo, Inc.. 
+ 
+ 
+ 
+Mill, J. S. (2010). The basic writings of John Stuart Mill: On liberty, the subjection of women and utilitarianism. Modern Library. 
+ 
+ 
+Morriston, W. (2009). What if God commanded something terrible? A worry for divine- command meta-ethics. Religious Studies, 45(3), 249-267. 
+ 
+ 
+Orlov, D. (2016). Shrinking the Technosphere: Getting a Grip on the Technologies that Limit Our Autonomy, Self-sufficiency and Freedom. New Society Publishers. 
+ 
+ 
+Peikoff, L. (1993). Objectivism: the philosophy of Ayn Rand. Penguin. 
+ 
+ 
+ 
+Rand, A. (1963). For the new intellectual: The philosophy of Ayn Rand. Penguin. 
+ 
+ 
+Ravage, M. E. (1928). A Real Case Against the Jews. Lulu. com. 
+ 
+ 
+ 
+Ross, D., & Ross, W. D. (2002). The right and the good. Oxford University Press. 
+Rotenstreich, N. (1979). Excursus: Between Epicurus and Stoa. In Practice and Realization (pp. 131-148). Springer, Dordrecht. 
+ 
+ 
+Sartre, J. P., & Richmond, S. (1956). Being and nothingness: An essay in phenomenological ontology. Routledge. 
+ 
+ 
+Sherman, N. (2014). Recovering lost goodness: Shame, guilt, and self-empathy. Psychoanalytic Psychology, 31(2), 217. 
+ 
+ 
+Slote, M. (2003). Natural goodness. 
+ 
+ 
+ 
+Smith, A. (2010). The theory of moral sentiments. Penguin. 
+ 
+ 
+ 
+Thompson, M. (2003). Three degrees of natural goodness. 
+ 
+ 
+ 
+ 
+1 Of course, it is arguably a truism that any given moral theory is either altruistic or egocentric, given that “non-altruistic” “egocentric” is a veritable synonym of “non-altruistic”; but it is a useful truism since it restricts the possible range of answers to our question two, leaving us with the relatively modest task of eliminating the incorrect one. 
+2 Kant’s (1949) own words are: “So act as to treat humanity, whether in your own person or in another, always as an end and never as only a means.” 
+3 Kant’s (1949) own words are: “Act only according to that maxim by which you can at the same time will that it should become a universal law” 
+4 They are not. In becoming a farmer, I am not violating anyone’s autonomy, but I am also not acting in a way that I coherently want to be universalized, since farming would be impossible in a world where there no non-farmers. In paying my loans back before any interest payments are due, I am not violating anyone’s autonomy, but I am also not acting according to a universalizable norm, since borrowing would be impossible in a world where nobody stood to gain by lending. The counterargument would be to say that there is some reading of (ii) whereby (i) and (ii) are equivalent. There are two points to make in response to this. First, the intended reading of (ii) will likely render it viciously circular. Second, and more importantly, as they are ordinarily read (i) and (ii) embody very different conceptions of morality. 
+5 “The greatest happiness of the greatest number,” Bentham (2016) writes, “is the foundation of morals and 
+legislation.” Elsewhere, Bentham (1789) writes that: “The principle of utility…approves or disapproves of every action according to the tendency it appears to have to increase or lessen—i.e. to promote or oppose—the happiness of the 
+ 
+person or group whose interest is in question” Mill (2010) writes that: “The creed which accepts as the foundation of morals, Utility, or the Greatest-Happiness Principle, holds that actions are right in proportion as they tend to promote happiness, wrong as they tend to produce the reverse of happiness. By happiness is intended pleasure, and the absence of pain; by unhappiness, pain, and the privation of pleasure.” 
+6 Sartre’s reasons for holding this lie in his conception of what it is to be a human being. According to Sartre, there are two kinds of entities: those that exist “in themselves” and those that exist “for themselves.” An entity exists “for itself” if objects, including itself, can be objects for it. We are aware of rocks and trees, and they are therefore objects for us. In general, existence is fundamentally representational in nature, and there is therefore no way to understand human existence strictly on its own terms. An entity exists “in itself” if it does not exist for itself—if, in other words, nothing is an object for it. Rocks and trees are examples of things that exist in themselves. 
+To quote Sartre: 
+Finally-this will be our third characteristic-being-in-itself is. This means that being can neither be derived from the possible nor reduced to the necessary. Necessity concerns the connection between ideal propositions 
+but not that of existents. An existing phenomenon can never be derived from another existent qua existent. This is what we shall call the contingency of being-in-itself. But neither can being-in-itself be derived from a possibility. The possible is a structure of the for-itself; that is, it belongs to the other region of being. Being-in-itself is never either possible or impossible. It is. This is what consciousness expresses in anthropomorphic terms by saying that being is superfluous (de trop )-that is, that consciousness absolutely can not derive being from anything, either from another being, or from a possibility, or from a necessary law. 
+Uncreated, without reason for being, without any connection with another being, being-in-itself is de trop for eternity. Being is. Being is in-itself. Being is what it is. These are the three characteristics which the preliminary examination of the phenomenon of being allows us to assign to the being of phenomena. For the moment it is impossible to push our investigation further. This is not yet the examination of the in-itself-which is never anything but what it is which will allow us to establish and to explain its relations with the for-itself. 
+According to Sartre, a human being could not possibly have the property of being for-itself unless it were a cavity of sorts---unless it were, quite literally, “a pocket of nothingness.” For this reason, human beings, according to Sartre, are just that--- pockets of nothingness “in a world of fullness.” Being pockets of nothingness, Sartre holds, human beings are exempt from the deterministic mechanisms that govern the world. Human beings, he believes, are not caused to do anything; rather, they decide how to act, meaning that actions on their part are, quite literally, self-caused. A corollary, Sartre holds, is that every decision that a person makes must be made de novo: one is influenced by the past, including one’s past decisions, only to the extent that one lets oneself be; and if one makes a decision that aligns with one’s past decisions, it is only because one has freely chosen to. 
+To quote Sartre again: 
+This freedom which reveals itself to us in anguish can be characterized by the existence of that nothing which insinuates itself between motives and act. It is not because I am free that my act is not subject to the determination of motives; on the contrary, the structure of motives as ineffective is the condition of my freedom. If someone asks what this nothing is which provides a foundation for freedom, we shall reply that we can not describe it since it is not, but we can at least hint at its meaning by saying that this nothing is made-to-be by the human being in his relation with himself. The nothing here corresponds to the necessity for the motive to appear as motive only as a correlate of a consciousness of motive. In short, as soon as we abandon the hypothesis of the contents of consciousness, we must recognize that there is never a motive in consciousness; motives are only for consciousness. And due to the very fact that the motive can arise only as appearance, it constitutes itself as ineffective. Of course it does not have the externality of a temporal-spatial thing; it always belongs to subjectivity and it is apprehended as mine. But it is by nature transcendence in immanence, and consciousness is not subject to it because of the very fact that consciousness posits it; for consciousness has now the task of conferring on the motive its meaning and its importance. Thus the nothing which separates the motive from consciousness characterizes itself as transcendence in immanence. It is by arising as immanence that consciousness nihilates the nothing which makes consciousness exist for itself as transcendence. But we see that the nothingness which is the condition of all transcendent negation can be elucidated only in terms of two other original nihilations: (1) Consciousness is not its own motive inasmuch as it is empty of all content. This refers us to a nihilating structure of the pre- reflective cogito. (2) Consciousness confronts its past and its future as facing a self which it is in the mode of not-being. This refers us to a nihilating structure of temporality (Sartre 1956, pp. lxvi-lxvii). 
+ 
+Also: 
+What we should note at present is that freedom, which manifests itself through anguish, is characterized by a constantly renewed obligation to remake the Self which designates the free being. As a matter of fact when we showed earlier that my possibilities were filled with anguish because it depended on me alone to sustain them in their existence, that did not mean that they derived from a Me which to itself at least, would first be given and would then pass in the temporal flux from one consciousness to another consciousness. The gambler who must realize anew the synthetic apperception of a situation which would forbid him to play, must rediscover at the same time the self which can appreciate that situation, which "is in situation." This self with its a priori and historical content is the essence of man. Anguish as the manifestation of freedom in the face of self means that man is 
+ 
+always separated by a nothingness from his essence. We should refer here to Hegel's statement: "Wesen ist was gewesen ist." Essence is what has been. Essence is everything in the human being which we can indicate by the words-that is. Due to this fact it is the totality of characteristics which explain the act. But the add is always beyond· that essence; it is a human act only in so far as it surpasses every explanation which we can give of it, precisely because the very application of the formula "that is" to man causes all that is designated, to have-been. Man continually carries with him a pre-judicative comprehension of his essence, but due to this very fact he is separated from it by a nothingness. Essence is all that human reality apprehends in itself as having been. It is here that anguish appears as an apprehension of self inasmuch as its exists in the perpetual mode of detachment from what is; better yet, in so far as it makes itself exist as such. For we call never apprehend an Erlebnis as a living consequence of that nature which is ours. The overflow of our consciousness progressively constitutes that nature, ,but it remains always behind us and it dwells in us as the permanent object of our retrospective comprehension. It is in so far as this nature is a demand without being a recourse that it is apprehended in anguish (Sartre 1956, pp. 34-35). 
+ 
+ 
+
+7 We, who hold a different belief—we, who regard the democratic movement, not only as a degenerating form of political organization, but as equivalent to a degenerating, a waning type of man, as involving his mediocrising and depreciation: where have WE to fix our hopes? In NEW PHILOSOPHERS—there is no other alternative: in minds strong and original enough to initiate opposite estimates of value, to transvalue and invert "eternal valuations"; in forerunners, in men of the future, who in the present shall fix the constraints and fasten the knots which will compel millenniums to take NEW paths (Beyond Good and Evil). 
+8 All the values by means of which we have tried so far to render the world estimable for ourselves and which then proved inapplicable and therefore devaluated the world--all these values are, psychologically considered, the results of certain perspectives of utility, designed to maintain and increase human constructs of domination--and they have been falsely projected into the essence of things (Will to Power). 
+9 "But why do you talk of nobler ideals? Let us submit to the facts; that the people have triumphed - or the slaves, or the populace, or the herd, or whatever name you care to give them - if this has happened through the Jews, so be it! In that case no nation ever had a greater mission in the world's history. The 'masters' have been done away with; the morality of the vulgar man has triumphed. This triumph may also be called a blood-poisoning (it has mutually fused the races) - I do not dispute it; but there is no doubt but that this intoxication has succeeded. The 'redemption' of the human race (that is, from the masters) is progressing; swimmingly; everything is obviously becoming Judaised, or Christianised, or vulgarised (what is there in the words?). It seems impossible to stop the course of this poisoning through the whole body politic of mankind (Beyond Good and Evil). 
+10 I teach the No to all that makes weak--that exhausts. I teach the Yes to all that strengthens, that stores up strength, that justifies the feeling of strength. So far one has taught neither the one nor the other: virtue has been taught, mortification of the self, pity, even the negation of life. All these are the values of the exhausted. Prolonged reflection on the physiology of exhaustion forced me to ask to what extent the judgments of the exhausted had penetrated the world of values. My result was as surprising as possible, even for me who was at home in many a strange world: I found that all of the supreme value judgments--all that have come to dominate mankind, at least that part that has become tame--can be derived from the judgments of the exhausted. Under the holiest names I pulled up destructive tendencies; one has called God what weakens, teaches weakness, infects with weakness.--I found that the "good man" is one of the forms in which decadence affirms itself (Will to Power). 
+11 The revolt of the slaves in morals begins in the very principle of resentment becoming creative and giving birth to values - a resentment experienced by creatures who, deprived as they are of the proper outlet of action, are forced to find their compensation in an imaginary revenge. While every aristocratic morality springs from a triumphant affirmation of its own demands, the slave morality says "no" from the very outset to what is "outside itself," "different from itself," and "not itself: and this "no" is its creative deed (Genealogy of Morals). 
+ 
+12 All the world's efforts against the "aristocrats," the "mighty," the "masters," the "holders of power," are negligible by comparison with what has been accomplished against those classes by the Jews - the Jews, that priestly nation which eventually realised that the one method of effecting satisfaction on its enemies and tyrants was by means of a radical transvaluation of values, which was at the same time an act of the cleverest revenge. Yet the method was only appropriate to a nation of priests, to a nation of the most jealously nursed priestly revengefulness. It was the Jews who, in opposition to the aristocratic equation (good 
+= aristocratic = beautiful = happy = loved by the gods), dared with a terrifying logic to suggest the contrary equation, and indeed to maintain with the teeth of the most profound hatred (the hatred of weakness) this contrary equation, namely, "the wretched are alone the good; the poor, the weak, the lowly, are alone the good; the suffering, the needy, the sick, the loathsome, are the only ones who are pious, the only ones who are blessed, for them alone is salvation - but you, on the other hand, you aristocrats, you men of power, you are to all eternity the evil, the horrible, the covetous, the insatiate, the godless; eternally also shall you be the unblessed, the cursed, the damned!" We know who it was who reaped the heritage of this Jewish transvaluation (Genealogy of Morals). 
+ 
+13 In full, of course, you never have accepted our Christian teachings. In your hearts you still are pagans. You still love war and graven images and strife. You still take pride in the glory of the nude human figure. Your social conscience, in spite of all democracy and all your social revolutions, is still a pitifully imperfect thing. We have merely divided your soul, confused your impulses, paralyzed your desires. In the midst of battle you are obliged to kneel down to him who commanded you to turn the other cheek, who said “Resist not evil” and “Blessed are the peacemakers” (Ravage, 1928). 
+14 Consider Kant’s universalism (his first so-called categorical imperative): Only do what you could coherently want others to do. This is a waying: What matters is that you harmonize with others. Which in turn is a way of saying: You do not matter except in so far as you contribute to some larger harmony. Which in turn is a way of saying: That harmony is what matters; you do not, except to the (minimal if not non-existent) extent to which that harmony depends on you. 
+Or consider Kant’s other categorical imperative: Always treat people as subjects, not as objects; equivalently, never violate another’s autonomy. I cannot always treat others as subjects without to some extent diminishing my own subjecthood for the sake of theirs and without, therefore, treating myself as an object. Of course, if I can find a way to balance self-respect with respect for others, then I can have a good life. But oftentimes there is no such happy medium, and in such cases this directive requires one to diminish oneself for the sake of others. 
+The proponents of these theories presumably don’t believe that they will hurt those who comply with them. But the only way they don’t hurt those who comply with them is if everybody complies with them. There are several points to make in response to this fact. 
+The first is to take those theories to be binding on society as a whole. Suppose that a society complies with the directive that everyone in it treat others in it as subjects; that everyone it only do what they could coherently want fellow society-members to do; that everyone in it attempt to maximize the happiness of everyone in it. Such a society would presumably be highly functional. Therefore, altruistic theories satisfy our desideratum (that they not hurt their own adherent) if they are taken to concern society as a whole, granting that they fail to satisfy it if they are taken to concern the individual. 
+A corollary is that, if D1 is correct, altruistic moral systems are binding on a given individual only in situations where everyone else complies with them. But in what kind of society can we expect everyone to comply with the same moral code? Only in those that are either utterly authoritarian (meaning that it forces its members to be in moral lockstep) or utterly homogeneous (meaning that its members are naturally all very similar to one another). Societies that force their members to be in complete moral lockstep are moral abominations, and we may therefore set them aside. Completely homogeneous societies are not necessarily moral abominations, but they don’t exist. In fact, they couldn’t exist: a society would be dysfunctional if it didn’t comprise people of many different kinds of correspondingly many different moral outlooks. 
+
+

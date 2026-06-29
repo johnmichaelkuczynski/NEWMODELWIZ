@@ -1,0 +1,99 @@
+**Single Problem: Parsing Structured Contingent Liabilities**
+
+**PROBLEM:** The app ignores the `contingencies` list input for probability-weighted future obligations.
+
+**CURRENT STATE:** No processing of:
+- Earnout shares (revenue-based trigger)
+- Performance warrants (price-based trigger)  
+- Litigation payments (probability-weighted)
+
+**REQUIRED FIX:** Parse the structured list and calculate expected dilution/costs.
+
+**NEW LOGIC TO ADD:**
+
+```python
+def process_contingencies(contingencies_list, tentative_ipo_price, revenue_estimate=None):
+    """
+    Process list of contingent liabilities.
+    Returns: (expected_dilution_shares, expected_cash_cost)
+    """
+    total_shares = 0
+    total_cash_cost = 0  # in millions
+    
+    for cont in contingencies_list:
+        if cont["type"] == "earnout":
+            # Check if revenue condition would be met
+            # For IPO pricing, we use probability as estimate
+            expected_shares = cont["shares"] * cont.get("probability", 0)
+            total_shares += expected_shares
+            
+            print(f"  Earnout: {cont['shares']:.1f}M shares if {cont.get('condition', '')}")
+            print(f"    → {expected_shares:.3f}M expected shares ({cont.get('probability', 0):.0%} probability)")
+            
+        elif cont["type"] == "warrant":
+            # Price-based warrant: (IPO - strike) × shares × probability
+            expected_shares = cont["shares"] * cont.get("probability", 0)
+            total_shares += expected_shares
+            
+            if tentative_ipo_price > cont.get("strike", 0):
+                # Calculate expected cash cost (value given away)
+                value_per_share = tentative_ipo_price - cont["strike"]
+                cash_cost = value_per_share * expected_shares
+                total_cash_cost += cash_cost
+                
+                print(f"  Warrant: {cont['shares']:.1f}M @ ${cont['strike']:.2f}")
+                print(f"    → {expected_shares:.3f}M expected shares")
+                print(f"    → ${cash_cost:.2f}M expected cost (in-the-money)")
+            else:
+                print(f"  Warrant: {cont['shares']:.1f}M @ ${cont['strike']:.2f} (out-of-money)")
+                
+        elif cont["type"] == "litigation":
+            # Simple probability-weighted cash payment
+            expected_cost = cont["payment"] * cont.get("probability", 0)
+            total_cash_cost += expected_cost
+            
+            print(f"  Litigation: ${cont['payment']:.1f}M potential payment")
+            print(f"    → ${expected_cost:.2f}M expected cost ({cont.get('probability', 0):.0%} probability)")
+    
+    return total_shares, total_cash_cost
+```
+
+**INTEGRATION POINT:** Add **after** convertible processing but **before** final valuation.
+
+```python
+# After convertible processing
+if contingencies_list:
+    print("\nCONTINGENT LIABILITY ANALYSIS:")
+    cont_shares, cont_cash = process_contingencies(contingencies_list, tentative_ipo_price, revenue_estimate)
+    
+    # Add to share count
+    adjusted_pre_ipo_shares += cont_shares
+    
+    # Subtract cash cost from valuation
+    adjusted_valuation = base_pre_money - (cont_cash * 1_000_000)  # convert to dollars
+else:
+    adjusted_valuation = base_pre_money
+```
+
+**EXPECTED OUTPUT FOR SIGMA QUANTUM CONTINGENCIES:**
+```
+CONTINGENT LIABILITY ANALYSIS:
+  Earnout: 4.1M shares if revenue>250
+    → 2.870M expected shares (70% probability)
+  Warrant: 3.3M @ $12.00
+    → 1.815M expected shares (55% probability)
+    → $68.12M expected cost (in-the-money at $180.08 IPO)
+  Litigation: $42.0M potential payment
+    → $12.60M expected cost (30% probability)
+Total Expected Contingent Shares: 4.685M
+Total Expected Contingent Cost: $80.72M
+```
+
+**TEST:** Create minimal input with:
+- Basic financials
+- The `contingencies` list (earnout, warrant, litigation)
+- No convertibles or other complexities
+
+App should output the **4.685M expected shares** and **$80.72M expected cost** calculations, and reduce valuation accordingly.
+
+**This fixes ONE specific problem: reading structured contingent liabilities.**

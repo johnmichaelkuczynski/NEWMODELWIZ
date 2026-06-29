@@ -1,0 +1,133 @@
+INSTRUCTION FOR REPLIT AGENT — M&A MODEL IS NOT PARSING CRITICAL INPUTS
+
+The M&A model is failing for the same reason the LBO model failed:
+the parser is not extracting core transaction parameters from the user input.
+
+Below is a precise list of what the app is NOT doing that it MUST do, with concrete examples.
+
+1. It is NOT parsing the purchase price into usable numeric fields.
+
+Example input:
+“Purchase Price: 11.0× LTM EBITDA of $85M (Equity Value = $935M).”
+Expected:
+
+purchase_price = 935
+Actual:
+
+purchase_price = undefined
+
+This cascades into undefined accretion/dilution.
+
+2. It is NOT parsing the consideration mix (cash vs. stock).
+
+Example:
+“70% cash, 30% stock.”
+Expected:
+
+cash_portion = 0.70
+
+stock_portion = 0.30
+Actual:
+
+Both undefined → model cannot calculate shares issued or EPS impact.
+
+3. It is NOT parsing new debt financing.
+
+Example:
+“$500M new debt at 6.25% interest.”
+Expected:
+
+new_debt = 500
+
+interest_rate = 0.0625
+Actual:
+
+new_debt = undefined
+
+interest_rate = undefined
+
+This breaks accretion/dilution, NPV of synergies, and leverage.
+
+4. It is NOT parsing the buyer share price for stock issuance.
+
+Example:
+“Buyer share price = $50.”
+Expected:
+
+share_price = 50
+Actual:
+
+share_price = undefined
+This makes share issuance impossible → EPS = undefined → accretion/dilution = undefined%.
+
+5. It is NOT parsing the synergy timing or amounts into structured fields.
+
+Example:
+
+“Cost synergies: $40M annually”
+
+“Revenue synergies: $25M incremental revenue per year”
+Expected:
+
+cost_synergies = 40
+
+revenue_synergies = 25
+Actual:
+
+Synergies appear only in output headers; NPV is undefinedM.
+
+6. It is NOT parsing the integration cost.
+
+Example:
+“One-time integration cost: $30M.”
+Expected:
+
+integration_cost = 30
+Actual:
+
+integration_cost = undefined
+
+7. It is NOT parsing the forecast period.
+
+Example:
+“Model accretion/dilution over a 5-year forecast.”
+Expected:
+
+forecast_years = 5
+Actual:
+
+forecast_years = undefined
+
+8. All EPS calculations are failing because shares outstanding and new shares issued are not being parsed.
+
+Examples:
+
+“Shares outstanding: 160M”
+
+“Issue new shares accordingly.”
+
+Expected:
+
+old_shares = 160
+
+new_shares = purchase_price × stock_portion ÷ share_price
+
+Actual:
+
+Both undefined → EPS and accretion/dilution = undefined%.
+
+SYMPTOMS CAUSED BY THESE FAILURES
+
+Accretion/dilution outputs = undefined%
+
+NPV of synergies = undefinedM
+
+Share issuance cannot be calculated
+
+Combined net income cannot be calculated
+
+Leverage metrics appear incomplete
+
+All dependent fields downstream collapse to undefined
+
+These failures are isolated entirely to the transaction-parsing layer, not the projection engine.

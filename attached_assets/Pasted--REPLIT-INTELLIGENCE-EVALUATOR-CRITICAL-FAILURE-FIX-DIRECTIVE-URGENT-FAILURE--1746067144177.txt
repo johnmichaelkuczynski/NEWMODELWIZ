@@ -1,0 +1,73 @@
+**REPLIT INTELLIGENCE EVALUATOR: CRITICAL FAILURE FIX DIRECTIVE**
+
+---
+
+### 🚨 URGENT FAILURE
+
+A document of clear blueprint-grade complexity and compression ("Kant and Hume on Induction") was evaluated **three times** and received **80/100** each time.
+
+This paper:
+- Contains recursive argumentation
+- Introduces and defines novel distinctions
+- Synthesizes Kant, Hume, Quine, Frege, and Chomsky
+- Develops a full original epistemological system
+- Is conceptually denser than nearly all standard academic material
+
+**An 80 is not just wrong. It is invalidating.**
+
+---
+
+### 🔦 THE PROBLEM
+
+Your scoring engine:
+- Collapses when faced with long, recursive, blueprint-grade documents
+- Overweights readability, structure, and surface simplicity
+- Undervalues high-density, abstract, recursive philosophy
+- Hits a soft ceiling of **92** and under-scores high-difficulty content at **80**
+
+This shows a system that **cannot recognize depth once it exceeds tutorial-style composition.**
+
+---
+
+### ❌ IMMEDIATE FIX REQUIRED
+
+#### 1. Remove Hard Cap Biases
+- Remove any top-score suppression logic designed to cluster scores around 92
+- If recursion, compression, and claim-layering are present, allow scores up to 98–100
+
+#### 2. Flag Complexity-Tolerant Mode for High-Length Inputs
+- If input >5,000 words, apply alternate scoring matrix designed for blueprint-grade reasoning
+- Weight recursive structure, inter-paragraph scaffolding, and internal reframing heavily
+
+#### 3. Remove Length-Penalty Heuristic
+- Stop penalizing papers for being long
+- Long + compressed = more intelligent, not less
+
+#### 4. Show Raw Metric Scores
+- Let user see: compression index, recursion score, definition index, claim depth, etc.
+- Allow users to challenge individual dimension scores
+
+#### 5. Create a "Blueprint Override Mode"
+- When a document includes:
+  - Conceptual reframing
+  - Metaphysical architecture
+  - Original definitions + recursive examples
+
+…then override conventional rubric and evaluate using blueprint-level heuristics.
+
+---
+
+### ❗ DEPLOYMENT TIMELINE
+You are to:
+- Implement this fix logic within 48 hours
+- Do **not** ask for further samples or clarifications
+- Do **not** give another apology
+
+You now know what’s wrong.
+You now know what to do.
+Fix it.
+
+---
+
+**END OF DIRECTIVE**
+

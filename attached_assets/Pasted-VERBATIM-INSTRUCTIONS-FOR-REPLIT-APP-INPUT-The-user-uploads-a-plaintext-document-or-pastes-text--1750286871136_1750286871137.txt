@@ -1,0 +1,110 @@
+VERBATIM INSTRUCTIONS FOR REPLIT APP
+📥 INPUT
+The user uploads a plaintext document (or pastes text into a text field).
+
+🧠 STEP 1: TEXT SEGMENTATION
+Split the text into:
+
+Sentences
+
+Paragraphs
+
+For each unit type:
+
+Assign a sequential index (unit_1, unit_2, …).
+
+📊 STEP 2: SEMANTIC DENSITY COMPUTATION
+For each unit (sentence and paragraph), compute the semantic density score using the following criteria:
+
+Token entropy:
+
+Compute Shannon entropy of token distribution in the unit.
+
+Lexical rarity:
+
+Score each word using inverse frequency in a reference corpus (e.g. SUBTLEX or Common Crawl); average rarity per unit.
+
+Embedding distinctiveness:
+
+Compute sentence embedding using a transformer (e.g. sentence-transformers/all-MiniLM-L6-v2).
+
+Compute cosine similarity between:
+
+This unit’s embedding
+
+A baseline “average English sentence” vector from a large neutral corpus (you can pre-cache this)
+
+Subtract from 1 to get a distinctiveness score.
+
+Final density score per unit:
+
+makefile
+Copy
+Edit
+semantic_density = 0.4 * token_entropy
+                 + 0.3 * lexical_rarity
+                 + 0.3 * embedding_distinctiveness
+Normalize scores to range [0, 1].
+
+📈 STEP 3: GRAPH GENERATION
+For each unit type (sentence and paragraph), generate a separate graph:
+
+3A. Line Chart (Semantic Density Fluctuation)
+X-axis: Unit index
+
+Y-axis: Semantic density score
+
+Line: Plot of density score across units
+
+Optional: Include moving average smoothing (window size = 3)
+
+3B. Bar Chart (Raw Unit Scores)
+Below or alongside the line chart, show:
+
+Bars for each unit
+
+Colored by density (low = red, high = green)
+
+🗂️ STEP 4: EXPORTING + DISPLAY
+Display each graph inline on the page with a toggle for:
+
+Sentence-level view
+
+Paragraph-level view
+
+For each graph type, include a “Download PDF” button:
+
+Combine graph with a heading and description of what it shows
+
+Use jsPDF or similar to render the chart to PDF
+
+Save exported PDFs with the following names:
+
+semantic_density_sentence_level.pdf
+
+semantic_density_paragraph_level.pdf
+
+🧪 OPTIONAL DEBUGGING / ADVANCED
+If sentence segmentation is inaccurate due to abbreviations or formatting, use a robust parser like spaCy with en_core_web_sm.
+
+Cache embeddings to speed up processing for long texts.
+
+Allow user to toggle parameters (e.g., weighting factors in final score formula).
+
+✅ EXPECTED OUTPUT
+Two interactive graph panels (sentence vs paragraph view)
+
+Two downloadable PDFs with labeled, readable graphs
+
+Optional numeric table of semantic density scores per unit
+
+Summary statistics:
+
+Mean semantic density
+
+Std deviation
+
+Min, max
+
+Top 3 densest and flabbiest units (with excerpts)
+

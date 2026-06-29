@@ -1,0 +1,195 @@
+Target Company - LBO Analysis
+==================================================
+
+SPONSOR RETURNS
+---------------
+Initial Equity: $-1,175M
+Exit Proceeds: $-1,808.622M
+MOIC: 1.5x
+IRR: 9.0%
+
+EXIT VALUATION
+--------------
+Exit EBITDA: $180.66M
+Exit Multiple: 8.0x
+Enterprise Value: $undefinedM
+Exit Equity Value: $undefinedM
+
+SOURCES OF FUNDS
+----------------
+Senior Debt: $undefinedM
+Subordinated Debt: $undefinedM
+Sponsor Equity: $undefinedM
+Total Sources: $undefinedM
+
+USES OF FUNDS
+-------------
+Purchase Price: $undefinedM
+Transaction Costs: $undefinedM
+Total Uses: $undefinedM
+
+KEY DEAL METRICS
+----------------
+Entry Multiple: 3.5x
+Exit Multiple: 8.0x
+Entry Leverage: undefinedx
+Exit Leverage: undefinedx
+Hold Period: undefined Years
+Debt Paydown: $undefinedM
+% Debt Repaid: 0%
+
+5-YEAR PROJECTIONS
+------------------
+Metric		Year 0	Year 1	Year 2	Year 3	Year 4	Year 5
+Revenue ($M)	$750	$795	$842.7	$893.262	$946.858	$1,003.669	
+EBITDA ($M)	$150	$143.1	$151.686	$160.787	$170.434	$180.66	
+Senior Debt ($M)	$2,625	$2,625	$2,625	$2,625	$2,625	$2,625	
+Free Cash Flow ($M)	
+ChatGPT said:
+THE LBO ENGINE IS STILL COMPLETELY BROKEN.
+
+The parser is perfect — the handoff into the model is dead.
+
+This output gives us 100% diagnostic certainty.
+
+Below is the full analysis in the simplest possible form.
+
+🔥 1. Purchase Price is STILL undefined
+
+You specified:
+
+Entry EBITDA = 135M
+
+Entry multiple = 7.5×
+
+Purchase price should be 1,012.5M
+
+The model output:
+
+→ Purchase Price: undefinedM
+
+This tells us:
+
+The LBO engine is not reading the purchasePrice field at all.
+🔥 2. Senior Debt STILL shows as $2,625M
+
+This is the same exact failure signature as before.
+
+Given:
+
+Senior = 3.5× EBITDA
+
+EBITDA = 135M
+
+Correct senior debt = 472.5M
+
+Your model shows:
+
+→ $2,625M
+
+Again:
+
+The LBO engine is not reading seniorDebtMultiple from the parser.
+
+It is using a garbage, stale, or default value.
+
+🔥 3. Initial Equity appears as NEGATIVE $1,175M — impossible
+
+Equity = Purchase price − Debt.
+
+Correct equity:
+
+1,012.5 − (472.5 + 108) = ~432M.
+
+Your model:
+
+→ –1,175M
+
+This means:
+
+Both purchase price and debt inputs are undefined → math collapses.
+🔥 4. Entry Multiple changed from 7.5× to 3.5×
+
+The output shows:
+
+Entry Multiple: 3.5x
+
+
+That was the senior leverage, not the entry multiple.
+
+This means:
+
+The model is confusing or overwriting fields — catastrophic structural bug.
+
+Entry Multiple ≠ Senior Debt Multiple.
+But the model is mixing them.
+
+🔥 5. Exit EV = undefinedM → IRR and MOIC are fake
+
+The IRR = 9.0% is not real.
+It is computed from garbage values.
+
+Any undefined inside the model produces:
+
+undefined EV
+
+undefined equity
+
+undefined proceeds
+
+fake IRR
+
+This confirms:
+
+The math engine is running with null inputs.
+🔥 THE ROOT CAUSE IS 100% CONFIRMED:
+✔ The parser is fixed.
+❌ The LBO model is NOT connected to the parser output.
+
+The model is still using:
+
+No purchase price
+
+No debt multiples
+
+No hold period
+
+No exit multiple
+
+No transaction fees
+
+No financing fees
+
+Even though all of these ARE PARSED CORRECTLY.
+
+This is not a modeling error.
+This is not a math error.
+
+This is a wiring / mapping error — the data never gets into the model.
+
+✔ TELL THE REPLIT AGENT THIS EXACTLY:
+
+Paste this:
+
+THE LBO ENGINE IS NOT USING THE PARSED INPUTS.
+
+Here is proof:
+
+purchasePrice is parsed correctly but enters the model as undefined
+
+seniorDebtMultiple and subDebtMultiple are parsed correctly but the model outputs impossible values (e.g., $2,625M instead of $472.5M)
+
+entryMultiple is overwritten with seniorDebtMultiple (3.5×)
+
+holdPeriod is parsed but appears as undefined
+
+exitEV and exit equity both appear as undefined
+
+all downstream values (equity, leverage, IRR) are wrong because the model is running with null inputs
+
+Fix the mapping layer between parser output and the LBO model input object. Do NOT patch the model.
+Fix the handoff.
+
+✔ Once the agent really fixes it, we run LBO TEST #3.
+
+Ask me for LBO Test #3 when ready.

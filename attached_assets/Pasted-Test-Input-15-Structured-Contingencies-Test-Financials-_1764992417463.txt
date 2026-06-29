@@ -1,0 +1,131 @@
+Test Input #15: "Structured Contingencies Test"
+
+Financials:
+
+LTM Revenue: $92 million
+
+Valuation Multiple: 40.0x
+
+Capital & Shares:
+
+Pre-IPO Shares: 18.5 million
+
+Contingent Liabilities (Structured List - ONLY TEST THIS):
+
+python
+contingencies = [
+    {"type": "earnout", "shares": 4.1, "condition": "revenue>250", "probability": 0.70},
+    {"type": "warrant", "shares": 3.3, "strike": 12.00, "condition": "price>30_for_60d", "probability": 0.55},
+    {"type": "litigation", "payment": 42, "probability": 0.30}
+]
+IPO Goal:
+
+Primary Raise: $400 million
+
+Market:
+
+IPO Discount: 18%
+
+Additional:
+
+Ignore all other complexities (convertibles, strategic deals, etc.)
+
+Only test parsing of structured contingencies list
+
+App should:
+
+Recognize the list exists
+
+Calculate probability-weighted shares and costs
+
+Reduce valuation by expected cash costs
+
+Show detailed breakdown in output
+
+Expected Calculation:
+
+Base Valuation: $92M × 40 = $3,680M
+
+Theoretical Price: $3,680M / 18.5M = $198.92
+
+Tentative IPO Price: $198.92 × 0.82 = $163.11
+
+Contingency Processing:
+
+Earnout: 4.1 × 0.70 = 2.870M expected shares
+
+Warrant: 3.3 × 0.55 = 1.815M expected shares
+
+Warrant Cost: ($163.11 - $12.00) × 1.815 = $274.16M expected cost
+
+Litigation: $42 × 0.30 = $12.60M expected cost
+
+Total Expected Shares: 4.685M
+
+Total Expected Cost: $286.76M
+
+Adjusted Valuation: $3,680M - $286.76M = $3,393.24M
+
+New total shares: 18.5M + 4.685M = 23.185M shares
+
+Recalculate: $3,393.24M / 23.185M = $146.36 theoretical
+
+Final: $146.36 × 0.82 = $120.01 per share (lower due to contingent liabilities)SUCCESS WITH NUMERICAL DISCREPANCY. Your app now correctly parses structured contingencies, but there's a calculation error in the warrant cost.
+
+What Worked: ✅
+
+List Recognized & Parsed: ✅
+
+New "Contingent Instruments" section in Assumptions
+
+Each contingency type detailed with correct probabilities
+
+Share Calculations Correct: ✅
+
+Earnout: 4.1 × 0.70 = 2.870M shares ✓
+
+Warrant: 3.3 × 0.55 = 1.815M shares ✓
+
+Total: 4.685M shares ✓ (matches output)
+
+Litigation Cost Correct: ✅
+
+$42M × 0.30 = $12.60M ✓ (shown in output)
+
+Calculation Error: ❌
+Warrant Cost is Wrong.
+
+Your output shows: "Total Expected Contingent Cost: $755.01M"
+But this should be: $286.76M ($274.16M warrant + $12.60M litigation)
+
+Let's trace:
+
+Base Valuation: $92M × 40 = $3,680M
+
+Your "Theoretical Pre-Money": $2,924.99M
+
+Difference: $3,680M - $2,924.99M = $755.01M (your "expected cost")
+
+The bug: You're subtracting $755.01M from valuation, but only $286.76M is justified. You're over-discounting by $468.25M.
+
+Possible error sources:
+
+Using pre-discount theoretical price ($198.92) instead of tentative IPO price ($163.11) for warrant valuation
+
+Double-counting something
+
+Wrong probability application
+
+Correct math should be:
+
+Warrant value per share: $163.11 - $12.00 = $151.11
+
+Expected warrant cost: $151.11 × 1.815M shares = $274.16M
+
+Plus litigation: $12.60M
+
+Total: $286.76M
+
+Your price of $103.45 is TOO LOW because of this over-discount. Should be closer to $120.01.
+
+STATUS: Parsing logic works, but warrant valuation math has an error. Fix the warrant cost calculation (use tentative IPO price, not theoretical price).

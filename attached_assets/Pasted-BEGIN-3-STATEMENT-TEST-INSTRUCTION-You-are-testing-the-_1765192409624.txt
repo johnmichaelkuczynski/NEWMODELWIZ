@@ -1,0 +1,100 @@
+BEGIN 3-STATEMENT TEST INSTRUCTION
+
+You are testing the 3-statement model of the finance app.
+
+Goal:
+Run the following 25 black-box tests to verify that the parser and 3-statement engine correctly generate free cash flow.
+
+For each test:
+
+Take the text after Prompt: as the user’s input to the app.
+
+Make the app return only a single number:
+
+Year-1 Free Cash Flow (FCF) in millions (no units string, just the numeric value, e.g. 42.7).
+
+After running all tests, print a summary with one line per test in this format:
+
+T1 <number>
+T2 <number>
+...
+T25 <number>
+
+Here are the tests:
+
+T1 Prompt:
+"Build a 3-statement model. Starting revenue is $300M, revenue grows 5% per year, EBITDA margin is 25%, tax rate 25%, depreciation is 4% of revenue, CapEx is 5% of revenue, and net working capital change is 10% of the change in revenue. No interest, no debt. Return only Year-1 free cash flow in millions as a single number."
+
+T2 Prompt:
+"Build a 3-statement model. Starting revenue is $500M, revenue grows 8%, EBITDA margin 20%, tax rate 25%, D&A is 3% of revenue, CapEx is 4% of revenue, NWC change is 12% of revenue change. No interest, no debt. Return only Year-1 free cash flow in millions as a single number."
+
+T3 Prompt:
+"Starting revenue $400M, growth 6%, EBITDA margin 30%, tax rate 25%, D&A 5% of revenue, CapEx 6% of revenue, NWC change 8% of revenue change. No debt or interest. Return only Year-1 free cash flow in millions."
+
+T4 Prompt:
+"Starting revenue $250M, growth 10%, EBITDA margin 18%, tax rate 21%, D&A 3% of revenue, CapEx 4% of revenue, NWC change 10% of revenue change. No debt. Return only Year-1 free cash flow in millions."
+
+T5 Prompt:
+"Starting revenue $600M, growth 4%, EBITDA margin 22%, tax rate 25%, D&A 4% of revenue, CapEx 3% of revenue, NWC change 9% of revenue change. No interest, no debt. Return only Year-1 free cash flow in millions."
+
+T6 Prompt:
+"Starting revenue $150M, growth 12%, EBITDA margin 28%, tax rate 25%, D&A 2% of revenue, CapEx 5% of revenue, NWC change 6% of revenue change. No debt. Return only Year-1 free cash flow in millions."
+
+T7 Prompt:
+"Starting revenue $800M, growth 3%, EBITDA margin 26%, tax rate 25%, D&A 3% of revenue, CapEx 5% of revenue, NWC change 10% of revenue change. No interest expense. Return only Year-1 free cash flow in millions."
+
+T8 Prompt:
+"Starting revenue $1.0B, growth 7%, EBITDA margin 24%, tax rate 23%, D&A 4% of revenue, CapEx 4% of revenue, NWC change 11% of revenue change. No debt. Return only Year-1 free cash flow in millions."
+
+T9 Prompt:
+"Starting revenue $200M, growth 9%, EBITDA margin 35%, tax rate 25%, D&A 6% of revenue, CapEx 8% of revenue, NWC change 7% of revenue change. No interest. Return only Year-1 free cash flow in millions."
+
+T10 Prompt:
+"Starting revenue $450M, growth 5%, EBITDA margin 19%, tax rate 20%, D&A 2% of revenue, CapEx 3% of revenue, NWC change 10% of revenue change. No debt. Return only Year-1 free cash flow in millions."
+
+T11 Prompt:
+"Starting revenue $550M, growth 6%, EBITDA margin 27%, tax rate 25%, D&A 5% of revenue, CapEx 5% of revenue, NWC change 9% of revenue change. Return only Year-1 free cash flow in millions."
+
+T12 Prompt:
+"Starting revenue $320M, growth 7%, EBITDA margin 21%, tax rate 25%, D&A 3% of revenue, CapEx 4% of revenue, NWC change 8% of revenue change. No interest, no debt. Return only Year-1 free cash flow in millions."
+
+T13 Prompt:
+"Starting revenue $700M, growth 4%, EBITDA margin 23%, tax rate 24%, D&A 4% of revenue, CapEx 6% of revenue, NWC change 10% of revenue change. Return only Year-1 free cash flow in millions."
+
+T14 Prompt:
+"Starting revenue $900M, growth 5%, EBITDA margin 29%, tax rate 25%, D&A 3% of revenue, CapEx 5% of revenue, NWC change 12% of revenue change. No interest. Return only Year-1 free cash flow in millions."
+
+T15 Prompt:
+"Starting revenue $280M, growth 11%, EBITDA margin 32%, tax rate 25%, D&A 4% of revenue, CapEx 7% of revenue, NWC change 9% of revenue change. No debt. Return only Year-1 free cash flow in millions."
+
+T16 Prompt:
+"Starting revenue $650M, growth 3%, EBITDA margin 20%, tax rate 25%, D&A 3% of revenue, CapEx 3% of revenue, NWC change 8% of revenue change. Return only Year-1 free cash flow in millions."
+
+T17 Prompt:
+"Starting revenue $480M, growth 6%, EBITDA margin 25%, tax rate 22%, D&A 4% of revenue, CapEx 6% of revenue, NWC change 10% of revenue change. No interest. Return only Year-1 free cash flow in millions."
+
+T18 Prompt:
+"Starting revenue $520M, growth 8%, EBITDA margin 28%, tax rate 25%, D&A 5% of revenue, CapEx 5% of revenue, NWC change 9% of revenue change. No debt. Return only Year-1 free cash flow in millions."
+
+T19 Prompt:
+"Starting revenue $360M, growth 7%, EBITDA margin 24%, tax rate 21%, D&A 3% of revenue, CapEx 4% of revenue, NWC change 11% of revenue change. Return only Year-1 free cash flow in millions."
+
+T20 Prompt:
+"Starting revenue $1.2B, growth 4%, EBITDA margin 22%, tax rate 25%, D&A 4% of revenue, CapEx 5% of revenue, NWC change 10% of revenue change. No interest. Return only Year-1 free cash flow in millions."
+
+T21 Prompt:
+"Starting revenue $420M, growth 9%, EBITDA margin 27%, tax rate 25%, D&A 3% of revenue, CapEx 6% of revenue, NWC change 8% of revenue change. Return only Year-1 free cash flow in millions."
+
+T22 Prompt:
+"Starting revenue $310M, growth 6%, EBITDA margin 18%, tax rate 25%, D&A 2% of revenue, CapEx 3% of revenue, NWC change 9% of revenue change. No debt. Return only Year-1 free cash flow in millions."
+
+T23 Prompt:
+"Starting revenue $275M, growth 10%, EBITDA margin 30%, tax rate 23%, D&A 4% of revenue, CapEx 6% of revenue, NWC change 7% of revenue change. Return only Year-1 free cash flow in millions."
+
+T24 Prompt:
+"Starting revenue $500M, growth 5%, EBITDA margin 26%, tax rate 24%, D&A 3% of revenue, CapEx 4% of revenue, NWC change 10% of revenue change. No interest, no debt. Return only Year-1 free cash flow in millions."
+
+T25 Prompt:
+"Starting revenue $600M, growth 8%, EBITDA margin 29%, tax rate 25%, D&A 5% of revenue, CapEx 6% of revenue, NWC change 9% of revenue change. Return only Year-1 free cash flow in millions."
+
+END 3-STATEMENT TEST INSTRUCTION

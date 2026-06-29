@@ -1,0 +1,1827 @@
+# 3-Statement Integrated Financials Function - Complete Implementation Instructions
+
+## Function Purpose
+Accept natural language description of a company's historical financials, operating assumptions, and projection drivers, construct fully integrated three-statement financial projections (Income Statement, Balance Sheet, Cash Flow Statement), ensure proper linking between all statements with circular reference handling, calculate key financial ratios and metrics, and generate a downloadable Excel file with working formulas, scenario analysis, and comprehensive outputs.
+
+## Input Processing Requirements
+
+The function must parse natural language input and extract the following variables:
+
+**Company Information:**
+- Company name
+- Industry/sector
+- Fiscal year end
+- Currency
+- Historical period(s) available
+- Projection period length (typically 3-5 years)
+
+**Historical Financial Data (If Provided):**
+- Revenue (1-3 years historical)
+- Cost of Goods Sold or Gross Margin
+- Operating Expenses (SG&A, R&D, etc.)
+- EBITDA or Operating Income
+- Interest Expense
+- Tax Expense and Effective Tax Rate
+- Net Income
+- Total Assets
+- Total Debt
+- Cash and Cash Equivalents
+- Shareholders' Equity
+- Shares Outstanding
+
+**Revenue Assumptions:**
+- Base year revenue
+- Revenue growth rates by year or CAGR
+- Revenue drivers (unit volume, pricing, mix, if specified)
+- Seasonality considerations (if applicable)
+- Revenue breakdown by segment or product (if specified)
+
+**Cost and Margin Assumptions:**
+- Cost of Goods Sold as % of revenue (or Gross Margin %)
+- Gross margin trajectory (flat, expanding, contracting)
+- Operating expense categories:
+  - SG&A as % of revenue or absolute growth
+  - R&D as % of revenue (if applicable)
+  - Other operating expenses
+- Operating leverage assumptions
+- EBITDA margin targets
+
+**Depreciation & Amortization:**
+- D&A as % of revenue, or
+- D&A as % of PP&E, or
+- D&A schedule based on asset lives
+- Existing asset base and remaining useful lives (if specified)
+
+**Working Capital Assumptions:**
+- Days Sales Outstanding (DSO) or Accounts Receivable as % of revenue
+- Days Inventory Outstanding (DIO) or Inventory as % of COGS
+- Days Payable Outstanding (DPO) or Accounts Payable as % of COGS
+- Other current assets as % of revenue
+- Other current liabilities as % of revenue
+- Net Working Capital as % of revenue (alternative simplified approach)
+
+**Capital Expenditure Assumptions:**
+- CapEx as % of revenue, or
+- Maintenance CapEx vs Growth CapEx breakdown, or
+- Absolute CapEx amounts by year
+- CapEx to D&A ratio (if not otherwise specified)
+
+**Debt Assumptions:**
+- Existing debt balance
+- Interest rate on existing debt
+- Debt repayment schedule (mandatory amortization)
+- New debt issuance (if applicable)
+- Interest rate on new debt
+- Revolving credit facility (size, interest rate, commitment fee)
+- Debt covenants (if specified)
+
+**Equity Assumptions:**
+- Beginning shares outstanding
+- Stock-based compensation expense
+- Share buybacks (if applicable)
+- Dividends ($ per share or payout ratio)
+- Equity issuance (if applicable)
+
+**Tax Assumptions:**
+- Statutory tax rate
+- Effective tax rate (if different)
+- NOL carryforwards (if applicable)
+- Tax credits or incentives
+
+**Other Assumptions:**
+- Minimum cash balance
+- Excess cash treatment (debt paydown, investments, dividends)
+- Other income/expense items
+- Non-recurring items (if any)
+
+## Calculation Requirements
+
+The function must perform the following calculations with formulas (not hard-coded values):
+
+**Income Statement Calculations:**
+
+Revenue:
+1. Revenue = Prior Year Revenue × (1 + Growth Rate), or
+2. Revenue = Σ(Segment Revenues) if segment detail provided
+
+Cost of Goods Sold:
+1. COGS = Revenue × (1 - Gross Margin %), or
+2. COGS = Revenue × COGS % of Revenue
+
+Gross Profit:
+1. Gross Profit = Revenue - COGS
+2. Gross Margin % = Gross Profit / Revenue
+
+Operating Expenses:
+1. SG&A = Revenue × SG&A % of Revenue, or
+2. SG&A = Prior Year SG&A × (1 + Growth Rate)
+3. R&D = Revenue × R&D % of Revenue (if applicable)
+4. Other OpEx = Revenue × Other OpEx % (if applicable)
+5. Total Operating Expenses = SG&A + R&D + Other OpEx
+
+EBITDA:
+1. EBITDA = Gross Profit - Operating Expenses
+2. EBITDA Margin % = EBITDA / Revenue
+
+Depreciation & Amortization:
+1. D&A = Revenue × D&A % of Revenue, or
+2. D&A = Beginning PP&E × D&A Rate + (CapEx × Half-Year Convention)
+
+EBIT (Operating Income):
+1. EBIT = EBITDA - D&A
+2. EBIT Margin % = EBIT / Revenue
+
+Interest Expense:
+1. Interest Expense = Average Debt Balance × Interest Rate
+2. For multiple tranches: Σ(Tranche Balance × Tranche Rate)
+3. Revolver Interest = Average Drawn Balance × Rate + Undrawn × Commitment Fee
+
+Interest Income:
+1. Interest Income = Average Cash Balance × Interest Rate on Cash
+
+EBT (Earnings Before Tax):
+1. EBT = EBIT - Interest Expense + Interest Income + Other Income/Expense
+
+Income Tax:
+1. If EBT > 0: Tax = EBT × Effective Tax Rate
+2. If EBT < 0 and NOLs allowed: Tax = 0, increase NOL carryforward
+3. If prior NOLs exist: Reduce taxable income, then apply tax rate
+
+Net Income:
+1. Net Income = EBT - Income Tax
+2. Net Margin % = Net Income / Revenue
+
+Earnings Per Share:
+1. Basic EPS = Net Income / Weighted Average Shares Outstanding
+2. Diluted EPS = Net Income / (Shares + Dilutive Securities)
+
+**Balance Sheet Calculations:**
+
+Assets:
+
+Current Assets:
+1. Cash = Solved via Cash Flow Statement (plug)
+2. Accounts Receivable = Revenue × (DSO / 365), or Revenue × AR % of Revenue
+3. Inventory = COGS × (DIO / 365), or COGS × Inventory % of COGS
+4. Prepaid Expenses = Revenue × Prepaid % of Revenue
+5. Other Current Assets = Revenue × Other CA % of Revenue
+6. Total Current Assets = Cash + AR + Inventory + Prepaid + Other CA
+
+Non-Current Assets:
+1. PP&E, Beginning = Prior Year PP&E, Ending
+2. Plus: Capital Expenditures
+3. Less: Depreciation
+4. PP&E, Ending = Beginning + CapEx - Depreciation
+5. Intangible Assets = Prior Year - Amortization + Additions
+6. Goodwill = Prior Year (no change unless impairment or acquisition)
+7. Other Long-Term Assets = Prior Year + Changes
+8. Total Non-Current Assets = PP&E + Intangibles + Goodwill + Other LT Assets
+
+Total Assets = Total Current Assets + Total Non-Current Assets
+
+Liabilities:
+
+Current Liabilities:
+1. Accounts Payable = COGS × (DPO / 365), or COGS × AP % of COGS
+2. Accrued Expenses = Revenue × Accrued % of Revenue (or OpEx based)
+3. Deferred Revenue = Revenue × Deferred % of Revenue (if applicable)
+4. Current Portion of Long-Term Debt = Next 12 months mandatory payments
+5. Other Current Liabilities = Revenue × Other CL % of Revenue
+6. Total Current Liabilities = AP + Accrued + Deferred Rev + Current Debt + Other CL
+
+Non-Current Liabilities:
+1. Long-Term Debt = Prior Year Ending - Repayments + New Issuance
+2. Deferred Tax Liability = Prior Year + Change (if modeled)
+3. Other Long-Term Liabilities = Prior Year + Changes
+4. Total Non-Current Liabilities = LT Debt + DTL + Other LT Liabilities
+
+Total Liabilities = Total Current Liabilities + Total Non-Current Liabilities
+
+Shareholders' Equity:
+1. Common Stock = Prior Year + New Issuance (at par)
+2. Additional Paid-In Capital = Prior Year + New Issuance (excess over par) + Stock-Based Comp
+3. Retained Earnings = Prior Year + Net Income - Dividends
+4. Treasury Stock = Prior Year - Buybacks (at cost)
+5. Accumulated Other Comprehensive Income = Prior Year + OCI (if modeled)
+6. Total Shareholders' Equity = Common Stock + APIC + Retained Earnings - Treasury Stock + AOCI
+
+Total Liabilities + Equity = Total Assets (MUST BALANCE)
+
+**Cash Flow Statement Calculations:**
+
+Operating Activities:
+1. Net Income (from Income Statement)
+2. Add: Depreciation & Amortization (non-cash)
+3. Add: Stock-Based Compensation (non-cash)
+4. Add/Less: Deferred Taxes (non-cash)
+5. Less: Increase in Accounts Receivable (or Add: Decrease)
+6. Less: Increase in Inventory (or Add: Decrease)
+7. Less: Increase in Prepaid/Other CA (or Add: Decrease)
+8. Add: Increase in Accounts Payable (or Less: Decrease)
+9. Add: Increase in Accrued/Other CL (or Less: Decrease)
+10. Cash Flow from Operating Activities = Sum of above
+
+Investing Activities:
+1. Less: Capital Expenditures (PP&E purchases)
+2. Less: Acquisitions (if applicable)
+3. Add: Asset Sales/Disposals (if applicable)
+4. Less: Purchases of Investments (if applicable)
+5. Add: Sales of Investments (if applicable)
+6. Cash Flow from Investing Activities = Sum of above
+
+Financing Activities:
+1. Add: Proceeds from Debt Issuance
+2. Less: Debt Repayments
+3. Add: Proceeds from Equity Issuance
+4. Less: Share Buybacks
+5. Less: Dividends Paid
+6. Cash Flow from Financing Activities = Sum of above
+
+Net Change in Cash:
+1. Net Change = CFO + CFI + CFF
+2. Beginning Cash Balance
+3. Ending Cash Balance = Beginning + Net Change
+
+**Circular Reference Handling (Revolver/Cash):**
+
+The 3-statement model contains a natural circularity:
+- Interest Expense depends on Debt Balance
+- Debt Balance may depend on Cash Shortfall
+- Cash depends on Net Income
+- Net Income depends on Interest Expense
+
+Resolution approach:
+1. Calculate preliminary cash balance before revolver/excess cash
+2. If Cash < Minimum Cash: Draw on revolver to fund shortfall
+3. If Cash > Target Cash: Use excess for debt paydown or accumulate
+4. Iterate calculation (or use Excel's iterative calculation setting)
+5. Alternative: Use average debt balance for interest calculation
+
+**Key Financial Ratios and Metrics:**
+
+Profitability Ratios:
+1. Gross Margin % = Gross Profit / Revenue
+2. EBITDA Margin % = EBITDA / Revenue
+3. EBIT Margin % = EBIT / Revenue
+4. Net Margin % = Net Income / Revenue
+5. Return on Equity (ROE) = Net Income / Average Shareholders' Equity
+6. Return on Assets (ROA) = Net Income / Average Total Assets
+7. Return on Invested Capital (ROIC) = NOPAT / Invested Capital
+
+Liquidity Ratios:
+1. Current Ratio = Current Assets / Current Liabilities
+2. Quick Ratio = (Current Assets - Inventory) / Current Liabilities
+3. Cash Ratio = Cash / Current Liabilities
+
+Leverage Ratios:
+1. Debt / Equity = Total Debt / Total Equity
+2. Debt / EBITDA = Total Debt / EBITDA
+3. Net Debt / EBITDA = (Total Debt - Cash) / EBITDA
+4. Interest Coverage = EBIT / Interest Expense
+5. Fixed Charge Coverage = (EBIT + Lease Payments) / (Interest + Lease Payments)
+
+Efficiency Ratios:
+1. Asset Turnover = Revenue / Average Total Assets
+2. Inventory Turnover = COGS / Average Inventory
+3. Receivables Turnover = Revenue / Average Accounts Receivable
+4. Payables Turnover = COGS / Average Accounts Payable
+5. Cash Conversion Cycle = DSO + DIO - DPO
+
+Per Share Metrics:
+1. Basic EPS = Net Income / Weighted Average Shares
+2. Diluted EPS = Net Income / Diluted Shares
+3. Book Value per Share = Shareholders' Equity / Shares Outstanding
+4. Dividends per Share = Total Dividends / Shares Outstanding
+
+## Excel File Structure
+
+**Tab 1: Executive Summary**
+
+Company Overview:
+- Company name
+- Industry
+- Fiscal year end
+- Projection period
+- Model date
+
+Key Financial Highlights (Table format, Years 0-5):
+- Revenue
+- Revenue Growth %
+- EBITDA
+- EBITDA Margin %
+- Net Income
+- Net Margin %
+- EPS
+- Total Debt
+- Cash
+- Shareholders' Equity
+
+Key Metrics Summary:
+- Revenue CAGR (projection period)
+- EBITDA CAGR
+- Average EBITDA Margin
+- Average ROIC
+- Ending Net Debt / EBITDA
+- Ending Debt / Equity
+
+Balance Sheet Check:
+- Assets = Liabilities + Equity: ✓ or ✗
+- Cash Flow Reconciliation: ✓ or ✗
+
+Scenario Summary (if multiple scenarios):
+- Base Case metrics
+- Upside Case metrics
+- Downside Case metrics
+
+**Tab 2: Assumptions**
+
+All assumption cells in blue font (user-editable):
+
+Revenue Assumptions:
+- Base Year Revenue
+- Revenue Growth Rate by Year (Year 1, 2, 3, 4, 5)
+- Segment breakdown (if applicable)
+
+Cost Structure Assumptions:
+- COGS % of Revenue (or Gross Margin %)
+- SG&A % of Revenue
+- R&D % of Revenue (if applicable)
+- Other Operating Expenses % of Revenue
+- D&A % of Revenue (or D&A % of PP&E)
+
+Working Capital Assumptions:
+- Days Sales Outstanding (DSO)
+- Days Inventory Outstanding (DIO)
+- Days Payable Outstanding (DPO)
+- Prepaid Expenses % of Revenue
+- Accrued Expenses % of Operating Expenses
+- Other Current Assets % of Revenue
+- Other Current Liabilities % of Revenue
+
+Capital Expenditure Assumptions:
+- CapEx % of Revenue (or absolute amounts)
+- Maintenance CapEx vs Growth CapEx split (if applicable)
+
+Debt Assumptions:
+- Beginning Debt Balance
+- Interest Rate on Existing Debt
+- Mandatory Debt Amortization ($ or % per year)
+- Revolver Size
+- Revolver Interest Rate
+- Revolver Commitment Fee
+- New Debt Issuance (if applicable)
+- New Debt Interest Rate
+
+Cash Management Assumptions:
+- Minimum Cash Balance
+- Interest Rate on Cash
+- Excess Cash Treatment (accumulate / pay down debt / dividends)
+
+Tax Assumptions:
+- Statutory Tax Rate
+- Effective Tax Rate (if different)
+- NOL Carryforward Balance (if applicable)
+
+Equity Assumptions:
+- Beginning Shares Outstanding
+- Stock-Based Compensation ($ or % of Revenue)
+- Share Buybacks ($ per year)
+- Dividends ($ per share or payout ratio %)
+- New Equity Issuance (if applicable)
+
+Other Assumptions:
+- Other Income / Expense (annual)
+- Non-recurring Items (specify year and amount)
+
+**Tab 3: Income Statement**
+
+Column headers: Historical (if provided), Year 1, Year 2, Year 3, Year 4, Year 5
+
+Row items:
+```
+Revenue
+  Growth % YoY
+
+Cost of Goods Sold
+  COGS % of Revenue
+
+Gross Profit
+  Gross Margin %
+
+Operating Expenses:
+  Selling, General & Administrative
+    SG&A % of Revenue
+  Research & Development
+    R&D % of Revenue
+  Other Operating Expenses
+Total Operating Expenses
+  Operating Expenses % of Revenue
+
+EBITDA
+  EBITDA Margin %
+
+Depreciation & Amortization
+  D&A % of Revenue
+
+EBIT (Operating Income)
+  EBIT Margin %
+
+Interest Expense
+  Existing Debt Interest
+  Revolver Interest
+  New Debt Interest
+Interest Income
+Net Interest Expense
+
+Other Income / (Expense)
+
+EBT (Earnings Before Tax)
+  EBT Margin %
+
+Income Tax Expense
+  Effective Tax Rate %
+
+Net Income
+  Net Margin %
+
+Shares Outstanding (Weighted Average)
+Basic EPS
+
+Diluted Shares Outstanding
+Diluted EPS
+```
+
+**Tab 4: Balance Sheet**
+
+Column headers: Historical (if provided), Year 1, Year 2, Year 3, Year 4, Year 5
+
+Row items:
+```
+ASSETS
+
+Current Assets:
+  Cash and Cash Equivalents
+  Accounts Receivable
+    DSO (days)
+  Inventory
+    DIO (days)
+  Prepaid Expenses
+  Other Current Assets
+Total Current Assets
+
+Non-Current Assets:
+  Property, Plant & Equipment, Gross
+  Less: Accumulated Depreciation
+  Property, Plant & Equipment, Net
+  Intangible Assets
+  Goodwill
+  Other Long-Term Assets
+Total Non-Current Assets
+
+TOTAL ASSETS
+
+
+LIABILITIES
+
+Current Liabilities:
+  Accounts Payable
+    DPO (days)
+  Accrued Expenses
+  Deferred Revenue
+  Current Portion of Long-Term Debt
+  Revolver Balance
+  Other Current Liabilities
+Total Current Liabilities
+
+Non-Current Liabilities:
+  Long-Term Debt
+  Deferred Tax Liabilities
+  Other Long-Term Liabilities
+Total Non-Current Liabilities
+
+TOTAL LIABILITIES
+
+
+SHAREHOLDERS' EQUITY
+
+  Common Stock (at par)
+  Additional Paid-In Capital
+  Retained Earnings
+  Less: Treasury Stock
+  Accumulated Other Comprehensive Income
+Total Shareholders' Equity
+
+TOTAL LIABILITIES + EQUITY
+
+
+BALANCE CHECK (Assets - Liabilities - Equity)
+  Should equal zero in all periods
+```
+
+**Tab 5: Cash Flow Statement**
+
+Column headers: Year 1, Year 2, Year 3, Year 4, Year 5
+
+Row items:
+```
+OPERATING ACTIVITIES
+
+Net Income
+
+Adjustments for Non-Cash Items:
+  Depreciation & Amortization
+  Stock-Based Compensation
+  Deferred Income Taxes
+  Other Non-Cash Items
+Total Non-Cash Adjustments
+
+Changes in Working Capital:
+  (Increase) / Decrease in Accounts Receivable
+  (Increase) / Decrease in Inventory
+  (Increase) / Decrease in Prepaid Expenses
+  (Increase) / Decrease in Other Current Assets
+  Increase / (Decrease) in Accounts Payable
+  Increase / (Decrease) in Accrued Expenses
+  Increase / (Decrease) in Deferred Revenue
+  Increase / (Decrease) in Other Current Liabilities
+Total Change in Working Capital
+
+Cash Flow from Operating Activities
+
+
+INVESTING ACTIVITIES
+
+  Capital Expenditures
+  Acquisitions
+  Proceeds from Asset Sales
+  Purchases of Investments
+  Other Investing Activities
+
+Cash Flow from Investing Activities
+
+
+FINANCING ACTIVITIES
+
+  Proceeds from Debt Issuance
+  Debt Repayments
+  Revolver Draws / (Paydowns)
+  Proceeds from Equity Issuance
+  Share Buybacks
+  Dividends Paid
+  Other Financing Activities
+
+Cash Flow from Financing Activities
+
+
+NET CHANGE IN CASH
+
+Beginning Cash Balance
+Ending Cash Balance
+
+Cash Flow Check (Ending Cash = BS Cash)
+  Should be TRUE in all periods
+```
+
+**Tab 6: Debt Schedule**
+
+Column headers: Year 0 (Beginning), Year 1, Year 2, Year 3, Year 4, Year 5
+
+For each debt tranche:
+```
+EXISTING TERM DEBT
+
+Beginning Balance
+  Mandatory Amortization
+  Optional Prepayment
+  New Borrowings
+Ending Balance
+
+Average Balance
+Interest Rate
+Interest Expense
+
+
+REVOLVING CREDIT FACILITY
+
+Beginning Balance
+  Draws
+  Paydowns
+Ending Balance
+
+Available Capacity
+Utilization %
+
+Average Balance
+Interest Rate
+Interest Expense
+Commitment Fee (on undrawn)
+Total Revolver Cost
+
+
+NEW DEBT (if applicable)
+
+Beginning Balance
+  Draws
+  Repayments
+Ending Balance
+
+Average Balance
+Interest Rate
+Interest Expense
+
+
+TOTAL DEBT SUMMARY
+
+Total Debt (Beginning)
+Total Debt (Ending)
+Total Interest Expense
+
+Net Debt (Debt - Cash)
+Net Debt / EBITDA
+Total Debt / EBITDA
+Interest Coverage (EBIT / Interest)
+```
+
+**Tab 7: Working Capital Schedule**
+
+Column headers: Year 0, Year 1, Year 2, Year 3, Year 4, Year 5
+
+Row items:
+```
+ACCOUNTS RECEIVABLE
+
+Revenue (for reference)
+DSO Assumption (days)
+Accounts Receivable Balance
+  Change in AR
+  Cash Impact (negative = use of cash)
+
+
+INVENTORY
+
+COGS (for reference)
+DIO Assumption (days)
+Inventory Balance
+  Change in Inventory
+  Cash Impact
+
+
+PREPAID EXPENSES
+
+Revenue (for reference)
+Prepaid % of Revenue
+Prepaid Balance
+  Change in Prepaid
+  Cash Impact
+
+
+OTHER CURRENT ASSETS
+
+Revenue (for reference)
+Other CA % of Revenue
+Other CA Balance
+  Change in Other CA
+  Cash Impact
+
+
+ACCOUNTS PAYABLE
+
+COGS (for reference)
+DPO Assumption (days)
+Accounts Payable Balance
+  Change in AP
+  Cash Impact (positive = source of cash)
+
+
+ACCRUED EXPENSES
+
+Operating Expenses (for reference)
+Accrued % of OpEx
+Accrued Expenses Balance
+  Change in Accrued
+  Cash Impact
+
+
+OTHER CURRENT LIABILITIES
+
+Revenue (for reference)
+Other CL % of Revenue
+Other CL Balance
+  Change in Other CL
+  Cash Impact
+
+
+NET WORKING CAPITAL SUMMARY
+
+Total Current Assets (ex-Cash)
+Total Current Liabilities (ex-Debt)
+Net Working Capital
+
+NWC as % of Revenue
+Change in NWC
+Cash Impact from NWC
+
+Cash Conversion Cycle (DSO + DIO - DPO)
+```
+
+**Tab 8: Fixed Asset Schedule (PP&E)**
+
+Column headers: Year 0, Year 1, Year 2, Year 3, Year 4, Year 5
+
+Row items:
+```
+PP&E ROLLFORWARD
+
+Beginning PP&E (Gross)
+  Capital Expenditures
+  Asset Disposals
+Ending PP&E (Gross)
+
+Beginning Accumulated Depreciation
+  Depreciation Expense
+  Disposals
+Ending Accumulated Depreciation
+
+PP&E (Net)
+
+
+CAPEX ANALYSIS
+
+Revenue (for reference)
+CapEx
+CapEx % of Revenue
+CapEx / D&A Ratio
+
+
+DEPRECIATION ANALYSIS
+
+Beginning PP&E (Net)
+D&A Rate (% of beginning Net PP&E)
+Depreciation Expense
+D&A % of Revenue
+```
+
+**Tab 9: Shareholders' Equity Schedule**
+
+Column headers: Year 0, Year 1, Year 2, Year 3, Year 4, Year 5
+
+Row items:
+```
+COMMON STOCK
+
+Beginning Balance
+  New Issuance (at par)
+Ending Balance
+
+
+ADDITIONAL PAID-IN CAPITAL
+
+Beginning Balance
+  Stock-Based Compensation
+  Equity Issuance (excess over par)
+Ending Balance
+
+
+RETAINED EARNINGS
+
+Beginning Balance
+  Net Income
+  Dividends Declared
+Ending Balance
+
+
+TREASURY STOCK
+
+Beginning Balance
+  Share Buybacks
+Ending Balance
+
+
+AOCI (if applicable)
+
+Beginning Balance
+  Other Comprehensive Income
+Ending Balance
+
+
+TOTAL SHAREHOLDERS' EQUITY
+
+Common Stock
+Additional Paid-In Capital
+Retained Earnings
+Treasury Stock
+AOCI
+Total Equity
+
+
+SHARE COUNT
+
+Beginning Shares Outstanding
+  Shares Issued
+  Shares Repurchased
+Ending Shares Outstanding
+
+Weighted Average Shares
+Diluted Shares (if different)
+
+
+DIVIDENDS
+
+Net Income
+Payout Ratio %
+Dividends per Share
+Total Dividends Paid
+```
+
+**Tab 10: Ratio Analysis**
+
+Column headers: Year 1, Year 2, Year 3, Year 4, Year 5
+
+Row items:
+```
+PROFITABILITY RATIOS
+
+Gross Margin %
+EBITDA Margin %
+EBIT Margin %
+Net Margin %
+Return on Equity (ROE)
+Return on Assets (ROA)
+Return on Invested Capital (ROIC)
+
+
+LIQUIDITY RATIOS
+
+Current Ratio
+Quick Ratio
+Cash Ratio
+
+
+LEVERAGE RATIOS
+
+Total Debt / Equity
+Total Debt / EBITDA
+Net Debt / EBITDA
+Interest Coverage Ratio
+Fixed Charge Coverage Ratio
+
+
+EFFICIENCY RATIOS
+
+Asset Turnover
+Inventory Turnover
+Receivables Turnover
+Payables Turnover
+Cash Conversion Cycle (days)
+
+
+GROWTH METRICS
+
+Revenue Growth %
+EBITDA Growth %
+Net Income Growth %
+EPS Growth %
+Total Assets Growth %
+
+
+PER SHARE METRICS
+
+Basic EPS
+Diluted EPS
+Book Value per Share
+Dividends per Share
+Payout Ratio %
+```
+
+**Tab 11: Scenario Analysis**
+
+Three columns: Downside Case, Base Case, Upside Case
+
+Key Driver Assumptions:
+- Revenue Growth Rate (each year)
+- EBITDA Margin
+- CapEx % of Revenue
+- Working Capital Days
+
+Key Outputs by Scenario:
+- Year 5 Revenue
+- Year 5 EBITDA
+- Year 5 Net Income
+- Year 5 EPS
+- Year 5 Total Debt
+- Year 5 Cash
+- Year 5 Net Debt / EBITDA
+- Revenue CAGR
+- EBITDA CAGR
+
+Data tables showing sensitivity to key drivers
+
+**Tab 12: Charts**
+
+Chart 1: Revenue and EBITDA Trend
+- Combination chart
+- Blue bars: Revenue by year
+- Orange line: EBITDA Margin %
+- Shows growth trajectory and margin stability
+
+Chart 2: Profitability Waterfall
+- Waterfall chart for representative year
+- Revenue → Gross Profit → EBITDA → EBIT → EBT → Net Income
+- Shows margin compression at each step
+
+Chart 3: Cash Flow Bridge
+- Waterfall showing:
+- Starting: Net Income
+- Add: D&A and other non-cash
+- Add/Less: Working Capital changes
+- Less: CapEx
+- Less: Debt Service
+- Ending: Free Cash Flow
+
+Chart 4: Balance Sheet Composition
+- Stacked bar chart by year
+- Shows Assets composition (Cash, AR, Inventory, PP&E, Other)
+- Shows L+E composition (AP, Debt, Equity)
+
+Chart 5: Leverage Trajectory
+- Line chart showing:
+- Total Debt / EBITDA over time
+- Net Debt / EBITDA over time
+- Benchmark lines at 2.0x and 3.0x
+
+Chart 6: Returns Analysis
+- Line chart showing:
+- ROE over time
+- ROIC over time
+- ROA over time
+
+Chart 7: Working Capital Efficiency
+- Line chart showing:
+- DSO, DIO, DPO over time
+- Cash Conversion Cycle over time
+
+Chart 8: EPS Growth
+- Column chart showing EPS by year
+- Growth rate labels on each bar
+
+## Formatting Requirements
+
+**Numerical Formatting:**
+- Dollar values: $#,##0 (thousands or millions with label)
+- Percentages: 0.0% (one decimal)
+- Days: 0 (whole numbers)
+- Ratios: 0.0x (one decimal)
+- EPS: $0.00 (two decimals)
+- Shares: #,##0 (thousands or millions with label)
+- Growth rates: 0.0% (one decimal)
+
+**Cell Color Coding:**
+- Blue font: User-editable assumption inputs
+- Black font: Calculated values (formulas)
+- Green font: Positive variances or checks passing
+- Red font: Negative variances or checks failing
+- Gray shading: Subtotal rows
+- Yellow highlight: Key outputs
+
+**Row Formatting:**
+- Bold: Section headers and totals
+- Indent: Detail line items under headers
+- Double underline: Final totals (Net Income, Total Assets, etc.)
+- Top border: Subtotals
+- Bottom border: Section separators
+
+**Balance Check Formatting:**
+- Assets = L + E check in every period
+- Display "✓ BALANCED" in green if true
+- Display "✗ ERROR" in red if false
+- Cash Flow reconciliation check
+
+**Cell Protection:**
+- All assumption cells (blue font): Unlocked
+- All calculated cells (black font): Locked
+- Sheet protection enabled
+- Allow: Select locked cells, select unlocked cells, format cells
+
+## Error Handling
+
+The function must validate:
+- Balance sheet balances (Assets = Liabilities + Equity) in all periods
+- Cash flow statement reconciles to change in cash balance
+- No negative cash balance (unless revolver available)
+- Interest coverage ratio > 0 (company can service debt)
+- Revenue growth rates are reasonable (-50% to +200%)
+- Margins are between -100% and +100%
+- Working capital days are positive and reasonable (0-365 days)
+- Tax rate is between 0% and 50%
+- Shares outstanding are positive
+- All required fields are present in natural language input
+
+If validation fails, return error message specifying which constraint is violated.
+
+Circular reference handling:
+- Use iterative calculation (Excel setting) or
+- Use prior period debt balance for interest calculation (breaks circularity)
+- Clearly document approach used
+
+## Example Input
+
+"Build me a three-statement integrated financial model for Precision Manufacturing Inc, an industrial equipment company. I'll give you historical data and then projection assumptions.
+
+For historical context, fiscal year 2024 just ended with revenue of one point eight billion dollars. Cost of goods sold was one point one seven billion, giving us a gross margin of thirty-five percent. SG&A expenses were three hundred and sixty million, and R&D was fifty-four million. EBITDA came in at two hundred and sixteen million for a twelve percent EBITDA margin. Depreciation and amortization was ninety million. Interest expense was forty-five million on total debt of seven hundred and fifty million. Net income was fifty-four million after a twenty-five percent effective tax rate. We ended the year with ninety million in cash, twelve hundred million in total assets, and four hundred and fifty million in shareholders equity. There are fifty million shares outstanding.
+
+For the projections, I want a five-year model with the following assumptions. Revenue should grow at eight percent in year one as we expand into new geographic markets. Year two should see ten percent growth from new product launches. Years three through five will moderate to six percent annual growth as the market matures.
+
+Gross margin should improve from thirty-five percent to thirty-seven percent over the projection period as we realize manufacturing efficiencies from automation investments. Model this as a linear improvement.
+
+SG&A should decline from twenty percent of revenue to eighteen percent of revenue by year five as we leverage our existing infrastructure. R&D will stay constant at three percent of revenue to maintain our innovation pipeline.
+
+For working capital, use forty-five days sales outstanding for accounts receivable, sixty days inventory on hand, and forty days payable. Prepaid expenses run at one percent of revenue, and accrued liabilities are about fifteen percent of operating expenses.
+
+Capital expenditures will be elevated in the near term at seven percent of revenue in years one and two for the automation project, then normalize to five percent of revenue in years three through five. Depreciation should run at approximately five percent of revenue.
+
+On the debt side, we have seven hundred and fifty million in term debt at six percent interest with mandatory amortization of fifty million per year. We also have a one hundred and fifty million revolving credit facility available at LIBOR plus two fifty, call that seven percent all-in, with a half percent commitment fee on undrawn amounts. Assume we maintain a minimum cash balance of seventy-five million and use any excess cash to pay down the revolver first.
+
+The tax rate should stay at twenty-five percent. Stock-based compensation will be about one percent of revenue annually. We plan to pay dividends of fifty cents per share each year. No share buybacks planned.
+
+Please build the complete three-statement model with all supporting schedules, ratio analysis, and make sure the balance sheet balances in every period. Include charts showing the key trends."
+
+## Example Output
+
+**File name:** Precision_Manufacturing_3Statement_Model.xlsx
+
+**Tab 1: Executive Summary**
+
+```
+Precision Manufacturing Inc
+Three-Statement Integrated Financial Model
+Model Date: December 3, 2025
+Projection Period: 2025-2029 (5 Years)
+Currency: USD (millions unless noted)
+
+
+KEY FINANCIAL HIGHLIGHTS
+
+                            Historical  Year 1   Year 2   Year 3   Year 4   Year 5
+                            FY 2024     2025     2026     2027     2028     2029
+
+Revenue                     $1,800     $1,944   $2,138   $2,267   $2,403   $2,547
+  Growth %                    --        8.0%    10.0%     6.0%     6.0%     6.0%
+
+Gross Profit                 $630       $699     $781     $839     $901     $968
+  Gross Margin %            35.0%      36.0%    36.5%    37.0%    37.5%    38.0%
+
+EBITDA                       $216       $272     $321     $354     $392     $433
+  EBITDA Margin %           12.0%      14.0%    15.0%    15.6%    16.3%    17.0%
+
+Net Income                   $54        $95      $128     $152     $179     $209
+  Net Margin %               3.0%       4.9%     6.0%     6.7%     7.5%     8.2%
+
+Total Debt                   $750       $700     $650     $600     $550     $500
+Cash                         $90        $75      $81      $101     $130     $169
+Net Debt                     $660       $625     $569     $499     $420     $331
+
+EPS                         $1.08      $1.90    $2.56    $3.03    $3.59    $4.18
+  Growth %                    --       75.9%    34.7%    18.4%    18.5%    16.4%
+
+
+KEY METRICS SUMMARY
+
+Revenue CAGR (5-Year):                 7.2%
+EBITDA CAGR (5-Year):                 14.9%
+Net Income CAGR (5-Year):             31.1%
+EPS CAGR (5-Year):                    31.1%
+
+Ending Net Debt / EBITDA:             0.8x (Year 5)
+Ending Debt / Equity:                 0.6x (Year 5)
+Average ROIC:                         12.8%
+
+
+BALANCE SHEET CHECK
+
+Assets = Liabilities + Equity:        ✓ BALANCED (All Periods)
+Cash Flow Reconciliation:             ✓ VERIFIED (All Periods)
+```
+
+**Tab 2: Assumptions**
+
+```
+REVENUE ASSUMPTIONS
+
+Base Year Revenue (FY 2024):                    $1,800 million
+Year 1 (2025) Growth Rate:                      8.0%
+Year 2 (2026) Growth Rate:                      10.0%
+Year 3 (2027) Growth Rate:                      6.0%
+Year 4 (2028) Growth Rate:                      6.0%
+Year 5 (2029) Growth Rate:                      6.0%
+
+
+COST STRUCTURE ASSUMPTIONS
+
+Gross Margin:
+  Year 0 (Base):                                35.0%
+  Year 5 (Target):                              38.0%
+  Improvement Path:                             Linear (+0.6%/year)
+
+SG&A as % of Revenue:
+  Year 0 (Base):                                20.0%
+  Year 5 (Target):                              18.0%
+  Improvement Path:                             Linear (-0.4%/year)
+
+R&D as % of Revenue:                            3.0% (constant)
+
+D&A as % of Revenue:                            5.0%
+
+
+WORKING CAPITAL ASSUMPTIONS
+
+Days Sales Outstanding (DSO):                   45 days
+Days Inventory Outstanding (DIO):               60 days
+Days Payable Outstanding (DPO):                 40 days
+Prepaid Expenses % of Revenue:                  1.0%
+Accrued Liabilities % of Operating Expenses:   15.0%
+
+
+CAPITAL EXPENDITURE ASSUMPTIONS
+
+CapEx % of Revenue:
+  Years 1-2:                                    7.0% (automation investment)
+  Years 3-5:                                    5.0% (normalized)
+
+
+DEBT ASSUMPTIONS
+
+Existing Term Debt:
+  Beginning Balance:                            $750 million
+  Interest Rate:                                6.0%
+  Mandatory Amortization:                       $50 million/year
+
+Revolving Credit Facility:
+  Facility Size:                                $150 million
+  Interest Rate:                                7.0%
+  Commitment Fee (undrawn):                     0.5%
+  Beginning Balance Drawn:                      $0
+
+Minimum Cash Balance:                           $75 million
+Excess Cash Treatment:                          Pay down revolver
+
+
+TAX ASSUMPTIONS
+
+Effective Tax Rate:                             25.0%
+
+
+EQUITY ASSUMPTIONS
+
+Beginning Shares Outstanding:                   50 million
+Stock-Based Compensation (% of Revenue):       1.0%
+Dividends per Share:                            $0.50
+Share Buybacks:                                 None planned
+New Equity Issuance:                            None planned
+```
+
+**Tab 3: Income Statement**
+
+```
+INCOME STATEMENT                     FY 2024   Year 1   Year 2   Year 3   Year 4   Year 5
+($ millions)                         Actual    2025     2026     2027     2028     2029
+
+Revenue                              $1,800   $1,944   $2,138   $2,267   $2,403   $2,547
+  Growth %                              --     8.0%    10.0%     6.0%     6.0%     6.0%
+
+Cost of Goods Sold                  (1,170)  (1,244)  (1,358)  (1,428)  (1,502)  (1,579)
+  COGS % of Revenue                  65.0%    64.0%    63.5%    63.0%    62.5%    62.0%
+
+Gross Profit                          $630     $700     $781     $839     $901     $968
+  Gross Margin %                     35.0%    36.0%    36.5%    37.0%    37.5%    38.0%
+
+Operating Expenses:
+  Selling, General & Administrative  (360)    (379)    (407)    (422)    (437)    (458)
+    SG&A % of Revenue                20.0%    19.5%    19.0%    18.6%    18.2%    18.0%
+  Research & Development              (54)     (58)     (64)     (68)     (72)     (76)
+    R&D % of Revenue                  3.0%     3.0%     3.0%     3.0%     3.0%     3.0%
+Total Operating Expenses             (414)    (437)    (471)    (490)    (509)    (534)
+  OpEx % of Revenue                  23.0%    22.5%    22.0%    21.6%    21.2%    21.0%
+
+EBITDA                                $216     $263     $310     $349     $392     $434
+  EBITDA Margin %                    12.0%    13.5%    14.5%    15.4%    16.3%    17.0%
+
+Depreciation & Amortization           (90)     (97)    (107)    (113)    (120)    (127)
+  D&A % of Revenue                    5.0%     5.0%     5.0%     5.0%     5.0%     5.0%
+
+EBIT (Operating Income)               $126     $166     $203     $236     $272     $307
+  EBIT Margin %                       7.0%     8.5%     9.5%    10.4%    11.3%    12.0%
+
+Interest Expense:
+  Existing Term Debt Interest         (45)     (44)     (41)     (38)     (35)     (32)
+  Revolver Interest                    --       (0)      (0)      (0)      (0)      (0)
+  Commitment Fee                       --       (1)      (1)      (1)      (1)      (1)
+Total Interest Expense                (45)     (45)     (42)     (39)     (36)     (33)
+
+Interest Income                         1        1        1        1        1        1
+  Interest Rate on Cash               1.0%     1.0%     1.0%     1.0%     1.0%     1.0%
+
+Net Interest Expense                  (44)     (44)     (41)     (38)     (35)     (32)
+
+EBT (Earnings Before Tax)             $82     $122     $162     $198     $237     $275
+  EBT Margin %                        4.6%     6.3%     7.6%     8.7%     9.9%    10.8%
+
+Income Tax Expense                    (21)     (30)     (41)     (49)     (59)     (69)
+  Effective Tax Rate %               25.0%    25.0%    25.0%    25.0%    25.0%    25.0%
+
+Net Income                            $61      $91     $122     $148     $178     $206
+  Net Margin %                        3.4%     4.7%     5.7%     6.5%     7.4%     8.1%
+
+
+PER SHARE DATA
+
+Weighted Average Shares Outstanding    50       50       50       50       50       50
+Basic EPS                            $1.23    $1.83    $2.43    $2.96    $3.55    $4.13
+
+Diluted Shares Outstanding             50       50       50       50       50       50
+Diluted EPS                          $1.23    $1.83    $2.43    $2.96    $3.55    $4.13
+```
+
+[All cells contain formulas referencing Assumptions tab]
+
+**Tab 4: Balance Sheet**
+
+```
+BALANCE SHEET                        FY 2024   Year 1   Year 2   Year 3   Year 4   Year 5
+($ millions)                         Actual    2025     2026     2027     2028     2029
+
+ASSETS
+
+Current Assets:
+  Cash and Cash Equivalents           $90      $75      $83     $107     $141     $186
+  Accounts Receivable                 222      240      264      280      296      314
+    DSO (days)                         45       45       45       45       45       45
+  Inventory                           192      204      223      234      247      259
+    DIO (days)                         60       60       60       60       60       60
+  Prepaid Expenses                     18       19       21       23       24       25
+    Prepaid % of Revenue              1.0%     1.0%     1.0%     1.0%     1.0%     1.0%
+Total Current Assets                  $522     $539     $591     $643     $708     $785
+
+Non-Current Assets:
+  Property, Plant & Equipment, Net    $600     $639     $682     $704     $720     $729
+  Other Long-Term Assets               78       78       78       78       78       78
+Total Non-Current Assets              $678     $717     $760     $782     $798     $807
+
+TOTAL ASSETS                        $1,200   $1,256   $1,351   $1,425   $1,506   $1,592
+
+
+LIABILITIES
+
+Current Liabilities:
+  Accounts Payable                    $128     $136     $149     $157     $165     $173
+    DPO (days)                         40       40       40       40       40       40
+  Accrued Expenses                     62       66       71convergence       74       76       80
+    Accrued % of OpEx                 15.0%    15.0%    15.0%    15.0%    15.0%    15.0%
+  Current Portion of Long-Term Debt    50       50       50       50       50       50
+Total Current Liabilities             $240     $252     $270     $280     $291     $303
+
+Non-Current Liabilities:
+  Long-Term Debt                      $700     $650     $600     $550     $500     $450
+  Other Long-Term Liabilities           10       10       10       10       10       10
+Total Non-Current Liabilities         $710     $660     $610     $560     $510     $460
+
+TOTAL LIABILITIES                     $950     $912     $880     $840     $801     $763
+
+
+SHAREHOLDERS' EQUITY
+
+  Common Stock (at par)                 $5       $5       $5       $5       $5       $5
+  Additional Paid-In Capital          $195     $214     $236     $258     $282     $308
+  Retained Earnings                    $50     $125     $230     $322     $418     $516
+Total Shareholders' Equity            $250     $344     $471     $585     $705     $829
+
+TOTAL LIABILITIES + EQUITY          $1,200   $1,256   $1,351   $1,425   $1,506   $1,592
+
+
+BALANCE CHECK
+
+Total Assets                        $1,200   $1,256   $1,351   $1,425   $1,506   $1,592
+Less: Total Liabilities              (950)    (912)    (880)    (840)    (801)    (763)
+Less: Total Equity                   (250)    (344)    (471)    (585)    (705)    (829)
+Difference (should be zero)            $0       $0       $0       $0       $0       $0
+
+Status                             BALANCED BALANCED BALANCED BALANCED BALANCED BALANCED
+```
+
+[All cells contain formulas linking to Income Statement, Cash Flow, and Assumptions]
+
+**Tab 5: Cash Flow Statement**
+
+```
+CASH FLOW STATEMENT                              Year 1   Year 2   Year 3   Year 4   Year 5
+($ millions)                                     2025     2026     2027     2028     2029
+
+OPERATING ACTIVITIES
+
+Net Income                                        $91     $122     $148     $178     $206
+
+Adjustments for Non-Cash Items:
+  Depreciation & Amortization                      97      107      113      120      127
+  Stock-Based Compensation                         19       21       23       24       25
+  Deferred Income Taxes                             0        0        0        0        0
+Total Non-Cash Adjustments                        116      128      136      144      152
+
+Changes in Working Capital:
+  (Increase) / Decrease in Accounts Receivable    (18)     (24)     (16)     (17)     (18)
+  (Increase) / Decrease in Inventory              (13)     (18)     (12)     (12)     (13)
+  (Increase) / Decrease in Prepaid Expenses        (2)      (2)      (1)      (1)      (1)
+  Increase / (Decrease) in Accounts Payable         9       13        7        8        8
+  Increase / (Decrease) in Accrued Expenses         4        5        3        2        4
+Total Change in Working Capital                   (20)     (26)     (19)     (20)     (20)
+
+Cash Flow from Operating Activities              $187     $224     $265     $302     $338
+
+
+INVESTING ACTIVITIES
+
+  Capital Expenditures                           (136)    (150)    (113)    (120)    (127)
+  Acquisitions                                      0        0        0        0        0
+  Other Investing Activities                        0        0        0        0        0
+
+Cash Flow from Investing Activities             ($136)   ($150)   ($113)   ($120)   ($127)
+
+
+FINANCING ACTIVITIES
+
+  Proceeds from Debt Issuance                       0        0        0        0        0
+  Debt Repayments (Mandatory Amortization)        (50)     (50)     (50)     (50)     (50)
+  Revolver Draws / (Paydowns)                       0        0        0        0        0
+  Proceeds from Equity Issuance                     0        0        0        0        0
+  Share Buybacks                                    0        0        0        0        0
+  Dividends Paid                                  (25)     (25)     (25)     (25)     (25)
+  Other Financing Activities                        0        0        0        0        0
+
+Cash Flow from Financing Activities              ($75)    ($75)    ($75)    ($75)    ($75)
+
+
+NET CHANGE IN CASH                               ($24)      $8      $24      $34      $45
+
+Beginning Cash Balance                            $90      $75      $83     $107     $141
+Ending Cash Balance                               $75      $83     $107     $141     $186
+
+
+CASH FLOW RECONCILIATION
+
+Ending Cash per Cash Flow                         $75      $83     $107     $141     $186
+Ending Cash per Balance Sheet                     $75      $83     $107     $141     $186
+Difference                                         $0       $0       $0       $0       $0
+Status                                        VERIFIED VERIFIED VERIFIED VERIFIED VERIFIED
+
+
+FREE CASH FLOW ANALYSIS
+
+Cash Flow from Operating Activities              $187     $224     $265     $302     $338
+Less: Capital Expenditures                      (136)    (150)    (113)    (120)    (127)
+Free Cash Flow                                    $51      $74     $152     $182     $211
+
+FCF % of Net Income                             56.0%    60.7%   102.7%   102.2%   102.4%
+FCF % of Revenue                                 2.6%     3.5%     6.7%     7.6%     8.3%
+```
+
+**Tab 6: Debt Schedule**
+
+```
+DEBT SCHEDULE                        FY 2024   Year 1   Year 2   Year 3   Year 4   Year 5
+($ millions)                         Actual    2025     2026     2027     2028     2029
+
+EXISTING TERM DEBT
+
+Beginning Balance                     $750     $750     $700     $650     $600     $550
+  Mandatory Amortization               --      (50)     (50)     (50)     (50)     (50)
+  Optional Prepayment                  --        0        0        0        0        0
+Ending Balance                        $750     $700     $650     $600     $550     $500
+
+Average Balance                       $750     $725     $675     $625     $575     $525
+Interest Rate                         6.0%     6.0%     6.0%     6.0%     6.0%     6.0%
+Interest Expense                      ($45)    ($44)    ($41)    ($38)    ($35)    ($32)
+
+
+REVOLVING CREDIT FACILITY
+
+Facility Size                         $150     $150     $150     $150     $150     $150
+
+Beginning Balance                       $0       $0       $0       $0       $0       $0
+  Draws                                --        0        0        0        0        0
+  Paydowns                             --        0        0        0        0        0
+Ending Balance                          $0       $0       $0       $0       $0       $0
+
+Available Capacity                    $150     $150     $150     $150     $150     $150
+Utilization %                          0%       0%       0%       0%       0%       0%
+
+Average Balance                         $0       $0       $0       $0       $0       $0
+Interest Rate                         7.0%     7.0%     7.0%     7.0%     7.0%     7.0%
+Interest Expense                       ($0)     ($0)     ($0)     ($0)     ($0)     ($0)
+
+Undrawn Amount                        $150     $150     $150     $150     $150     $150
+Commitment Fee Rate                   0.5%     0.5%     0.5%     0.5%     0.5%     0.5%
+Commitment Fee                        ($1)     ($1)     ($1)     ($1)     ($1)     ($1)
+
+
+TOTAL DEBT SUMMARY
+
+Total Debt (Beginning)                $750     $750     $700     $650     $600     $550
+Total Debt (Ending)                   $750     $700     $650     $600     $550     $500
+Net Change in Debt                     --      ($50)    ($50)    ($50)    ($50)    ($50)
+
+Cumulative Debt Paid Down              --       $50     $100     $150     $200     $250
+% of Original Debt Paid                --      6.7%    13.3%    20.0%    26.7%    33.3%
+
+Total Interest Expense                ($45)    ($45)    ($42)    ($39)    ($36)    ($33)
+
+
+LEVERAGE METRICS
+
+Cash                                   $90      $75      $83     $107     $141     $186
+Net Debt (Total Debt - Cash)          $660     $625     $567     $493     $409     $314
+
+EBITDA                                $216     $263     $310     $349     $392     $434
+
+Total Debt / EBITDA                   3.5x     2.7x     2.1x     1.7x     1.4x     1.2x
+Net Debt / EBITDA                     3.1x     2.4x     1.8x     1.4x     1.0x     0.7x
+
+EBIT                                  $126     $166     $203     $236     $272     $307
+Interest Coverage (EBIT / Interest)   2.8x     3.7x     4.8x     6.1x     7.6x     9.3x
+```
+
+**Tab 7: Working Capital Schedule**
+
+```
+WORKING CAPITAL SCHEDULE             FY 2024   Year 1   Year 2   Year 3   Year 4   Year 5
+($ millions)                         Actual    2025     2026     2027     2028     2029
+
+ACCOUNTS RECEIVABLE
+
+Revenue                              $1,800   $1,944   $2,138   $2,267   $2,403   $2,547
+DSO Assumption (days)                    45       45       45       45       45       45
+Accounts Receivable Balance            $222     $240     $264     $280     $296     $314
+  Change in AR                          --      $18      $24      $16      $17      $18
+  Cash Impact                           --     ($18)    ($24)    ($16)    ($17)    ($18)
+
+
+INVENTORY
+
+COGS                                 $1,170   $1,244   $1,358   $1,428   $1,502   $1,579
+DIO Assumption (days)                    60       60       60       60       60       60
+Inventory Balance                      $192     $204     $223     $234     $247     $259
+  Change in Inventory                   --      $13      $18      $12      $12      $13
+  Cash Impact                           --     ($13)    ($18)    ($12)    ($12)    ($13)
+
+
+PREPAID EXPENSES
+
+Revenue                              $1,800   $1,944   $2,138   $2,267   $2,403   $2,547
+Prepaid % of Revenue                   1.0%     1.0%     1.0%     1.0%     1.0%     1.0%
+Prepaid Balance                         $18      $19      $21      $23      $24      $25
+  Change in Prepaid                     --       $2       $2       $1       $1       $1
+  Cash Impact                           --      ($2)     ($2)     ($1)     ($1)     ($1)
+
+
+ACCOUNTS PAYABLE
+
+COGS                                 $1,170   $1,244   $1,358   $1,428   $1,502   $1,579
+DPO Assumption (days)                    40       40       40       40       40       40
+Accounts Payable Balance               $128     $136     $149     $157     $165     $173
+  Change in AP                          --       $9      $13       $7       $8       $8
+  Cash Impact                           --       $9      $13       $7       $8       $8
+
+
+ACCRUED EXPENSES
+
+Operating Expenses                     $414     $437     $471     $490     $509     $534
+Accrued % of OpEx                     15.0%    15.0%    15.0%    15.0%    15.0%    15.0%
+Accrued Expenses Balance                $62      $66      $71      $74      $76      $80
+  Change in Accrued                     --       $4       $5       $3       $2       $4
+  Cash Impact                           --       $4       $5       $3       $2       $4
+
+
+NET WORKING CAPITAL SUMMARY
+
+Total Current Assets (ex-Cash)         $432     $464     $508     $536     $568     $599
+Total Current Liabilities (ex-Debt)    $190     $202     $220     $230     $242     $253
+Net Working Capital                    $242     $262     $289     $306     $326     $346
+
+NWC as % of Revenue                   13.4%    13.5%    13.5%    13.5%    13.6%    13.6%
+Change in NWC                           --      $20      $26      $17      $20      $20
+Cash Impact from NWC                    --     ($20)    ($26)    ($17)    ($20)    ($20)
+
+
+CASH CONVERSION CYCLE
+
+DSO (days)                              45       45       45       45       45       45
++ DIO (days)                            60       60       60       60       60       60
+- DPO (days)                           (40)     (40)     (40)     (40)     (40)     (40)
+= Cash Conversion Cycle (days)          65       65       65       65       65       65
+```
+
+**Tab 8: Fixed Asset Schedule (PP&E)**
+
+```
+PP&E SCHEDULE                        FY 2024   Year 1   Year 2   Year 3   Year 4   Year 5
+($ millions)                         Actual    2025     2026     2027     2028     2029
+
+PP&E ROLLFORWARD
+
+Beginning PP&E (Net)                   $600     $600     $639     $682     $704     $720
+  Plus: Capital Expenditures            --      136      150      113      120      127
+  Less: Depreciation                    --      (97)    (107)    (113)    (120)    (127)
+  Less: Disposals                       --        0        0        0        0        0
+Ending PP&E (Net)                      $600     $639     $682     $682     $704     $720
+
+
+CAPEX ANALYSIS
+
+Revenue                              $1,800   $1,944   $2,138   $2,267   $2,403   $2,547
+CapEx                                  $90     $136     $150     $113     $120     $127
+CapEx % of Revenue                    5.0%     7.0%     7.0%     5.0%     5.0%     5.0%
+CapEx / D&A Ratio                     1.0x     1.4x     1.4x     1.0x     1.0x     1.0x
+
+
+DEPRECIATION ANALYSIS
+
+Beginning PP&E (Net)                   $600     $600     $639     $682     $704     $720
+D&A Rate (implied)                    15.0%    16.2%    16.7%    16.6%    17.0%    17.6%
+Depreciation Expense                   $90      $97     $107     $113     $120     $127
+D&A % of Revenue                      5.0%     5.0%     5.0%     5.0%     5.0%     5.0%
+
+
+USEFUL LIFE ANALYSIS
+
+Average Useful Life (implied years)   6.7      6.2      6.0      6.0      5.9      5.7
+```
+
+**Tab 9: Shareholders' Equity Schedule**
+
+```
+SHAREHOLDERS' EQUITY SCHEDULE        FY 2024   Year 1   Year 2   Year 3   Year 4   Year 5
+($ millions)                         Actual    2025     2026     2027     2028     2029
+
+COMMON STOCK (AT PAR)
+
+Beginning Balance                       $5       $5       $5       $5       $5       $5
+  New Issuance (at par)                --        0        0        0        0        0
+Ending Balance                          $5       $5       $5       $5       $5       $5
+
+
+ADDITIONAL PAID-IN CAPITAL
+
+Beginning Balance                     $195     $195     $214     $236     $258     $282
+  Stock-Based Compensation             --       19       21       23       24       25
+  Equity Issuance (excess over par)    --        0        0        0        0        0
+Ending Balance                        $195     $214     $236     $258     $282     $308
+
+
+RETAINED EARNINGS
+
+Beginning Balance                      $50      $50     $116     $230     $322     $418
+  Net Income                           --       91      122      148      178      206
+  Dividends Declared                   --      (25)     (25)     (25)     (25)     (25)
+Ending Balance                         $50     $116     $213     $322     $418     $516
+
+[Note: Historical retained earnings adjusted to reflect full-year calculation]
+
+
+TREASURY STOCK
+
+Beginning Balance                       $0       $0       $0       $0       $0       $0
+  Share Buybacks                       --        0        0        0        0        0
+Ending Balance                          $0       $0       $0       $0       $0       $0
+
+
+TOTAL SHAREHOLDERS' EQUITY
+
+Common Stock                            $5       $5       $5       $5       $5       $5
+Additional Paid-In Capital            $195     $214     $236     $258     $282     $308
+Retained Earnings                      $50     $116     $213     $322     $418     $516
+Treasury Stock                          $0       $0       $0       $0       $0       $0
+Total Equity                          $250     $335     $454     $585     $705     $829
+
+
+SHARE COUNT
+
+Beginning Shares Outstanding           50       50       50       50       50       50
+  Shares Issued                        --        0        0        0        0        0
+  Shares Repurchased                   --        0        0        0        0        0
+Ending Shares Outstanding              50       50       50       50       50       50
+
+Weighted Average Shares                50       50       50       50       50       50
+
+
+DIVIDENDS
+
+Net Income                            $61      $91     $122     $148     $178     $206
+Dividends Declared                    $25      $25      $25      $25      $25      $25
+Payout Ratio %                       40.8%    27.5%    20.5%    16.9%    14.0%    12.1%
+Dividends per Share                 $0.50    $0.50    $0.50    $0.50    $0.50    $0.50
+```
+
+**Tab 10: Ratio Analysis**
+
+```
+RATIO ANALYSIS                       FY 2024   Year 1   Year 2   Year 3   Year 4   Year 5
+                                     Actual    2025     2026     2027     2028     2029
+
+PROFITABILITY RATIOS
+
+Gross Margin %                        35.0%    36.0%    36.5%    37.0%    37.5%    38.0%
+EBITDA Margin %                       12.0%    13.5%    14.5%    15.4%    16.3%    17.0%
+EBIT Margin %                          7.0%     8.5%     9.5%    10.4%    11.3%    12.0%
+Net Margin %                           3.4%     4.7%     5.7%     6.5%     7.4%     8.1%
+
+Return on Equity (ROE)                24.5%    27.3%    26.8%    25.3%    25.2%    24.9%
+  (Net Income / Avg Equity)
+Return on Assets (ROA)                 5.1%     7.4%     9.3%    10.6%    12.1%    13.3%
+  (Net Income / Avg Assets)
+Return on Invested Capital (ROIC)      9.4%    12.0%    13.4%    14.3%    15.3%    16.1%
+  (NOPAT / Invested Capital)
+
+
+LIQUIDITY RATIOS
+
+Current Ratio                         2.2x     2.1x     2.2x     2.3x     2.4x     2.6x
+  (Current Assets / Current Liab)
+Quick Ratio                           1.4x     1.3x     1.4x     1.5x     1.6x     1.7x
+  ((CA - Inventory) / CL)
+Cash Ratio                            0.4x     0.3x     0.3x     0.4x     0.5x     0.6x
+  (Cash / Current Liabilities)
+
+
+LEVERAGE RATIOS
+
+Total Debt / Equity                   3.0x     2.1x     1.4x     1.0x     0.8x     0.6x
+Total Debt / EBITDA                   3.5x     2.7x     2.1x     1.7x     1.4x     1.2x
+Net Debt / EBITDA                     3.1x     2.4x     1.8x     1.4x     1.0x     0.7x
+Interest Coverage Ratio               2.8x     3.7x     4.8x     6.1x     7.6x     9.3x
+  (EBIT / Interest)
+
+
+EFFICIENCY RATIOS
+
+Asset Turnover                        1.5x     1.5x     1.6x     1.6x     1.6x     1.6x
+  (Revenue / Avg Assets)
+Inventory Turnover                    6.1x     6.1x     6.1x     6.1x     6.1x     6.1x
+  (COGS / Avg Inventory)
+Receivables Turnover                  8.1x     8.1x     8.1x     8.1x     8.1x     8.1x
+  (Revenue / Avg AR)
+Payables Turnover                     9.1x     9.1x     9.1x     9.1x     9.1x     9.1x
+  (COGS / Avg AP)
+Cash Conversion Cycle (days)           65       65       65       65       65       65
+
+
+GROWTH METRICS
+
+Revenue Growth %                       --      8.0%    10.0%     6.0%     6.0%     6.0%
+EBITDA Growth %                        --     21.8%    17.9%    12.6%    12.3%    10.7%
+Net Income Growth %                    --     50.0%    33.8%    21.3%    20.3%    15.7%
+EPS Growth %                           --     50.0%    33.8%    21.3%    20.3%    15.7%
+Total Assets Growth %                  --      4.7%     7.5%     5.5%     5.7%     5.7%
+
+
+PER SHARE METRICS
+
+Basic EPS                            $1.23    $1.83    $2.43    $2.96    $3.55    $4.13
+Book Value per Share                 $5.00    $6.70    $9.07   $11.70   $14.10   $16.58
+Dividends per Share                  $0.50    $0.50    $0.50    $0.50    $0.50    $0.50
+Payout Ratio %                       40.8%    27.5%    20.5%    16.9%    14.0%    12.1%
+```
+
+**Tab 11: Scenario Analysis**
+
+```
+SCENARIO ANALYSIS
+
+                                    Downside    Base      Upside
+                                      Case      Case       Case
+
+KEY ASSUMPTIONS
+
+Revenue Growth (Avg, Y1-5):           4.0%      7.2%      10.0%
+EBITDA Margin (Year 5):              14.0%     17.0%      20.0%
+CapEx % of Revenue:                   6.0%      5.8%       5.5%
+Working Capital Days (CCC):            70        65         60
+
+
+YEAR 5 OUTPUTS
+
+Revenue                             $2,189    $2,547     $2,897
+EBITDA                               $306      $434       $579
+EBITDA Margin                       14.0%     17.0%      20.0%
+Net Income                           $133      $206       $307
+Net Margin                           6.1%      8.1%      10.6%
+EPS                                 $2.67     $4.13      $6.14
+
+Total Debt                           $500      $500       $500
+Cash                                 $115      $186       $289
+Net Debt                             $385      $314       $211
+Net Debt / EBITDA                    1.3x      0.7x       0.4x
+
+
+CUMULATIVE METRICS (5-Year)
+
+Revenue CAGR                         4.0%      7.2%      10.0%
+EBITDA CAGR                          7.2%     14.9%      21.8%
+Net Income CAGR                     16.7%     27.6%      38.1%
+EPS CAGR                            16.7%     27.6%      38.1%
+
+
+SENSITIVITY TABLES
+
+Year 5 Net Income ($M) - Revenue Growth vs EBITDA Margin
+
+Revenue         EBITDA Margin →
+Growth ↓        14%      15%      16%      17%      18%      19%      20%
+
+4%             $108     $131     $153     $175     $197     $220     $242
+5%             $115     $139     $163     $186     $210     $234     $258
+6%             $122     $148     $173     $198     $223     $249     $274
+7%             $130     $157     $184     $211     $237     $264     $291
+8%             $139     $167     $196     $224     $253     $282     $310
+
+[Base case highlighted at 7% growth, 17% margin = $211M]
+```
+
+**Tab 12: Charts**
+
+**Chart 1: Revenue and EBITDA Trend**
+- Combination chart
+- Blue columns: Revenue by year ($1,944M → $2,547M)
+- Orange line (right axis): EBITDA Margin % (13.5% → 17.0%)
+- X-axis: Year 1 through Year 5
+- Title: "Revenue Growth and Margin Expansion"
+
+**Chart 2: Profitability Waterfall - Year 5**
+- Waterfall chart
+- Starting bar: Revenue $2,547M
+- Down: COGS ($1,579M) → $968M Gross Profit
+- Down: Operating Expenses ($534M) → $434M EBITDA
+- Down: D&A ($127M) → $307M EBIT
+- Down: Net Interest ($32M) → $275M EBT
+- Down: Taxes ($69M) → $206M Net Income
+- Title: "Year 5 Income Statement Waterfall"
+
+**Chart 3: Free Cash Flow Bridge**
+- Waterfall chart
+- Starting: Net Income $206M
+- Up: D&A & Non-cash +$152M → $358M
+- Down: Working Capital ($20M) → $338M CFO
+- Down: CapEx ($127M) → $211M FCF
+- Down: Debt & Dividends ($75M) → $136M Net Cash Change
+- Title: "Year 5 Cash Flow Bridge"
+
+**Chart 4: Balance Sheet Composition**
+- 100% stacked bar chart by year
+- Assets breakdown: Cash, AR, Inventory, PP&E, Other
+- L+E breakdown: AP & Accrued, Debt, Equity
+- Shows deleveraging over time (debt portion shrinking)
+- Title: "Balance Sheet Composition Over Time"
+
+**Chart 5: Leverage Trajectory**
+- Line chart
+- Blue line: Total Debt / EBITDA (3.5x → 1.2x)
+- Orange line: Net Debt / EBITDA (3.1x → 0.7x)
+- Dotted reference lines at 2.0x and 3.0x
+- X-axis: FY 2024 through Year 5
+- Title: "Deleveraging Profile"
+
+**Chart 6: Returns Analysis**
+- Line chart with three lines
+- Blue: ROE (hovering around 25%)
+- Orange: ROIC (improving from 9.4% to 16.1%)
+- Green: ROA (improving from 5.1% to 13.3%)
+- X-axis: FY 2024 through Year 5
+- Title: "Return Metrics Improvement"
+
+**Chart 7: Working Capital Efficiency**
+- Line chart with two y-axes
+- Left axis (bars): NWC as % of Revenue (~13.5%)
+- Right axis (line): Cash Conversion Cycle (65 days, flat)
+- Shows stable working capital management
+- Title: "Working Capital Efficiency"
+
+**Chart 8: EPS Growth**
+- Column chart
+- EPS by year ($1.23 → $4.13)
+- Data labels showing growth rate on each bar
+- Compound growth annotation: 27.4% CAGR
+- Title: "Earnings Per Share Growth"
+
+## File Delivery Specifications
+
+**File format:** .xlsx (Excel 2016 or later)
+**File size:** Typically 600-1,000 KB (larger due to multiple schedules and charts)
+**Compatibility:** Excel 2016+, Google Sheets (with minor formatting differences)
+**Download method:** Direct download link generated immediately upon completion
+**File naming convention:** [CompanyName]_3Statement_Model_[Date].xlsx
+
+All formulas must remain intact and editable. No values should be hard-coded except in the blue-font assumption cells. All three financial statements must properly link to each other and to the supporting schedules. The balance sheet must balance (Assets = Liabilities + Equity) in every period. The cash flow statement must reconcile to the change in cash balance on the balance sheet in every period.
+
+The model should include error checks:
+- Balance sheet balance check (Assets - L - E = 0)
+- Cash flow reconciliation check (Ending Cash = BS Cash)
+- No negative cash balance (unless revolver drawn)
+- Circular reference handling (if applicable)
+- All ratios calculate correctly (no divide by zero errors)
+- All required fields present in natural language input

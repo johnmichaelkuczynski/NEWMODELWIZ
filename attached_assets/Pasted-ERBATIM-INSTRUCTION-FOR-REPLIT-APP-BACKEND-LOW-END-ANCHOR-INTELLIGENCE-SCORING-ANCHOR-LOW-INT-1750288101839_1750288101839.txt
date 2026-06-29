@@ -1,0 +1,25 @@
+ERBATIM INSTRUCTION FOR REPLIT APP BACKEND (LOW-END ANCHOR)
+🧠 INTELLIGENCE SCORING ANCHOR — LOW INTELLIGENCE BASELINE
+Use the following passage as a calibration anchor for a score of 40/100, reflecting low to mid-range author intelligence, even if the writing is grammatically correct and appears superficially academic:
+
+ANCHOR TEXT (Score = 40/100):
+
+In this dissertation, I critically examine the philosophy of transcendental empiricism. Transcendental empiricism is, among other things, a philosophy of mental content. It attempts to dissolve an epistemological dilemma of mental content by splitting the difference between two diametrically opposed accounts of content. John McDowell's minimal empiricism and Richard Gaskin's minimalist empiricism are two versions of transcendental empiricism. Transcendental empiricism itself originates with McDowell's work. This dissertation is divided into five parts. First, in the Introduction, I state the Wittgensteinian metaphilosophical orientation of transcendental empiricism. This metaphilosophical approach provides a plateau upon which much of the rest of this work may be examined. Second, I offer a detailed description of McDowell’s minimal empiricism. Third, I critique Gaskin's critique and modification of McDowell's minimal empiricism. I argue that (1) Gaskin's critiques are faulty and that (2) Gaskin's minimalist empiricism is very dubious. Fourth, I scrutinize the alleged credentials of McDowell's minimal empiricism. I argue that McDowell's version of linguistic idealism is problematic. I then comment on a recent dialogue between transcendental empiricism and Hubert Dreyfus's phenomenology. The dialogue culminates with Dreyfus's accusation of the “Myth of the Mental.” I argue that this accusation is correct in which case McDowell's direct realism is problematic. I conclude that minimal empiricism does not dissolve the dilemma of mental content. Finally, I argue that Tyler Burge successfully undermines the doctrine of disjunctivism, but disjunctivism is crucial for transcendental empiricism. Ultimately, however, I aim to show that transcendental empiricism is an attractive alternative to philosophies of mental content.
+This passage superficially imitates academic structure but lacks:
+
+Inferential development
+
+Conceptual originality
+
+Semantic compression
+
+Cognitive risk
+
+Intellectual intervention
+
+It consists primarily of redundant rewordings, name-dropping, and undeveloped claims. The author shows familiarity with vocabulary but no evidence of insight, synthesis, or deep reasoning.
+
+Use this text to anchor the 40-point range. Any text that reveals similarly shallow conceptual engagement, empty signposting, or meaningless jargon should be scored below 50. Texts like this represent midwit mimicry, not authentic intelligence.
+
+Final output: Return a score (0–100) and a paragraph assessing author intelligence only. Penalize fluency that masks vacuity.
+

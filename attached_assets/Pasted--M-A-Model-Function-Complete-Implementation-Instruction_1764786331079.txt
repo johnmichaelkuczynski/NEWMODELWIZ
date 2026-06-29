@@ -1,0 +1,1512 @@
+# M&A Model Function - Complete Implementation Instructions
+
+## Function Purpose
+Accept natural language description of a merger or acquisition transaction, extract all relevant deal parameters for both acquirer and target, construct pro forma combined financial projections including synergies, calculate accretion/dilution to acquirer's earnings per share, perform purchase price allocation, and generate a downloadable Excel file with working formulas, multiple deal structure scenarios, and sensitivity analysis on key value drivers.
+
+## Input Processing Requirements
+
+The function must parse natural language input and extract the following variables:
+
+**Acquirer Company Information:**
+- Company name
+- Current revenue (LTM or most recent fiscal year)
+- Revenue growth rate (historical and projected)
+- EBITDA or Operating Income
+- EBITDA/Operating margin
+- Depreciation & Amortization
+- Interest expense and debt balance
+- Tax rate
+- Shares outstanding
+- Current stock price or market capitalization
+- P/E ratio or earnings per share
+
+**Target Company Information:**
+- Company name
+- Current revenue (LTM or most recent fiscal year)
+- Revenue growth rate (historical and projected)
+- EBITDA or Operating Income
+- EBITDA/Operating margin
+- Depreciation & Amortization
+- Interest expense and debt balance
+- Tax rate
+- Shares outstanding (if public)
+- Current stock price or valuation
+- P/E ratio or earnings per share (if available)
+
+**Transaction Structure:**
+- Purchase price (absolute $ or as multiple of target's EBITDA/Revenue)
+- Consideration type:
+  - All cash
+  - All stock
+  - Mixed (cash + stock percentages)
+- Purchase price multiple (EBITDA multiple, Revenue multiple, or P/E multiple)
+- Premium paid (% over target's current market value if public)
+- Transaction closing date or expected closing timeframe
+
+**Financing Structure (if cash component):**
+- Cash from balance sheet
+- New debt issuance (amount, interest rate, term)
+- Equity issuance (if any)
+- Other sources
+
+**Synergies:**
+- Revenue synergies (amount and timing/phase-in)
+  - Cross-selling opportunities
+  - Market expansion
+  - Product bundling
+- Cost synergies (amount and timing/phase-in)
+  - Headcount reduction
+  - Facility consolidation
+  - Vendor rationalization
+  - Technology platform consolidation
+  - G&A efficiencies
+- Synergy realization timeline (% in year 1, 2, 3, etc.)
+
+**One-Time Costs:**
+- Integration costs (IT systems, facility closures, rebranding)
+- Severance and retention costs
+- Transaction fees (legal, banking, accounting)
+- Restructuring charges
+- Timeline for when these costs are incurred
+
+**Accounting Treatment:**
+- Goodwill and intangible assets assumptions
+- Amortization period for intangibles
+- Step-up in asset basis (if applicable)
+- Deferred tax impacts
+
+## Calculation Requirements
+
+The function must perform the following calculations with formulas (not hard-coded values):
+
+**Standalone Financial Projections:**
+
+For Acquirer (Years 1-5):
+1. Revenue = Previous Year × (1 + Growth Rate)
+2. EBITDA = Revenue × EBITDA Margin
+3. Less: D&A
+4. EBIT = EBITDA - D&A
+5. Less: Interest Expense
+6. EBT = EBIT - Interest
+7. Less: Taxes = EBT × Tax Rate
+8. Net Income = EBT - Taxes
+9. Shares Outstanding (if no dilution)
+10. EPS = Net Income / Shares Outstanding
+
+For Target (Years 1-5):
+- Same calculation structure as acquirer
+- Reflects standalone projections without deal
+
+**Transaction Accounting:**
+
+Purchase Price Allocation:
+1. Total Purchase Price (including assumed debt if applicable)
+2. Less: Target's Book Value of Equity
+3. Equals: Excess Purchase Price
+4. Allocate excess to:
+   - Identifiable Intangible Assets (customer relationships, technology, brand)
+   - Goodwill (residual)
+5. Additional D&A from intangibles = Intangibles / Amortization Period
+
+Sources of Funds:
+1. Cash from Balance Sheet
+2. New Debt Issuance
+3. Stock Consideration (Shares × Acquirer Stock Price)
+4. Total Sources
+
+Uses of Funds:
+1. Target Equity Value
+2. Target Net Debt (Debt - Cash assumed/refinanced)
+3. Transaction Fees
+4. Total Uses
+
+**Synergy Calculations:**
+
+Revenue Synergies by Year:
+1. Total Revenue Synergies (target amount)
+2. Year 1 = Total × Phase-in %
+3. Year 2 = Total × Cumulative Phase-in %
+4. Continue through full realization
+
+Cost Synergies by Year:
+1. Total Cost Synergies (EBITDA improvement)
+2. Year 1 = Total × Phase-in %
+3. Continue through full realization
+
+Integration Costs by Year:
+1. Total One-Time Costs
+2. Allocate by year based on timing assumptions
+3. These reduce Net Income but may be excluded from adjusted EPS
+
+**Pro Forma Combined Projections:**
+
+Revenue:
+1. Acquirer Standalone Revenue
+2. Plus: Target Standalone Revenue
+3. Plus: Revenue Synergies (phased-in)
+4. Less: Revenue Dis-synergies (if any - customer attrition, etc.)
+5. Pro Forma Combined Revenue
+
+EBITDA:
+1. Acquirer Standalone EBITDA
+2. Plus: Target Standalone EBITDA
+3. Plus: Cost Synergies (phased-in)
+4. Pro Forma Combined EBITDA (before integration costs)
+
+D&A:
+1. Acquirer Standalone D&A
+2. Plus: Target Standalone D&A
+3. Plus: Additional D&A from Purchase Price Allocation
+4. Pro Forma Combined D&A
+
+EBIT:
+1. Pro Forma EBITDA - Pro Forma D&A
+
+Interest Expense:
+1. Acquirer Existing Interest
+2. Plus: Target Assumed/Refinanced Debt Interest
+3. Plus: New Debt Interest (for acquisition financing)
+4. Pro Forma Combined Interest
+
+Net Income:
+1. Pro Forma EBIT - Pro Forma Interest - Pro Forma Taxes
+2. Less: Integration Costs (after-tax)
+3. Pro Forma Net Income
+
+**Share Count Calculation:**
+
+If Stock Consideration:
+1. Stock Portion of Purchase Price
+2. Divided by: Acquirer Stock Price
+3. Equals: New Shares Issued
+4. Pro Forma Shares = Existing Acquirer Shares + New Shares
+
+If Cash Consideration:
+1. Pro Forma Shares = Existing Acquirer Shares (no dilution)
+
+**Accretion/Dilution Analysis:**
+
+For each year:
+1. Acquirer Standalone EPS = Standalone Net Income / Standalone Shares
+2. Pro Forma EPS = Pro Forma Net Income / Pro Forma Shares
+3. EPS Impact = Pro Forma EPS - Standalone EPS
+4. % Accretion/(Dilution) = (Pro Forma EPS / Standalone EPS) - 1
+5. Positive % = Accretive (increases EPS)
+6. Negative % = Dilutive (decreases EPS)
+
+**Returns Metrics:**
+
+1. ROIC (Return on Invested Capital) = NOPAT / Invested Capital
+2. Payback Period = Purchase Price / Annual Synergies
+3. NPV of Synergies = PV of synergy cash flows
+4. Value Creation = NPV of Synergies - Purchase Price Premium
+
+**Sensitivity Analysis:**
+
+1. Accretion/Dilution sensitivity to Purchase Price and Synergy Realization
+2. Accretion/Dilution sensitivity to Purchase Price and Revenue Growth
+3. NPV sensitivity to Cost of Capital and Synergy Amount
+4. Pro Forma EPS sensitivity across multiple variables
+
+## Excel File Structure
+
+**Tab 1: Executive Summary**
+
+Deal Overview:
+- Acquirer company name
+- Target company name
+- Transaction announcement date
+- Expected closing date
+- Deal rationale summary
+
+Transaction Terms:
+- Total purchase price
+- Purchase price as multiple (EBITDA/Revenue/P/E)
+- Consideration breakdown (cash % / stock %)
+- Premium over target's market value (if public)
+
+Financing Structure:
+- Cash from balance sheet
+- New debt issued
+- Stock issued (shares and value)
+- Total sources = Total uses check
+
+Strategic Rationale:
+- Revenue synergies (total and year 1)
+- Cost synergies (total and year 1)
+- Total synergies
+- Synergy payback period
+- Integration costs
+
+Accretion/Dilution Summary:
+- Year 1 EPS impact (% accretive/dilutive)
+- Year 2 EPS impact
+- Year 3 EPS impact
+- First year of accretion (if initially dilutive)
+
+Key Metrics:
+- Pro forma revenue (year 1)
+- Pro forma EBITDA (year 1)
+- Pro forma EPS (year 1)
+- Purchase price / Target EBITDA
+- Goodwill created
+
+**Tab 2: Transaction Summary**
+
+Acquirer Profile (Current):
+- Revenue (LTM)
+- EBITDA (LTM)
+- EBITDA Margin %
+- Net Income
+- Shares Outstanding
+- Stock Price
+- Market Capitalization
+- EPS
+- P/E Ratio
+
+Target Profile (Current):
+- Revenue (LTM)
+- EBITDA (LTM)
+- EBITDA Margin %
+- Net Income
+- Valuation/Market Cap
+- EPS (if public)
+
+Purchase Price Analysis:
+- Equity Value Paid
+- Plus: Net Debt Assumed
+- Enterprise Value Paid
+- Valuation Multiples:
+  - EV / Revenue
+  - EV / EBITDA
+  - P / E (if public target)
+- Premium % (if public target)
+
+Sources of Funds:
+- Cash from Acquirer Balance Sheet: $, %
+- New Debt Issuance: $, %, Interest Rate
+- Stock Consideration: $, %, Shares Issued
+- Total Sources: $, 100%
+
+Uses of Funds:
+- Target Equity Value: $, %
+- Target Net Debt Refinanced: $, %
+- Transaction Fees & Costs: $, %
+- Total Uses: $, 100%
+
+Sources = Uses Validation: ✓ or ✗
+
+Post-Transaction Capital Structure:
+- Pro Forma Debt
+- Pro Forma Equity Value
+- Pro Forma Enterprise Value
+- Pro Forma Debt / EBITDA
+- Pro Forma Shares Outstanding
+
+**Tab 3: Assumptions**
+
+All assumption cells in blue font (user-editable):
+
+Acquirer Operating Assumptions:
+- Base Revenue (LTM)
+- Revenue Growth Rate (Years 1-5)
+- EBITDA Margin %
+- D&A as % of Revenue
+- Interest Expense (or Debt × Rate)
+- Tax Rate
+- Shares Outstanding
+- Current Stock Price
+
+Target Operating Assumptions:
+- Base Revenue (LTM)
+- Revenue Growth Rate (Years 1-5)
+- EBITDA Margin %
+- D&A as % of Revenue
+- Interest Expense
+- Tax Rate
+- Shares Outstanding (if applicable)
+- Current Valuation
+
+Transaction Assumptions:
+- Purchase Price (Equity Value)
+- Target Net Debt (Debt - Cash)
+- Total Enterprise Value
+- Purchase Price Multiple (EV/EBITDA)
+- Premium % (over current market value)
+
+Consideration Mix:
+- Cash Component: $, %
+- Stock Component: $, %
+- Shares Issued: #
+
+Financing Assumptions:
+- Cash from Balance Sheet: $
+- New Debt Amount: $
+- New Debt Interest Rate: %
+- New Debt Term: years
+
+Synergy Assumptions - Revenue:
+- Total Revenue Synergies (annual run-rate): $
+- Year 1 Realization: %
+- Year 2 Realization: %
+- Year 3 Realization: %
+- Year 4+ Fully Realized: 100%
+
+Synergy Assumptions - Cost:
+- Total Cost Synergies (EBITDA improvement): $
+- Year 1 Realization: %
+- Year 2 Realization: %
+- Year 3 Realization: %
+- Year 4+ Fully Realized: 100%
+
+Integration Costs:
+- Total One-Time Integration Costs: $
+- Year 1: $
+- Year 2: $
+- Year 3: $
+
+Purchase Price Allocation:
+- Identifiable Intangible Assets: $
+- Intangible Amortization Period: years
+- Annual Intangible Amortization: $
+- Goodwill (residual): $
+
+**Tab 4: Standalone Projections - Acquirer**
+
+Column headers: Year 0 (LTM), Year 1, Year 2, Year 3, Year 4, Year 5
+
+Income Statement:
+- Revenue ($M)
+- Revenue Growth %
+- EBITDA ($M)
+- EBITDA Margin %
+- Less: D&A ($M)
+- EBIT ($M)
+- EBIT Margin %
+- Less: Interest Expense ($M)
+- EBT ($M)
+- Less: Taxes ($M)
+- Net Income ($M)
+- Net Margin %
+
+Per Share Data:
+- Shares Outstanding (M)
+- EPS ($)
+- Stock Price (assumption)
+- P/E Ratio
+
+**Tab 5: Standalone Projections - Target**
+
+Same structure as Tab 4, for Target company standalone
+
+**Tab 6: Synergies & Integration Costs**
+
+Revenue Synergies:
+- Total Annual Run-Rate
+- Year 1: $, %
+- Year 2: $, %
+- Year 3: $, %
+- Year 4: $, %
+- Year 5: $, %
+
+Cost Synergies (EBITDA Impact):
+- Total Annual Run-Rate
+- Year 1: $, %
+- Year 2: $, %
+- Year 3: $, %
+- Year 4: $, %
+- Year 5: $, %
+
+Total Synergies:
+- Revenue + Cost by year
+
+Integration Costs (One-Time):
+- Year 1: $
+- Year 2: $
+- Year 3: $
+- Total: $
+
+Cost Breakdown:
+- IT Systems Integration
+- Facility Consolidation
+- Severance & Retention
+- Transaction Fees
+- Restructuring Charges
+- Other
+
+**Tab 7: Pro Forma Combined Financials**
+
+Column headers: Year 1, Year 2, Year 3, Year 4, Year 5
+
+Revenue Build:
+- Acquirer Standalone Revenue
+- Plus: Target Standalone Revenue
+- Plus: Revenue Synergies
+- Pro Forma Combined Revenue
+- Growth % vs Prior Year
+
+EBITDA Build:
+- Acquirer Standalone EBITDA
+- Plus: Target Standalone EBITDA
+- Plus: Cost Synergies
+- Less: Integration Costs (if affecting EBITDA)
+- Pro Forma Combined EBITDA
+- Pro Forma EBITDA Margin %
+
+D&A:
+- Acquirer Standalone D&A
+- Plus: Target Standalone D&A
+- Plus: Incremental D&A from Intangibles
+- Pro Forma Combined D&A
+
+EBIT:
+- Pro Forma EBITDA - Pro Forma D&A
+- Pro Forma EBIT Margin %
+
+Interest Expense:
+- Acquirer Existing Interest
+- Plus: Target Assumed Debt Interest
+- Plus: New Acquisition Debt Interest
+- Pro Forma Combined Interest
+
+EBT:
+- Pro Forma EBIT - Pro Forma Interest
+
+Taxes:
+- Pro Forma EBT × Tax Rate
+
+Net Income (GAAP):
+- Pro Forma EBT - Pro Forma Taxes
+- Less: After-Tax Integration Costs
+- Pro Forma Net Income
+
+Adjusted Net Income (Excluding Integration Costs):
+- Pro Forma Net Income + After-Tax Integration Costs
+
+Share Count:
+- Acquirer Standalone Shares
+- Plus: New Shares Issued
+- Pro Forma Shares Outstanding
+
+EPS:
+- Pro Forma EPS (GAAP)
+- Pro Forma Adjusted EPS (ex-integration costs)
+
+**Tab 8: Accretion/Dilution Analysis**
+
+Column headers: Year 1, Year 2, Year 3, Year 4, Year 5
+
+Acquirer Standalone:
+- Net Income
+- Shares Outstanding
+- EPS
+
+Pro Forma Combined:
+- Net Income (GAAP)
+- Net Income (Adjusted, ex-integration)
+- Shares Outstanding
+- EPS (GAAP)
+- EPS (Adjusted)
+
+Accretion/(Dilution) - GAAP Basis:
+- EPS Impact ($)
+- EPS Impact (%)
+- Accretive/Dilutive indicator
+
+Accretion/(Dilution) - Adjusted Basis:
+- EPS Impact ($)
+- EPS Impact (%)
+- Accretive/Dilutive indicator
+
+Cumulative Impact:
+- Cumulative EPS Accretion
+- Breakeven Year (if initially dilutive)
+
+Synergy Contribution Analysis:
+- EPS from Revenue Synergies
+- EPS from Cost Synergies
+- EPS Impact from Interest Expense
+- EPS Impact from Dilution
+- EPS Impact from Integration Costs
+
+**Tab 9: Purchase Price Allocation**
+
+Purchase Price Summary:
+- Equity Value Paid
+- Plus: Target Net Debt Assumed
+- Total Enterprise Value Paid
+
+Target Balance Sheet (Pre-Acquisition):
+- Total Assets (Book Value)
+- Total Liabilities (Book Value)
+- Shareholders' Equity (Book Value)
+
+Fair Value Adjustments:
+- Write-up of PP&E
+- Write-up of Inventory
+- Other Asset Adjustments
+- Fair Value of Assets
+
+Excess Purchase Price:
+- Enterprise Value Paid
+- Less: Fair Value of Net Assets
+- Excess to Allocate
+
+Allocation of Excess:
+- Customer Relationships: $, Amortization Period
+- Developed Technology: $, Amortization Period
+- Trade Names/Brands: $, Amortization Period
+- Other Intangibles: $, Amortization Period
+- Total Identifiable Intangibles
+- Goodwill (Residual)
+
+Annual Amortization Impact:
+- Customer Relationships Amortization
+- Technology Amortization
+- Brand Amortization
+- Other Amortization
+- Total Additional D&A
+
+**Tab 10: Sensitivity Analysis - Accretion/Dilution**
+
+Two-dimensional table 1: Year 1 EPS Accretion/(Dilution) %
+
+Purchase Price (rows): Range from (Base - 15%) to (Base + 15%) in 5% increments
+Cost Synergies (columns): Range from (Base - 40%) to (Base + 40%) in 20% increments
+Interior cells: Year 1 EPS impact %
+Base case highlighted
+Conditional formatting: Green (accretive), Red (dilutive)
+
+Two-dimensional table 2: Year 3 EPS Accretion/(Dilution) %
+
+Same structure as Table 1, showing Year 3 impact after synergies ramp
+
+**Tab 11: Sensitivity Analysis - Value Creation**
+
+NPV of Synergies sensitivity to Discount Rate and Synergy Realization
+
+Discount Rate (rows): 8% to 14% in 1% increments
+Synergy Realization (columns): 60% to 120% of base case in 15% increments
+Interior cells: NPV of synergies - Purchase price premium
+
+**Tab 12: Charts**
+
+Chart 1: Revenue Bridge
+- Waterfall chart showing:
+  - Acquirer Standalone Revenue (starting bar)
+  - Plus: Target Revenue
+  - Plus: Revenue Synergies
+  - Pro Forma Combined Revenue (ending bar)
+- Shows Year 1 and Year 5 side-by-side
+
+Chart 2: EBITDA Bridge
+- Similar waterfall showing EBITDA build
+- Acquirer + Target + Synergies = Pro Forma
+
+Chart 3: EPS Accretion/Dilution Over Time
+- Line chart showing:
+  - Acquirer Standalone EPS (dotted line)
+  - Pro Forma EPS (solid line)
+  - Shaded area between = accretion/dilution
+- X-axis: Years 1-5
+- Y-axis: EPS ($)
+
+Chart 4: Synergy Realization Timeline
+- Stacked area chart showing:
+  - Revenue Synergies (bottom layer)
+  - Cost Synergies (top layer)
+  - Shows ramp from Year 1 to full realization
+- X-axis: Years 1-5
+- Y-axis: Annual Synergies ($M)
+
+Chart 5: Accretion/Dilution Sensitivity Heatmap
+- Heatmap of Purchase Price × Cost Synergies
+- Color gradient: Red (highly dilutive) to Green (highly accretive)
+- Shows Year 1 EPS impact %
+
+Chart 6: Pro Forma Margin Expansion
+- Combination chart:
+  - Bars: Pro Forma EBITDA by year
+  - Line: Pro Forma EBITDA Margin %
+- Shows operational improvement over time
+
+## Formatting Requirements
+
+**Numerical Formatting:**
+- Dollar values: $#,##0 (millions) or $#,##0.00 for per-share amounts
+- Percentages: 0.0% (one decimal place)
+- Multiples: 0.0x (one decimal place)
+- Shares: #,##0 (millions)
+- EPS: $0.00 (two decimals)
+- Growth rates: 0.0%
+
+**Cell Color Coding:**
+- Blue font: User-editable assumption inputs
+- Black font: Calculated values (formulas)
+- Yellow highlight: Base case in sensitivity tables
+- Green cells: Accretive (positive EPS impact)
+- Red cells: Dilutive (negative EPS impact)
+- Gray shading: Subtotals and summary rows
+
+**Cell Protection:**
+- All assumption cells (blue font): Unlocked
+- All calculated cells (black font): Locked
+- Sheet protection enabled
+- Allow: Select locked cells, select unlocked cells, format cells
+
+## Error Handling
+
+The function must validate:
+- Sources = Uses (must balance exactly)
+- Purchase price is positive
+- Synergies are reasonable (typically <30% of target EBITDA for cost synergies)
+- Integration costs are reasonable (typically 5-15% of purchase price)
+- Tax rates are between 0% and 50%
+- Share prices are positive
+- Shares outstanding are positive
+- Growth rates are reasonable (-20% to +100%)
+- Margins are between 0% and 100%
+- Goodwill calculation is positive (purchase price > net assets)
+
+If validation fails, return error message specifying which constraint is violated.
+
+## Example Input
+
+"Build me an M&A model for FinTech Solutions acquiring PaymentPro. FinTech Solutions is the acquirer - they're a publicly traded payment processing company currently doing four point two billion dollars in annual revenue with thirteen percent EBITDA margins, so that's five hundred and forty-six million in EBITDA. They're growing revenue at eight percent per year. Their D&A runs at about three percent of revenue. They have two hundred million in annual interest expense on three billion dollars of debt, which implies a six point seven percent average interest rate. They're in a twenty-four percent tax jurisdiction. They have four hundred and fifty million shares outstanding trading at sixty-eight dollars per share, giving them a thirty point six billion dollar market cap. Their current EPS is two dollars and eighty cents, so they're trading at about twenty-four times earnings.
+
+PaymentPro is the target company - a private payment gateway provider doing nine hundred million in revenue with higher margins at nineteen percent EBITDA, so that's one hundred and seventy-one million in EBITDA. They're growing at twelve percent annually, faster than FinTech. Their D&A is two point five percent of revenue. They have forty million in interest expense on six hundred million of debt at a blended rate of six point six seven percent. Same tax rate of twenty-four percent since they're also US-based.
+
+We're proposing to acquire PaymentPro for two point four billion dollars in enterprise value, which represents fourteen times their LTM EBITDA - a meaningful premium given the strategic value. That enterprise value translates to one point eight billion in equity value after accounting for their six hundred million in net debt that we'll be refinancing.
+
+The deal structure will be seventy percent cash and thirty percent stock. So that's one point two six billion in cash and five hundred and forty million in stock consideration. For the cash portion, we'll use three hundred million from our balance sheet and raise nine hundred and sixty million in new debt at seven point five percent interest. The stock portion means we'll be issuing new shares at our current stock price of sixty-eight dollars, which comes out to about seven point nine million new shares.
+
+Transaction fees including investment banking, legal, and accounting will run about one point five percent of the enterprise value, so approximately thirty-six million dollars.
+
+On synergies, we see significant opportunities. Revenue synergies should be about one hundred and twenty million annually at full run-rate from cross-selling FinTech's enterprise payment solutions to PaymentPro's mid-market customer base. We'll realize thirty percent of these in year one, sixty percent in year two, and fully by year three.
+
+Cost synergies are even more compelling at one hundred and eighty million annually from consolidating redundant technology platforms, eliminating duplicate corporate functions, and leveraging our larger scale with vendors. These will phase in at forty percent in year one, seventy percent in year two, and one hundred percent by year three.
+
+Integration costs will be substantial given the technology platform consolidation required. Budget two hundred and fifty million total: one hundred and twenty million in year one for systems integration and severance, ninety million in year two for facility consolidation and remaining IT work, and forty million in year three for final integration activities and brand unification.
+
+For the purchase price allocation, assume we'll identify one hundred and fifty million in customer relationship intangibles with a ten-year amortization period, and two hundred million in developed technology intangibles with a seven-year life. The residual will be goodwill.
+
+Please build the full M&A model with standalone projections for both companies, detailed pro forma combined financials, comprehensive accretion-dilution analysis, and sensitivity tables showing how accretion changes with different purchase prices and synergy realization rates. I want to see this over a five-year projection period."
+
+## Example Output
+
+**File name:** FinTech_Solutions_PaymentPro_M&A_Model.xlsx
+
+**Tab 1: Executive Summary**
+
+```
+FinTech Solutions Acquisition of PaymentPro
+M&A Transaction Analysis
+
+TRANSACTION OVERVIEW
+Acquirer:                    FinTech Solutions
+Target:                      PaymentPro
+Transaction Type:            Strategic Acquisition
+Announcement Date:           December 3, 2025
+Expected Close:             Q1 2026
+
+
+TRANSACTION TERMS
+
+Purchase Price:
+Enterprise Value:            $2,400 million
+Less: Target Net Debt:       ($600) million
+Equity Value:               $1,800 million
+
+Valuation Multiples:
+EV / Revenue:               2.7x
+EV / EBITDA:                14.0x
+Premium to Market:          N/A (private company)
+
+Consideration:
+Cash (70%):                 $1,260 million
+Stock (30%):                $540 million
+Total:                      $1,800 million
+
+
+FINANCING STRUCTURE
+
+Sources of Funds:
+Cash from Balance Sheet:    $300 million (16.7%)
+New Debt Issuance:          $960 million (53.3%)
+Stock Consideration:        $540 million (30.0%)
+Total Sources:              $1,800 million
+
+New Shares Issued:          7.9 million
+Pro Forma Shares:           457.9 million
+% Dilution:                 1.7%
+
+
+STRATEGIC RATIONALE
+
+Annual Run-Rate Synergies:
+Revenue Synergies:          $120 million
+Cost Synergies:             $180 million
+Total Synergies:            $300 million
+
+Synergy / Purchase Price:   12.5%
+
+One-Time Integration Costs:
+Year 1:                     $120 million
+Year 2:                     $90 million
+Year 3:                     $40 million
+Total:                      $250 million
+
+Synergy Payback Period:     6.0 years (pre-tax)
+
+
+ACCRETION / (DILUTION) SUMMARY
+
+Year 1:
+Standalone EPS:             $2.94
+Pro Forma EPS (GAAP):       $2.82
+Pro Forma EPS (Adjusted):   $3.06
+Impact (Adjusted):          +$0.12 (+4.1%) ACCRETIVE
+
+Year 2:
+Standalone EPS:             $3.18
+Pro Forma EPS (GAAP):       $3.29
+Pro Forma EPS (Adjusted):   $3.48
+Impact (Adjusted):          +$0.30 (+9.4%) ACCRETIVE
+
+Year 3:
+Standalone EPS:             $3.43
+Pro Forma EPS (Adjusted):   $3.98
+Impact (Adjusted):          +$0.55 (+16.0%) ACCRETIVE
+
+
+KEY METRICS - YEAR 1
+
+Pro Forma Revenue:          $5,192 million
+Pro Forma EBITDA:           $888 million
+Pro Forma EBITDA Margin:    17.1%
+Pro Forma Net Income:       $1,402 million
+Pro Forma EPS:              $3.06 (adjusted)
+
+Purchase Price Allocation:
+Identifiable Intangibles:   $350 million
+Goodwill:                   $1,450 million
+Total Excess:               $1,800 million
+```
+
+**Tab 2: Transaction Summary**
+
+```
+ACQUIRER PROFILE - FinTech Solutions (Current)
+
+Revenue (LTM):                              $4,200 million
+EBITDA (LTM):                              $546 million
+EBITDA Margin:                             13.0%
+D&A:                                       $126 million
+EBIT:                                      $420 million
+Interest Expense:                          $200 million
+Net Income:                                $1,260 million
+Tax Rate:                                  24.0%
+
+Shares Outstanding:                        450 million
+Stock Price:                               $68.00
+Market Capitalization:                     $30,600 million
+Enterprise Value:                          $33,600 million
+EPS:                                       $2.80
+P/E Ratio:                                 24.3x
+
+
+TARGET PROFILE - PaymentPro (Current)
+
+Revenue (LTM):                              $900 million
+EBITDA (LTM):                              $171 million
+EBITDA Margin:                             19.0%
+D&A:                                       $23 million
+EBIT:                                      $148 million
+Interest Expense:                          $40 million
+Net Income:                                $82 million
+Tax Rate:                                  24.0%
+
+Valuation:                                 Private
+Net Debt:                                  $600 million
+
+
+PURCHASE PRICE ANALYSIS
+
+Equity Value Paid:                         $1,800 million
+Plus: Net Debt Assumed:                    $600 million
+Enterprise Value Paid:                     $2,400 million
+
+Valuation Multiples:
+EV / LTM Revenue:                          2.7x
+EV / LTM EBITDA:                           14.0x
+Equity Value / Net Income:                 22.0x
+
+
+SOURCES OF FUNDS
+
+                                Amount      % of Total
+Cash from Acquirer Balance Sheet   $300M      16.7%
+New Debt Issuance                  $960M      53.3%
+  Interest Rate: 7.5%
+Stock Consideration                $540M      30.0%
+  Shares Issued: 7.9M at $68.00
+Total Sources                    $1,800M     100.0%
+
+
+USES OF FUNDS
+
+                                Amount      % of Total
+Target Equity Value             $1,800M     100.0%
+Target Net Debt Refinanced        $600M      N/A (separate)
+Transaction Fees                   $36M       2.0%
+Total Uses                      $1,836M     102.0%
+
+[Transaction fees are added to goodwill in actual deal]
+
+SOURCES = USES: ✓ BALANCED
+
+
+POST-TRANSACTION CAPITALIZATION
+
+Pro Forma Debt:
+Acquirer Existing Debt:                    $3,000 million
+Plus: New Acquisition Debt:                $960 million
+Plus: Target Debt Refinanced:              $600 million
+Pro Forma Total Debt:                      $4,560 million
+
+Pro Forma Equity:
+Acquirer Market Cap:                       $30,600 million
+Plus: Stock Issued:                        $540 million
+Pro Forma Equity Value:                    $31,140 million
+
+Pro Forma Enterprise Value:                $35,700 million
+
+Pro Forma Shares Outstanding:              457.9 million
+Dilution from Stock Consideration:         1.7%
+
+Pro Forma Leverage:
+Total Debt / Pro Forma EBITDA:             5.1x (Year 1)
+```
+
+**Tab 3: Assumptions**
+
+```
+ACQUIRER OPERATING ASSUMPTIONS - FinTech Solutions
+
+Base Year Revenue (LTM):                   $4,200 million
+Revenue Growth Rate Y1-5:                  8.0%
+EBITDA Margin:                            13.0%
+D&A as % of Revenue:                      3.0%
+Interest Expense (Current):                $200 million
+Total Debt:                                $3,000 million
+Implied Interest Rate:                     6.7%
+Tax Rate:                                  24.0%
+Shares Outstanding:                        450 million
+Current Stock Price:                       $68.00
+Current EPS:                              $2.80
+
+
+TARGET OPERATING ASSUMPTIONS - PaymentPro
+
+Base Year Revenue (LTM):                   $900 million
+Revenue Growth Rate Y1-5:                  12.0%
+EBITDA Margin:                            19.0%
+D&A as % of Revenue:                      2.5%
+Interest Expense (Current):                $40 million
+Total Debt:                                $600 million
+Implied Interest Rate:                     6.7%
+Tax Rate:                                  24.0%
+
+
+TRANSACTION ASSUMPTIONS
+
+Purchase Price (Equity Value):             $1,800 million
+Target Net Debt (Assumed/Refinanced):      $600 million
+Total Enterprise Value:                    $2,400 million
+
+Purchase Price Multiple (EV/EBITDA):       14.0x
+Transaction Fees (% of EV):               1.5%
+Transaction Fees ($):                      $36 million
+
+
+CONSIDERATION MIX
+
+Cash Component:                            $1,260 million (70%)
+Stock Component:                           $540 million (30%)
+
+Stock Consideration:
+Acquirer Stock Price:                      $68.00
+Shares to be Issued:                       7.9 million
+Dilution %:                               1.7%
+
+
+FINANCING ASSUMPTIONS
+
+Cash from Acquirer Balance Sheet:          $300 million
+New Debt Issuance:                         $960 million
+New Debt Interest Rate:                    7.5%
+New Debt Term:                            10 years
+
+
+SYNERGY ASSUMPTIONS - REVENUE
+
+Total Annual Revenue Synergies:            $120 million
+Phase-in Schedule:
+  Year 1 Realization:                      30% ($36M)
+  Year 2 Realization:                      60% ($72M)
+  Year 3+ Realization:                     100% ($120M)
+
+Sources:
+- Cross-selling to target's customers
+- Geographic expansion
+- Product bundling
+
+
+SYNERGY ASSUMPTIONS - COST (EBITDA Impact)
+
+Total Annual Cost Synergies:               $180 million
+Phase-in Schedule:
+  Year 1 Realization:                      40% ($72M)
+  Year 2 Realization:                      70% ($126M)
+  Year 3+ Realization:                     100% ($180M)
+
+Sources:
+- Technology platform consolidation
+- Elimination of duplicate functions
+- Vendor rationalization
+- Facility consolidation
+- G&A efficiencies
+
+
+INTEGRATION COSTS (One-Time)
+
+Total Integration Costs:                   $250 million
+Timing:
+  Year 1:                                  $120 million
+  Year 2:                                  $90 million
+  Year 3:                                  $40 million
+
+Cost Categories:
+- IT systems integration:                  $100 million
+- Severance & retention:                   $75 million
+- Facility consolidation:                  $40 million
+- Branding & marketing:                    $20 million
+- Other restructuring:                     $15 million
+
+
+PURCHASE PRICE ALLOCATION
+
+Target Book Value of Equity:               N/A (private, use purchase price)
+Enterprise Value Paid:                     $2,400 million
+Less: Fair Value of Net Assets:            ($600 million estimate)
+Excess to Allocate:                        $1,800 million
+
+Identifiable Intangible Assets:
+- Customer Relationships:                  $150 million (10-year life)
+- Developed Technology:                    $200 million (7-year life)
+- Total Identifiable Intangibles:          $350 million
+
+Annual Amortization:
+- Customer Relationships:                  $15 million/year
+- Developed Technology:                    $29 million/year
+- Total Additional D&A:                    $44 million/year
+
+Goodwill (Residual):                       $1,450 million
+```
+
+**Tab 4: Standalone Projections - FinTech Solutions**
+
+```
+ACQUIRER STANDALONE PROJECTIONS          Year 0    Year 1    Year 2    Year 3    Year 4    Year 5
+                                         (LTM)
+
+Income Statement ($M):
+
+Revenue                                  4,200     4,536     4,899     5,291     5,714     6,171
+  Growth %                                --       8.0%      8.0%      8.0%      8.0%      8.0%
+
+EBITDA                                    546       590       637       688       743       803
+  EBITDA Margin %                        13.0%     13.0%     13.0%     13.0%     13.0%     13.0%
+
+Less: D&A                                (126)     (136)     (147)     (159)     (171)     (185)
+  D&A as % Revenue                       3.0%      3.0%      3.0%      3.0%      3.0%      3.0%
+
+EBIT                                      420       454       490       529       572       618
+  EBIT Margin %                          10.0%     10.0%     10.0%     10.0%     10.0%     10.0%
+
+Less: Interest Expense                   (200)     (200)     (200)     (200)     (200)     (200)
+
+EBT (Earnings Before Tax)                 220       254       290       329       372       418
+
+Less: Taxes                               (53)      (61)      (70)      (79)      (89)     (100)
+  Tax Rate                               24.0%     24.0%     24.0%     24.0%     24.0%     24.0%
+
+Net Income                                167       193       220       250       283       318
+
+
+PER SHARE DATA:
+
+Shares Outstanding (M)                    450       450       450       450       450       450
+EPS ($)                                  $0.37     $0.43     $0.49     $0.56     $0.63     $0.71
+Stock Price                             $68.00    [assumption]
+P/E Ratio                                24.3x
+```
+
+[Note: The LTM figures don't perfectly match summary due to simplified example, but formulas would be consistent in actual model]
+
+**Tab 5: Standalone Projections - PaymentPro**
+
+```
+TARGET STANDALONE PROJECTIONS            Year 0    Year 1    Year 2    Year 3    Year 4    Year 5
+                                         (LTM)
+
+Income Statement ($M):
+
+Revenue                                    900     1,008     1,129     1,265     1,416     1,586
+  Growth %                                --       12.0%     12.0%     12.0%     12.0%     12.0%
+
+EBITDA                                    171       192       215       240       269       301
+  EBITDA Margin %                        19.0%     19.0%     19.0%     19.0%     19.0%     19.0%
+
+Less: D&A                                 (23)      (25)      (28)      (32)      (35)      (40)
+  D&A as % Revenue                       2.5%      2.5%      2.5%      2.5%      2.5%      2.5%
+
+EBIT                                      148       167       187       208       234       261
+  EBIT Margin %                          16.5%     16.5%     16.5%     16.5%     16.5%     16.5%
+
+Less: Interest Expense                    (40)      (40)      (40)      (40)      (40)      (40)
+
+EBT (Earnings Before Tax)                 108       127       147       168       194       221
+
+Less: Taxes                               (26)      (31)      (35)      (40)      (47)      (53)
+  Tax Rate                               24.0%     24.0%     24.0%     24.0%     24.0%     24.0%
+
+Net Income                                 82        96       112       128       147       168
+```
+
+**Tab 6: Synergies & Integration Costs**
+
+```
+REVENUE SYNERGIES REALIZATION
+
+Total Annual Run-Rate:                   $120 million
+
+Year 1:     $36 million      30%
+Year 2:     $72 million      60%
+Year 3:     $120 million     100%
+Year 4:     $120 million     100%
+Year 5:     $120 million     100%
+
+
+COST SYNERGIES REALIZATION (EBITDA Impact)
+
+Total Annual Run-Rate:                   $180 million
+
+Year 1:     $72 million      40%
+Year 2:     $126 million     70%
+Year 3:     $180 million     100%
+Year 4:     $180 million     100%
+Year 5:     $180 million     100%
+
+
+TOTAL SYNERGIES
+
+Year 1:     $108 million
+Year 2:     $198 million
+Year 3:     $300 million
+Year 4:     $300 million
+Year 5:     $300 million
+
+
+INTEGRATION COSTS (One-Time, Pre-Tax)
+
+Year 1:     $120 million
+Year 2:     $90 million
+Year 3:     $40 million
+Total:      $250 million
+
+After-Tax Integration Costs (24% tax rate):
+
+Year 1:     $91 million
+Year 2:     $68 million
+Year 3:     $30 million
+Total:      $190 million
+
+
+COST BREAKDOWN:
+
+IT Systems Integration:              $100M
+Severance & Retention:               $75M
+Facility Consolidation:              $40M
+Branding & Marketing:                $20M
+Other Restructuring:                 $15M
+Total:                               $250M
+```
+
+**Tab 7: Pro Forma Combined Financials**
+
+```
+PRO FORMA COMBINED INCOME STATEMENT     Year 1    Year 2    Year 3    Year 4    Year 5
+                                         ($M)
+
+REVENUE BUILD:
+Acquirer Standalone Revenue              4,536     4,899     5,291     5,714     6,171
+Plus: Target Standalone Revenue          1,008     1,129     1,265     1,416     1,586
+Plus: Revenue Synergies                     36        72       120       120       120
+Pro Forma Combined Revenue               5,580     6,100     6,676     7,250     7,877
+  Growth % vs Prior Year                  --       9.3%      9.4%      8.6%      8.6%
+
+
+EBITDA BUILD:
+Acquirer Standalone EBITDA                 590       637       688       743       803
+Plus: Target Standalone EBITDA             192       215       240       269       301
+Plus: Cost Synergies                        72       126       180       180       180
+Pro Forma Combined EBITDA                  854       978     1,108     1,192     1,284
+  Pro Forma EBITDA Margin %               15.3%     16.0%     16.6%     16.4%     16.3%
+
+
+DEPRECIATION & AMORTIZATION:
+Acquirer Standalone D&A                    136       147       159       171       185
+Plus: Target Standalone D&A                 25        28        32        35        40
+Plus: Incremental Intangible Amortization   44        44        44        44        44
+Pro Forma Combined D&A                     205       219       235       250       269
+  D&A as % Revenue                        3.7%      3.6%      3.5%      3.4%      3.4%
+
+
+EBIT:
+Pro Forma EBITDA                           854       978     1,108     1,192     1,284
+Less: Pro Forma D&A                       (205)     (219)     (235)     (250)     (269)
+Pro Forma EBIT                             649       759       873       942     1,015
+  EBIT Margin %                           11.6%     12.4%     13.1%     13.0%     12.9%
+
+
+INTEREST EXPENSE:
+Acquirer Existing Interest                 200       200       200       200       200
+Plus: New Acquisition Debt Interest         72        72        72        72        72
+  ($960M × 7.5%)
+Plus: Target Refinanced Debt Interest       40        40        40        40        40
+  ($600M × 6.7%)
+Pro Forma Combined Interest                312       312       312       312       312
+
+
+EARNINGS BEFORE TAX:
+Pro Forma EBIT                             649       759       873       942     1,015
+Less: Pro Forma Interest                  (312)     (312)     (312)     (312)     (312)
+Pro Forma EBT                              337       447       561       630       703
+
+
+TAXES:
+Pro Forma EBT × 24%                        (81)     (107)     (135)     (151)     (169)
+
+NET INCOME (Before Integration Costs):     256       340       426       479       534
+
+
+INTEGRATION COSTS:
+After-Tax Integration Costs                (91)      (68)      (30)       --        --
+
+PRO FORMA NET INCOME (GAAP):               165       272       396       479       534
+
+
+ADJUSTED NET INCOME (Ex-Integration):      256       340       426       479       534
+
+
+SHARE COUNT:
+Acquirer Standalone Shares                 450       450       450       450       450
+Plus: New Shares Issued                      8         8         8         8         8
+Pro Forma Shares Outstanding               458       458       458       458       458
+
+
+EARNINGS PER SHARE:
+Pro Forma EPS (GAAP)                     $0.36     $0.59     $0.86     $1.05     $1.17
+Pro Forma Adjusted EPS                   $0.56     $0.74     $0.93     $1.05     $1.17
+  (Excluding Integration Costs)
+```
+
+[All cells contain formulas linking to Assumptions tab and Standalone Projections]
+
+**Tab 8: Accretion/Dilution Analysis**
+
+```
+ACCRETION / (DILUTION) ANALYSIS         Year 1    Year 2    Year 3    Year 4    Year 5
+
+ACQUIRER STANDALONE:
+Net Income ($M)                            193       220       250       283       318
+Shares Outstanding (M)                     450       450       450       450       450
+EPS ($)                                  $0.43     $0.49     $0.56     $0.63     $0.71
+
+
+PRO FORMA COMBINED:
+Net Income - GAAP ($M)                     165       272       396       479       534
+Net Income - Adjusted ($M)                 256       340       426       479       534
+Shares Outstanding (M)                     458       458       458       458       458
+
+Pro Forma EPS - GAAP ($)                 $0.36     $0.59     $0.86     $1.05     $1.17
+Pro Forma EPS - Adjusted ($)             $0.56     $0.74     $0.93     $1.05     $1.17
+
+
+ACCRETION / (DILUTION) - GAAP BASIS:
+EPS Impact ($)                          ($0.07)    $0.10     $0.30     $0.42     $0.46
+EPS Impact (%)                          (16.3%)    20.4%     53.6%     66.7%     64.8%
+Assessment:                              DILUTIVE  ACCRETIVE ACCRETIVE ACCRETIVE ACCRETIVE
+
+
+ACCRETION / (DILUTION) - ADJUSTED BASIS:
+(Excluding Integration Costs)
+EPS Impact ($)                           $0.13     $0.25     $0.37     $0.42     $0.46
+EPS Impact (%)                           30.2%     51.0%     66.1%     66.7%     64.8%
+Assessment:                              ACCRETIVE ACCRETIVE ACCRETIVE ACCRETIVE ACCRETIVE
+
+
+CUMULATIVE IMPACT - ADJUSTED BASIS:
+Cumulative EPS Accretion                 $0.13     $0.38     $0.75     $1.17     $1.63
+Breakeven Year:                          Immediately Accretive (Year 1)
+
+
+DRIVER ANALYSIS - ADJUSTED BASIS (Year 1):
+
+Acquirer Standalone EPS:                 $0.43
+
+EPS Contribution from:
+  + Target Earnings (undiluted):         $0.21
+  + Revenue Synergies:                   $0.02
+  + Cost Synergies:                      $0.04
+  - Additional Interest Expense:        ($0.09)
+  - Share Dilution Impact:              ($0.03)
+  - Additional Intangible Amortization: ($0.02)
+
+Pro Forma Adjusted EPS:                  $0.56
+
+Net Accretion:                           $0.13 (+30.2%)
+
+
+KEY INSIGHTS:
+- Transaction is immediately accretive on adjusted basis
+- GAAP basis shows dilution in Year 1 due to integration costs
+- Accretion increases significantly in Years 2-3 as synergies ramp
+- By Year 3, delivering 66% EPS accretion
+- Strong cost synergies ($180M) offset interest expense from financing
+```
+
+**Tab 9: Purchase Price Allocation**
+
+```
+PURCHASE PRICE ALLOCATION
+
+PURCHASE PRICE SUMMARY:
+Equity Value Paid:                       $1,800 million
+Plus: Target Net Debt Assumed:           $600 million
+Total Enterprise Value Paid:             $2,400 million
+Plus: Transaction Fees:                  $36 million
+Total Consideration:                     $2,436 million
+
+
+TARGET BALANCE SHEET (Estimated Fair Value):
+Current Assets:                          $250 million
+PP&E (Fair Value):                       $200 million
+Other Assets:                            $150 million
+Total Assets (Fair Value):               $600 million
+
+Current Liabilities:                     $100 million
+Long-Term Debt:                          $600 million
+Other Liabilities:                       $50 million
+Total Liabilities:                       $750 million
+
+Net Assets (Fair Value):                 ($150) million
+
+
+EXCESS PURCHASE PRICE:
+Total Consideration Paid:                $2,436 million
+Less: Fair Value of Net Assets:          ($150) million
+Excess to Allocate:                      $2,586 million
+
+
+ALLOCATION OF EXCESS PURCHASE PRICE:
+
+Identifiable Intangible Assets:
+
+Customer Relationships:                  $150 million
+  Useful Life:                          10 years
+  Annual Amortization:                  $15 million/year
+
+Developed Technology:                    $200 million
+  Useful Life:                          7 years
+  Annual Amortization:                  $29 million/year
+
+Total Identifiable Intangibles:          $350 million
+Total Annual Amortization:               $44 million/year
+
+Goodwill (Residual):                     $2,236 million
+  (Not amortized, subject to impairment testing)
+
+
+ANNUAL AMORTIZATION IMPACT:
+
+Customer Relationships:
+  Years 1-10:                            $15 million/year
+
+Developed Technology:
+  Years 1-7:                             $29 million/year
+  Years 8+:                              $0 million/year
+
+Total Additional D&A:
+  Years 1-7:                             $44 million/year
+  Years 8-10:                            $15 million/year
+  Years 11+:                             $0 million/year
+
+Tax Shield from Amortization:
+  @ 24% Tax Rate:                        $11 million/year (Years 1-7)
+```
+
+**Tab 10: Sensitivity Analysis - Year 1 Accretion/Dilution**
+
+```
+YEAR 1 EPS ACCRETION / (DILUTION) % - ADJUSTED BASIS
+Sensitivity to Purchase Price and Cost Synergy Realization
+
+Purchase           Cost Synergy Realization (% of $180M target) →
+Price ↓            20%     40%     60%     80%     100%    120%
+
+$1,530M (-15%)    44.5%   48.2%   51.9%   55.6%   59.3%   63.0%
+$1,620M (-10%)    40.8%   44.3%   47.8%   51.3%   54.8%   58.3%
+$1,710M (-5%)     37.1%   40.4%   43.7%   47.0%   50.3%   53.6%
+$1,800M (BASE)    33.4%   36.5%   39.6%   42.7%   45.8%   48.9%
+$1,890M (+5%)     29.7%   32.6%   35.5%   38.4%   41.3%   44.2%
+$1,980M (+10%)    26.0%   28.7%   31.4%   34.1%   36.8%   39.5%
+$2,070M (+15%)    22.3%   24.8%   27.3%   29.8%   32.3%   34.8%
+
+[Base case cell (Purchase Price=$1,800M, Cost Synergies=100%) is highlighted in yellow]
+[Shows 45.8% accretion - this is the adjusted basis Year 1 number]
+
+[Conditional formatting:]
+- Dark Green: >40% accretion
+- Light Green: 25-40% accretion
+- Yellow: 10-25% accretion
+- Orange: 0-10% accretion
+- Red: <0% (dilutive)
+
+
+YEAR 3 EPS ACCRETION / (DILUTION) % - ADJUSTED BASIS
+Sensitivity to Purchase Price and Revenue Synergy Realization
+
+Purchase           Revenue Synergy Realization (% of $120M target) →
+Price ↓            40%     60%     80%     100%    120%    140%
+
+$1,530M (-15%)    74.8%   76.2%   77.6%   79.0%   80.4%   81.8%
+$1,620M (-10%)    71.5%   72.8%   74.1%   75.4%   76.7%   78.0%
+$1,710M (-5%)     68.2%   69.4%   70.6%   71.8%   73.0%   74.2%
+$1,800M (BASE)    64.9%   66.0%   67.1%   68.2%   69.3%   70.4%
+$1,890M (+5%)     61.6%   62.6%   63.6%   64.6%   65.6%   66.6%
+$1,980M (+10%)    58.3%   59.2%   60.1%   61.0%   61.9%   62.8%
+$2,070M (+15%)    55.0%   55.8%   56.6%   57.4%   58.2%   59.0%
+
+[Base case: 68.2% accretion in Year 3]
+[By Year 3, all synergies fully ramped, integration costs complete]
+```
+
+**Tab 11: Sensitivity Analysis - NPV of Value Creation**
+
+```
+NPV OF SYNERGIES LESS PURCHASE PRICE PREMIUM
+(Value Creation Analysis)
+
+Discount         Synergy Realization (% of $300M annual target) →
+Rate ↓           60%      80%      100%     120%     140%
+
+8.0%            $1,057M  $1,476M  $1,895M  $2,314M  $2,733M
+9.0%            $884M    $1,245M  $1,606M  $1,967M  $2,328M
+10.0%           $730M    $1,040M  $1,350M  $1,660M  $1,970M
+11.0%           $593M    $857M    $1,121M  $1,385M  $1,649M
+12.0%           $469M    $692M    $915M    $1,138M  $1,361M
+
+Assumptions:
+- Synergies valued in perpetuity after Year 3 ramp
+- Tax-effected at 24% rate
+- NPV calculated vs. purchase price premium over target's standalone value
+- Positive values indicate value creation for acquirer shareholders
+
+[At base case 10% discount rate and 100% synergy realization: $1,350M value creation]
+[Color coding: Green >$1B, Yellow $500M-$1B, Red <$500M]
+```
+
+**Tab 12: Charts**
+
+**Chart 1: Revenue Bridge - Year 1 vs Year 5**
+- Waterfall chart with two sets of bars
+- Year 1 Bridge:
+  - Acquirer: $4,536M (starting bar)
+  - Target: +$1,008M
+  - Synergies: +$36M
+  - Pro Forma: $5,580M (ending bar)
+- Year 5 Bridge (side by side):
+  - Acquirer: $6,171M
+  - Target: +$1,586M
+  - Synergies: +$120M
+  - Pro Forma: $7,877M
+- Title: "Pro Forma Revenue Build"
+
+**Chart 2: EBITDA Bridge - Year 5**
+- Waterfall chart
+- Starting bar: Acquirer EBITDA $803M
+- Up bar: Target EBITDA +$301M → $1,104M
+- Up bar: Cost Synergies +$180M → $1,284M
+- Ending bar: Pro Forma EBITDA $1,284M
+- Shows margin expansion from 13.0% to 16.3%
+- Title: "Year 5 Pro Forma EBITDA Bridge"
+
+**Chart 3: EPS Accretion/Dilution Over Time**
+- Line chart with shaded area
+- Dotted line: Acquirer Standalone EPS ($0.43 → $0.71)
+- Solid line: Pro Forma Adjusted EPS ($0.56 → $1.17)
+- Shaded area between lines (green): Represents accretion
+- X-axis: Years 1-5
+- Y-axis: EPS ($0.00 to $1.20)
+- Annotation showing % accretion each year
+- Title: "EPS Accretion Analysis (Adjusted Basis)"
+
+**Chart 4: Synergy Realization Timeline**
+- Stacked area chart
+- Bottom layer (blue): Revenue Synergies ramping from $36M to $120M
+- Top layer (green): Cost Synergies ramping from $72M to $180M
+- Total height shows combined synergies: $108M → $300M
+- X-axis: Years 1-5
+- Y-axis: Annual Synergies ($M)
+- Title: "Synergy Realization Schedule"
+
+**Chart 5: Year 1 Accretion/Dilution Sensitivity Heatmap**
+- Heatmap visualization
+- X-axis: Cost Synergy Realization (20% to 120%)
+- Y-axis: Purchase Price ($1,530M to $2,070M)
+- Color gradient:
+  - Dark green: >50% accretion
+  - Light green: 30-50% accretion
+  - Yellow: 10-30% accretion
+  - Red: <10% or dilutive
+- Data labels showing % accretion in each cell
+- Base case cell outlined with thick border
+- Title: "Year 1 EPS Accretion Sensitivity"
+
+**Chart 6: Pro Forma EBITDA Margin Expansion**
+- Combination chart
+- Blue bars (left axis): Pro Forma EBITDA ($M) by year
+- Orange line (right axis): Pro Forma EBITDA Margin (%) by year
+- Shows improvement from 15.3% → 16.6% as synergies ramp
+- X-axis: Years 1-5
+- Title: "Pro Forma EBITDA and Margin Trajectory"
+
+## File Delivery Specifications
+
+**File format:** .xlsx (Excel 2016 or later)
+**File size:** Typically 500-900 KB
+**Compatibility:** Excel 2016+, Google Sheets (with minor formatting differences)
+**Download method:** Direct download link generated immediately upon completion
+**File naming convention:** [Acquirer]_[Target]_M&A_Model_[Date].xlsx
+
+All formulas must remain intact and editable. No values should be hard-coded except in the blue-font assumption cells. All calculation cells must contain formulas that reference assumption cells or other calculated cells. The accretion/dilution analysis must dynamically recalculate based on changes to purchase price, synergies, or financing assumptions. All sensitivity tables must use data table functionality to enable dynamic recalculation across all scenarios.
+
+The model should include error checks:
+- Sources = Uses validation
+- Positive EPS check (both standalone and pro forma)
+- Reasonable synergy assumptions (cost synergies typically <40% of target EBITDA)
+- Goodwill calculation is positive
+- Share count calculations are accurate (dilution math)
+- Tax rate validation (0-50%)

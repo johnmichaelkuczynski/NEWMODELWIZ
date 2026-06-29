@@ -1,0 +1,112 @@
+50 TWO-NUMBER PARSER TESTS (all outputs must be in millions)
+Tests 1–10: Purchase price + EBITDA
+
+Extract: “Purchase price $1.3B, EBITDA $150M.”
+
+Extract: “EV equals $980m and EBITDA equals $72m.”
+
+Extract: “Acquirer paid 2.05bn for a business with 210m EBITDA.”
+
+Extract: “Deal valued at $740M, EBITDA $62M.”
+
+Extract: “Enterprise value 1.6 billion, EBITDA 190 million.”
+
+Extract: “They paid 0.9bn for a company generating 85m of EBITDA.”
+
+Extract: “Total EV: $3.2B; EBITDA: $410M.”
+
+Extract: “EV $1.01B against EBITDA of $112M.”
+
+Extract: “EV was $550M, EBITDA $45M.”
+
+Extract: “The transaction: EV 4.8bn, EBITDA 325m.”
+
+Tests 11–20: Senior leverage + sub leverage
+
+Extract: “Financing: 4.5× senior, 1.2× sub.”
+
+Extract: “Leverage: senior 3.0×, sub 0.8×.”
+
+Extract: “Capital structure includes 5× senior and 1× subordinated.”
+
+Extract: “Debt package: 4.25× senior, 1.75× junior.”
+
+Extract: “Leverage profile: senior 2.5×, mezzanine 1.0×.”
+
+Extract: “Debt stack: 3.8× senior, 1.4× sub debt.”
+
+Extract: “Financing levels: senior 4×, second-lien 1.5×.”
+
+Extract: “Capital mix: 2.75× first lien, 0.9× sub.”
+
+Extract: “Leverage used: 3.2× senior, 1.1× junior.”
+
+Extract: “Structure: 4× senior, 1× subordinated.”
+
+Tests 21–30: EV + Debt
+
+Extract: “Enterprise value $1.25B, total debt $625M.”
+
+Extract: “EV is 980m and debt is 440m.”
+
+Extract: “Value: 2.9bn; debt: 1.2bn.”
+
+Extract: “Deal size $775M, borrowings $300M.”
+
+Extract: “EV 3.4 billion, debt 1.5 billion.”
+
+Extract: “Purchase price $520M, net debt $185M.”
+
+Extract: “Valuation 1.03bn, term loan 475m.”
+
+Extract: “EV: 5.2bn and gross debt: 2.7bn.”
+
+Extract: “Transaction price 600 million, debt 240 million.”
+
+Extract: “Target valued at 0.42bn, debt load 0.19bn.”
+
+Tests 31–40: Stock percent + cash percent
+
+(Outputs should be just the percentages as numbers.)
+
+Extract: “Deal mix: 30% stock, 70% cash.”
+
+Extract: “Consideration: 25% stock, 75% cash.”
+
+Extract: “Structure uses 40% equity, 60% cash.”
+
+Extract: “Offer includes 65% stock, 35% cash.”
+
+Extract: “The split is 80% equity, 20% cash.”
+
+Extract: “Tender consists of 15% stock, 85% cash.”
+
+Extract: “Buyout terms: 55% stock, 45% cash.”
+
+Extract: “Payment: 10% equity, 90% cash.”
+
+Extract: “Acquirer proposes 33% stock, 67% cash.”
+
+Extract: “Mix: 48% stock, 52% cash.”
+
+Tests 41–50: Hard mixed formats
+
+Extract: “Company valued at 1.33 billion with 625M debt.”
+
+Extract: “Purchase price $0.615B, equity rolled $44M.”
+
+Extract: “EV is 870m; fees total 14m.”
+
+Extract: “Valuation 4.75bn, cash on hand 0.64bn.”
+
+Extract: “Transaction size $980M, earn-out $50M.”
+
+Extract: “Debt outstanding 1.4bn, cash balance 275m.”
+
+Extract: “Offer: 2.5 billion, FCF 112 million.”
+
+Extract: “Raise 0.8bn, capex 67m.”
+
+Extract: “Combined sales $1.01B, synergies $39M.”
+
+Extract: “Valuation cap 1.6bn, management rollover 12%.”

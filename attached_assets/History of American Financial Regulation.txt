@@ -1,0 +1,490 @@
+The Case for Financial Regulation
+A History of Financial Regulation and Deregulation in the United States
+
+
+
+Table of Contents
+I. Introduction	3
+II. Regulating Finance before and during the Great Depression	4
+III. De-Regulating Finance (1978-2004)	6
+IV. Consequences of Deregulation, 2004-Present	9
+Glass-Steagall and Other Post-2008 Regulatory Measures	17
+V. Conclusion	35
+Bibliography	36
+
+
+I. Introduction
+      Before the 1929 Stock Market Crash, the nation’s financial system was highly unregulated.1 This led to improprieties on the part of financial systems that in their turn caused the 1929 Crash.2 The Fed responded to the Stock Market Crash by tightening monetary policy, because of which the Crash led to a full-blown economic depression.3 The government counter-responded by enacting a number of regulations that, while allowing the economy to grow, prevented financial chicanery on the part of financial institutions, leading to a 75 year period of stability and prosperity. The most important such regulatory provision was Glass-Steagall, which prohibited commercial banks from functioning as investment banks, thereby preventing banks from using customer funds to finance their own ventures.4
+      Beginning in the early 1980s, these regulations began to be dismantled. In 1999, Glass-Steagall was repealed; and in 2004, the derivatives market was deregulated. These measures, combined with many others of the same ilk, eliminated the firewalls put in place after the 1929 Crash.5 This resulted in the 2001 Dot Bomb Crash, which was the result of banks investing in what turned out to be tech startups, and later in the 2008 Housing Crash, which was the result of banks investing in what turned out to be worthless derivatives contracts.6
+
+
+
+1 Hall, M. (2008). Money. Heinemann-Raintree Library.
+2 Ibid.
+3 Konings, M. (2011). The development of American finance. Cambridge University Press.
+4 Sobel, R. (1999). Panic on Wall Street: A History of America's Financial Disasters. Beard Books.
+5 Litan, R. E. (2010). American finance for the 21st century. Brookings Institution Press.
+6 Ibid.
+
+      In response to the 2008 Crisis, the government passed Dodd-Frank, which reinstated many of the provisions of Glass-Steagall. Dodd-Frank has been effective at preventing many forms of misconduct on the part of banks.7 That said, because the banking sector is now so large, it can hurt the nation’s economy without breaking the law, this being a problem that cannot easily be regulated away.8
+      Section II will discuss financial regulation in the United States before and during the Great Depression. Section III will discuss the great wave of deregulation that occurred between 1978 and 2004. Section IV will discuss the aftermath of this wave of deregulation. In particular, it will discuss the 2008 Crash. Section IV will also discuss the measures taken by the government to mitigate the damage done by the 2008 and to prevent future such crashes. Section IV will also discuss the complex and ambiguous part played by the Federal Reserve in both the American Financial system and in attempts to regulate it.
+II. Regulating Finance before and during the Great Depression
+      In the American colonies, finance was almost completely unregulated. There did not even exist banks until 1781.9 The first significant act of financial regulation in American history was the creation in 1789 of the Bank of the United States (BUS), the nation’s first central bank. BUS performed much the same functions as today’s central bank, better known as the Federal Reserve: it loaned money to the government (by buying government bonds); loaned money to regional banks; regulated lending
+
+7 Maues, J. (2013). Banking Act of 1933 (Glass-Steagall). Federal Reserve History, November, 22.
+8 Goodhart, C., Hartmann, P., Llewellyn, D. T., Rojas-Suarez, L., & Weisbrod, S. (2013). Financial regulation: Why, how and where now?. Routledge.
+9 Hall, M. (2008). Money. Heinemann-Raintree Library.
+
+between regional banks and between banks and their respective customers; and functioned, at least in principle, as a ‘lender of last resort’, meaning that it would guarantee loans issued by banks under its control.10 By performing these various functions, so it was held, BUS would help stabilize the nation’s economy and, in particular, would limit the frequency and scope of financial crashes.11
+      In 1836, BUS’s charter was not renewed, because many in power felt that it had a stranglehold on the nation’s finances. The nation would not have another central bank until 1914. During this interim, the nation’s finances were semi-unregulated, to the point where many banks, especially on the Western frontier, issued their own currency.12 Although the nation as a whole prospered during this period, there were several banking-related crises, many of them involving banks’ having insufficient funds to cover customer withdrawals.13
+       Because of these crises, the Federal Reserve was established in 1914, its purpose being to guarantee the solvency of regional banks, control interest rates, issue currency, and loan money to the government.14 The Fed’s power was limited by the 1863 National Bank Act and the 1927 McFadden Act, which largely prohibited banks from being
+
+
+10 Barnett, G. E. (1911). State banks and trust companies since the passage of the National-bank act (Vol. 659). US Government Printing Office.
+Noyes, A. D. (1926). The War Period of American Finance, 1908-1925. GP Putnam's Sons.
+Unger, I. (2022). The Greenback Era: A Social and Political History of American Finance, 1865-1888. Graymalkin Media.
+11 Sobel, R. (1999). Panic on Wall Street: A History of America's Financial Disasters. Beard Books.
+12 Litan, R. E. (2010). American finance for the 21st century. Brookings Institution Press.
+13 Goodhart, C., Hartmann, P., Llewellyn, D. T., Rojas-Suarez, L., & Weisbrod, S. (2013). Financial regulation: Why, how and where now?. Routledge
+14 Moosa, I. A. (2016). Good Regulation, Bad Regulation: The Anatomy of Financial Regulation. Springer.
+
+operated or owned across state lines.15 The National Bank Act also required banks to have reserves equaling at least 25% of customer-deposits. With the creation of the Fed, reserve requirements were lowered to 7%-13%.16 The reasoning was that, because the Fed guaranteed customer deposits, reserve requirements could safely be lowered.17
+      The Fed’s charter was renewed just prior to the 1929 Crash. When the crash hit, the Fed was seen, not unreasonably, as having failed to do its job of stabilizing the nation’s financial system.18 The crash was caused by the bursting of a stock market bubble, coupled with the fact that commercial banks had invested customer-deposits in the stock market and had therefore lost those funds, leaving their customers with little or nothing. This situation was compounded by the fact that in many cases those banks had borrowed money from other banks to buy into the market, with the result that the banks’ creditors were bankrupted.19 This led to a massive wave of bank-foreclosures, which paralyzed the economy. Instead of trying to stem the tide of these foreclosures, the Fed decided not to intervene, its position being that these bank-failures, along with the ensuing business-failures, were the market undergoing a healthy correction.20 As a result, the economy further deteriorated, leading to the Great Depression.21
+
+15 Levitin, A. J. (2013). The politics of financial regulation and the regulation of financial politics: A review essay.
+16 Stroebel, J., & Taylor, J. B. (2012). Estimated impact of the Federal Reserve's mortgage-backed securities purchase program. international Journal of central Banking, 8(2).
+17 Acharya, V. V., & Richardson, M. (2009). Causes of the financial crisis. Critical review, 21(2-3), 195-210.
+18 Kroszner, R. S., & Rajan, R. G. (1994). Is the Glass-Steagall Act justified? A study of the US experience with universal banking before 1933. The American Economic Review, 810-832.
+19 Neal, L., & White, E. N. (2012). The glass–steagall act in historical perspective. The Quarterly Review of Economics and Finance, 52(2), 104-113.
+20 Fein, M. L. (1995). Functional Regulation: A Concept for Glass-Steagall Reform. Stan. JL Bus. & Fin., 2, 89.
+21 Ibid.
+
+      The government responded by attempting to regulate away the systemic issues that led to the crash. This involved several measures, three of which are especially significant. First, the government established the Federal Deposit Insurance Corporation (FDIC), which guarantees that bank-customers will not lose their funds in case of bank-insolvency.22 Second, the government created the Securities and Exchange Commission, which requires people and companies engaged in the sale of securities to operate with complete transparency. Third, and most importantly in this context, was the passage of the Glass-Steagall Act, which prohibited commercial banks from engaging in investment banking activities, including investing with customer-deposits. Glass Steagall also prohibited banks from owning holding companies or from selling insurance. These additional provisions were intended ensure that financial institutions would be transparent and to prevent them from becoming so large and differentiated that they could control markets.
+III. De-Regulating Finance (1978-2004)
+      A wave of deregulation began in the late 1970s. In Marquette vs. First of Omaha (1978), the Supreme Court ruled that, when charging interest, a national bank only had to comply with the usury laws of its home state, as opposed to its host state.23 (In other words, if a Bank X that is headquartered in a state where the interest rate is capped at 30% has a branch in a state where it is capped at 5%, X could now charge 30% interest in that state.)
+
+22 Wilmarth Jr, A. E. (2010). The Dodd-Frank Act: A flawed and inadequate response to the too-big-to-fail problem. Or. L. Rev., 89, 951.
+23 Marquette Nat. Bank v. First of Omaha Corp., 439 U.S. 299, 99 S. Ct. 540, 58 L. Ed. 2d 534 (1978).
+
+      In the 1980s, several acts were passed that deregulated the home loan industry.24 In 1980, the Depository Institutions Deregulation and Monetary Control Act was passed. This act allowed thrift banks (banks specializing in home loans) to charge higher interest rates than was previously allowed.25 And in 1982, the Garn-St. Germain Depository Institutions Act was passed. This act allowed thrift banks to function as commercial banks and vice versa. The passage of these two acts immediately led to a wave of thrift bank foreclosures, this being the so-called ‘Savings and Loan Crisis’ of the late 1980s; but deregulation nonetheless continued unabated.26
+      In 1994, Riegle-Neale passed, eliminating restrictions on interstate banking, effectively rescinding the 1865 National Bank Act and the 1927 McFadden Act. In 1996, the Fed decided that, Glass-Steagall notwithstanding, commercial banks could in fact engage in investment banking activities, so long as such activities generated no more than 5% of their gross revenue.
+      In 1998, Citicorp, a bank, merged with Travelers, and insurance company. Even though this merger violated Glass-Steagall, it occurred with the consent of the authorities, setting a clear precedent for further such violations.27
+      In 1999, the Gramm-Leach-Bliley act (Gramm-Leach) was passed.28 This act repeals Glass Steagall. Consequently, commercial banks were now able to do investment
+
+24 Allen, J. L. (2012). Derivatives clearinghouses and systemic risk: a bankruptcy and Dodd-Frank analysis. Stanford Law Review, 1079-1108.
+25 Ibid.
+26 Kuhner, T. K. (2015). The Corruption of Liberal and Social Democracies. Fordham L. Rev., 84, 2453.
+27 Abdel-Khalik, A. R. (2016). Transforming Big Banks into Bucket Shops: The Impact of Gramm-Leach-Bliley Act & The Commodity Futures Modernization Act.
+28 Ibid.
+
+banking. This had several consequences. First, commercial banks could invest customer deposits. It also meant that banks could invest customer funds ways that are both highly risky and highly complex and therefore difficult scrutinize.29
+      Gramm-Leach was deeply significant, owing to the profound differences between commercial and investment banking. Commercial banks store and loan money. Investment banks engage in highly complex large scale financial transactions.30 For example, they help companies merge; they raise capital for large corporate ventures; they underwrite initial public offerings; they help set up partnerships between the public and private sectors; and they trade securities in various different markets.31 To these ends, investment banks use extremely complex financial instruments, such as credit default swaps, and sometimes even design such instruments. Investment banking activities are hard to understand, especially for non-investment bankers, and therefore hard to regulate effectively.32
+      In 2000, the Commodity Futures Modernization Act (CFM) was passed. CFM deregulated the buying and selling of derivatives, which had previously been strictly overseen by the Commodity Futures Trading Commission (CMFT).33 A derivative is a contract whose value is a function of the value of some other security. For an example, a corn future (a contract to buy or sell corn at a fixed future price) is a derivative, since its
+
+29 Alper, C. E. (2014). Banking act of 1933 (Glass-Steagall bill). St. John's Law Review, 8(1), 38.
+30 Hawke Jr, J. D. (1986). Glass-Steagall Legacy: A Historical Perspective. NYL Sch. L. Rev., 31, 255.
+31 Ospina, J., & Uhlig, H. (2018). Mortgage-backed securities and the financial crisis of 2008: a post mortem (No. w24509). National Bureau of Economic Research.
+32 Maues, J. (2013). Banking Act of 1933 (Glass-Steagall). Federal Reserve History, November, 22.
+33 Kloner, D. (2001). The commodity futures modernization act of 2000. Securities Regulation Law Journal, 29(3), 286-286.
+
+value depends on the value of corn.34 Most derivatives are highly leveraged and highly risky, and they tend to be difficult to value.35 Also, there is no limit to how complex a derivative can be. For example, one can buy an option to buy a block of shares of a real estate investment trust (REIT) on the condition that the share value falls below x but doesn’t fall below y on the condition that it stays in that range for one week provided that the REIT’s p/e ratio remains above 20:1.36
+      Finally, in 2004, in SEC lowered reserve requirements for banks while increasing the amount of margin they could use when investing.37 This allowed banks to use up to 40x leverage on their investments, meaning that they could borrow $40 for every $1 of their own money that they put up.38
+
+IV. Consequences of Deregulation, 2004-Present
+Before discussing the aftermath of deregulation, let us take stock. Pre-1929, banks could engage in investment banking functions, including investing in the stock market, and they could use customer funds to do so.39 In the decade leading up to the crash, the American public invested heavily in the stock market. Banks participated in this, borrowing from their customers and from other banks to do so. This overinvestment
+
+34 Ibid.
+35 Agarwal, S., Barrett, J., Cun, C., & De Nardi, M. (2010). The asset-backed securities markets, the crisis, and TALF. Economic Perspectives, 34(4).
+36 Ibid.
+37 Crawford, C. (2011). The repeal of the Glass-Steagall Act and the current financial crisis. Journal of Business & Economics Research (JBER), 9(1).
+38 Ibid.
+39 Millon-Cornett, M. H., & Tehranian, H. (1989). Stock market reactions to the depository institutions deregulation and monetary control act of 1980. Journal of Banking & Finance, 13(1), 81-100.
+
+created a bubble. This bubble burst, and the banks lost their money as well as their customers’ money. The Fed responded with tight monetary policy, which exacerbated the situation, leading to the Great Depression. The government responded by regulating the financial sector. In particular, institutions were prohibited from engaging in both commercial and investment banking. More generally, financial institutions were prohibited from providing pluralities of services that might generate conflicts of interest. These measures helped protect bank customers and also kept financial markets transparent. Several decades after being imposed, these restrictions were withdrawn.
+This allowed banks to use customer funds to engage in highly complex and risky investments.
+      Now free from the regulations that had hobbled them during the previous several decades, banks began engaging in various markets. To this end, they borrowed heavily from their own customers and from other financial institutions.40 Banks invested especially heavily in the housing market, which at the time was growing rapidly. (This was facilitated by the previously mentioned deregulation of the home loan industry.)41 This led to a massive wave of bank-mergers and bank-takeovers. Banks having complementary specialties merged, so as to maximize their ability to capitalize on the housing market.42 (In particular, investment banks specializing in complex financial
+
+40 McNeill, C. R. (1980). The Depository Institutions Deregulation and Monetary Control Act of 1980. Fed. Res. Bull., 66, 444.
+41 Millon-Cornett, M. H., & Tehranian, H. (1989). Stock market reactions to the depository institutions deregulation and monetary control act of 1980. Journal of Banking & Finance, 13(1), 81-100.
+42 Abdel-Khalik, A. R. (2016). Transforming Big Banks into Bucket Shops: The Impact of Gramm-Leach-Bliley Act & The Commodity Futures Modernization Act. Available at SSRN 281410
+
+instruments merged with banks specializing in home loans.43) And large banks, some of them resulting from such mergers, simply bought out smaller banks.44 (In particular, large investment banks absorbed smaller banks that specialized in home loans.)45 During the 1980s and 1990s, there were approximately 7,300 such mergers and takeovers.46 The banks that remained offered an unprecedently wide range of services to unprecedently large customer-bases.47
+       These now hyper-powerful investment banks used complex derivatives to profit from the housing market, the most important of these being collateralized debt obligations (CDO).48 A CDO is a security (tradeable financial asset) consisting of a collection of debt-instruments, such as home loans and corporate bonds.49 The holder of a CDO receives regular payments, much as a bond-holder receives regular coupon payments.50 A Mortgage-backed Security (MBS) is a CDO that consists solely of
+real-estate loans, e.g., home loans and commercial property loans.51 Like most derivatives, CDO’s, including MBS’s, are typically highly leveraged, highly risky, and difficult to value. Thanks to the passage in 2000 of the Commodity Futures
+
+43 Ibid.
+44 Guillén, A. (2014). Financialization and financial profit. Brazilian Journal of Political Economy, 34, 451-470
+45 Ibid.
+46 Macey, J. R. (1984). Special interest groups legislation and the judicial function: the dilemma of Glass-Steagall. Emory LJ, 33, 1.
+47 Drew, M. E. (2010). The future of financial regulation: Lessons from the global financial crisis. Griffith Law Review, 19(1), 1-5.
+48 Ospina, J., & Uhlig, H. (2018). Mortgage-backed securities and the financial crisis of 2008: a post mortem (No. w24509). National Bureau of Economic Research.
+49 Lucas, D. J., Goodman, L. S., & Fabozzi, F. J. (2006). Collateralized debt obligations: structures and analysis (Vol. 140). John Wiley & Sons.
+50 Ibid.
+51 Fabozzi, F. J., & Goodman, L. S. (Eds.). (2001). Investing in Collateralized Debt Obligations (Vol. 81). John Wiley & Sons.
+
+Modernization Act, banks could now freely create, sell, and purchase CDO’s.52 A CDO’s value depends on the value of the underlying loans and therefore falls to zero if those loans are defaulted on, and MBS’s lose all their value if the underlying mortgages are defaulted on. Contrariwise, CDO’s are a reliable source of income so long as the underlying loans continued to be paid.53
+      CDO’s, and MBS’s in particular, are significant because they made it possible to financialize the real estate market.54 There is no way to understand the aftermath of deregulation without understanding this point, and a brief lesson in finance is therefore in order.
+      The price of a home tends to stay close to its value; the price will not fluctuate unless the actual value changes, and the price therefore tends to stay relatively constant in the short term.55 With securities, such as stocks, the situation is very different.56 In the short-term, there is very little relationship between the price of a stock and the value of the underlying company; the two can diverge without limit, and such divergences can occur instantaneously. If a large number of shares of a company are bought in a short period of time, the price is likely to soar, even though the value of the company hasn’t increased; and if a large number of shares are sold in a short period of time, the price is likely to plummet, even though the value of the company hasn’t decreased.57
+52 Gerding, E. (2013). Law, bubbles, and financial regulation. Routledge.
+53 Kloner, D. (2001). The commodity futures modernization act of 2000. Securities Regulation Law Journal, 29(3), 286-286.
+54 Maues, J. (2013). Banking Act of 1933 (Glass-Steagall). Federal Reserve History, November, 22.
+55 Ospina, J., & Uhlig, H. (2018). Mortgage-backed securities and the financial crisis of 2008: a post mortem (No. w24509). National Bureau of Economic Research.
+56 Ibid.
+57 Guillén, A. (2014). Financialization and financial profit. Brazilian Journal of Political Economy, 34, 451-470.
+
+      A corollary is that a person or institution with enough money can make a stock be valuable by buying it up and can also destroy its value by selling large quantities of it.58 Consequently, when real-estate debts were bundled into financial securities, such as MBS’s, the market could make them far more valuable than the underlying assets, and could do so in a matter of hours, and the market could equally easily and drive their value below that of the underlying assets.59 In a word, the price and the value of a security can diverge without limit and can do so more or less instantaneously; and this holds no less of MBS’s than it does of penny stocks. Importantly, investors can make money from increases and decreases in a security’s price; they make money from increases by by buying it outright or buying derivatives, such as call options, that increase with price-increases in the underlying); and they make money from decreases by short-selling it or buy buying derivatives, such as put-options, that increase in value with price-decreases in the underlying. Sophisticated investors are likely to have positions consisting of long and short positions, so as to profit from short-term
+price-fluctuations.60
+      Let us now discuss the relevance of these points to the aftermath of deregulation. Once mortgages and other real-estate debts were securitized, owners of these securities (mainly large investment banks) had enormous incentives to drive up the number of home loans issues, regardless of the quality of those loans.61 This is because, as just
+
+58 Ibid.
+59 Leifer, S. C. (2014). Protecting whistleblower protections in the Dodd–Frank Act. Michigan Law Review, 121-149.
+60 Wilmarth Jr, A. E. (2010). The Dodd-Frank Act: A flawed and inadequate response to the too-big-to-fail problem. Or. L. Rev., 89, 951.
+61 Gates, B. L. (2013). The SEC on a Forum Shopping Spree: SEC Enforcement Power and Control Person Liability After Dodd-Frank. Iowa L. Rev., 99, 393.
+
+explained, the value of MBS’s can diverge without limit from the value of the underlying assets, and traders are able to give value to inherently worthless securities, at least in the short and middle terms, simply by trading them up.62 Because investment banks now themselves owned many of the banks that issued such loans, they issued them aggressively, regardless of the creditworthiness (or lack thereof) of the loan recipients.63 As for mortgage-issuing banks that were not owned by large investment banks, they too had strong incentives to issue such loans, given that investment banks were eager to buy them from them.64
+A consequence is that subprime mortgages were issued at unprecedented levels.
+A subprime mortgage is a high-interest mortgage issued to someone who is not creditworthy, the high interest rate serving to hedge against high chance of default.65 The interest rates on subprime mortgages start out reasonably low, so as to bait new customers, and then lurch up after a few years, so as to generate profits for the mortgage-issuer.66
+      For many reasons, one of them being that mortgages were indeed issued so freely, housing prices quickly increased during the early 2000s. Home prices soon exceeded home-values and for a while continued to do by an ever-expanding margin, meaning that the housing market had entered bubble-territory. But while they last,
+62 Stine, A. C., & Gorman, E. D. (2012). Ebbing the Tide of Local Bank Concentration: Granting Sole Authority to the Department of Justice to Review the Competitive Effects of Bank Mergers. Syracuse L. Rev., 62, 405.
+63 Fabozzi, F. J. (Ed.). (2016). The handbook of mortgage-backed securities. Oxford University Press.
+64 Hira, A., Gaillard, N., & Cohn, T. H. (Eds.). (2019). The failure of financial regulation: why a major crisis could happen again. Springer.
+65 Ospina, J., & Uhlig, H. (2018). Mortgage-backed securities and the financial crisis of 2008: a post mortem (No. w24509). National Bureau of Economic Research.
+66 Hall, M. (2008). Money. Heinemann-Raintree Library.
+
+bubbles are not seen for what they are, and this was no exception.67 Consequently, the rise in home-prices was seen as evidence that homes were an increasingly good investment. Consequently, more and more people---and therefore more and more people who were insolvent and uninformed--bought into the housing market; and increasingly draconian subprime mortgages were issued to people who were increasingly unlikely to be able to repay them. Meanwhile, the large investment banks buying and securities these increasingly toxic mortgages. Since such investments were so profitable, they were often highly leveraged. Consequently, the finances of these investment banks, as well as of the banks they borrowed from, depended on the value of these securities.
+      Housing prices peaked in 2006 and then began to decline. There were ultimately two reasons for this. First, bubbles can only last so long; eventually, prices and values converge. When prices are inflated, demand eventually fails to keep pace with supply. At this point, holders of the inflated assets begin to take profits by selling them; this begins a cascade effect, which typically doesn’t until the asset has sold down to or below its actual value.
+      Second, many homeowners simply stopped making their mortgage payments.68 A disproportionate number of new homeowners had mortgages that greatly exceeded what they could afford and were in many cases simply insolvent; and the interest rates on those mortgages were often excessively high, making it doubly impossible for them
+67 Wilmarth Jr, A. E. (2010). The Dodd-Frank Act: A flawed and inadequate response to the too-big-to-fail problem. Or. L. Rev., 89, 951.
+68 Abdel-Khalik, A. R. (2016). Transforming Big Banks into Bucket Shops: The Impact of Gramm-Leach-Bliley Act & The Commodity Futures Modernization Act. Available at SSRN 2814100.
+
+to make their payments.69 Also, mortgage payments were hewed to inflated house-prices; and now that housing prices were sinking to their natural levels, it
+increasingly ceased to make financial sense for homeowners to continue to make their mortgage payments, since doing so was equivalent to paying Rolls Royce prices for a Toyota. This widened the circle of people who simply ceased to make their mortgage payments.70
+      As more and more people defaulted on their mortgage payments, the MBS’s consisting of these debt-obligations began to lose value. Indeed, because these MBS’s were leveraged, often as much as 40x, their value was proportionately inflated relative to already inflated housing prices: the MBS market was a bubble on top of the housing market bubble. Consequently, when MBS’s began to lose value, they did so at an exponential rate relative to the loss of value of the underlying debt-obligations.
+Consequently, the value of MBS’s reached zero well before that of the underlying debt-obligations. This is true of derivatives generally, especially highly leveraged one:
+moderate changes in the underlying cause massive changes in the derivative. And this is what happened here: home prices decreased by 10-20%, causing MBS’s to plummet in value, often to zero. Also, if an investment is highly leveraged, even a slight decrease is enough to ruin the investor. This is too is what happened here: large banks invested so much in MBS’s and used so much leverage in those investments that they simply weren’t in a position to pay their creditors when those investments tanked.
+
+
+69 Ibid.
+70 Ibid.
+
+      The so-called 2008 Crisis did not begin when housing prices began to fall. It began when the banks responsible for the housing bubble began to fall.71 This began in early 2007. Enough people had defaulted on their mortgages, causing a wave of bank foreclosures. This wave began with small, regional banks and worked its way up to national banks.72 In April 2007, New Century Financial, a large-scale subprime lender, filed for bankruptcy, this being the first foreclosure of scale. But the crisis began in earnest with the fall of Bear Stearns in April 2007.73 A multibillion-dollar investment bank, Bear Stearns was heavily invested in MBS’s and in other housing-related CDO’s. When homeowners defaulted on their mortgages, Bear Stearns’ portfolio plummeted in value.74 Because its assets were highly leveraged, this led to margin calls; and because these margin calls were so large, Bear Stearns decapitalized itself in the process of paying them. Meanwhile, its investors flocked to withdraw their money, but Bear Stearns no longer had their money. At this point, Bear Stearns was irredeemably insolvent.
+      In March 2008, J.P. Morgan bought up what was left of Bear Stearns. The federal government financed the takeover, by guaranteeing up to $30 billion dollars’ worth of the assets J.P. Morgan was purchasing. (In other words, if the assets being purchased turned out to be worth less than the purchase price, the government would give J.P. Morgan the difference in its entirety if it was less than $30 billion or it would give J.P.
+
+71 Fabozzi, F. J. (Ed.). (2016). The handbook of mortgage-backed securities. Oxford University Press.
+72 Moosa, I. A. (2016). Good Regulation, Bad Regulation: The Anatomy of Financial Regulation. Springer.
+73 Drew, M. E. (2010). The future of financial regulation: Lessons from the global financial crisis. Griffith Law Review, 19(1), 1-5.
+74 Ibid.
+
+Morgan $30 billion if the difference exceeded $30 billion.) When J.P. Morgan decided to buy out what was left of Bear Stearns, it believed that its net assets were valuable enough to warrant the money and effort involved, especially given the government’s
+$30 billion pledge of support. This proved to a mistake. The purchase price exceeded the net value of Bear Stearns’ assets by more than $30 billion. As agreed, the government gave J.P. Morgan $30 billion. But the deal was still a loser for J.P. Morgan, given how worthless its remaining assets proved to be and how huge its liabilities turned out to be.
+      Lehman Brothers, another giant investment bank, fell in September 2008. It did so for the same reasons as Bear Stearns: it was over-invested in CDO’s that became worthless when homeowners defaulted on their mortgages. The collapse of Lehman Brothers was even more catastrophic than that of Bear Stearns. First of all, Lehman Brothers was much larger than Bear Stearns. Before the collapse of the housing market, Lehman Brothers was worth approximately ten times as much as Bear Stearns; and after the collapse, it owed ten times as much. Therefore, in the case of Lehman Brothers, ten times as much debt was left unpaid.75 As with Bear Stearns, Lehman Brothers had invested on margin, borrowing up to $40 for every $1 one of its own that it used. When CDO’s plummeted in value, Lehman owed many times more money than it had, and it therefore couldn’t pay its debts. Much of this debt was to creditor banks, and these were therefore ruined when Lehman Brothers defaulted. The government refused to bail out Lehman, largely because its debts were too large; and it refused to provide any
+
+75 Allen, J. L. (2012). Derivatives clearinghouses and systemic risk: a bankruptcy and Dodd-Frank analysis. Stanford Law Review, 1079-1108.
+
+assistance or guarantees to any institution willing to buy up what was left of Lehman. Consequently, Lehman’s book of business simply vanished, and its creditors were paid nothing.76
+      The so-called crisis of 2008 was really two distinct crises: a housing crisis and a banking crisis.77 Housing prices were inflated, and these inflated prices eventually began to sink to their natural levels, which financially devastated the millions of people who had bought homes at inflated prices: this was the housing crisis.78 It also destroyed the many banks that had financed the housing bubble, which greatly limited accessibility to capital: this was the banking crisis. The first crisis decreased the amount of wealth, which diminished quality of life. The second crisis diminished the amount of credit, which impaired the economy’s ability to regenerate that lost wealth.79 Economies depend on credit as much as they do on wealth; when businesses cannot borrow, they fail and the economy therefore fails. The banking crisis decapitalized the banks that had invested in the housing market, and it decapitalized the banks that had lent those banks the money to invest in the housing market. The result was a banking system that was increasingly unable to extend credit to businesses and people who needed it.
+Glass-Steagall and Other Post-2008 Regulatory Measures
+      While this wave of bank failures was occurring, there were two schools of thought concerning it. One the one, for the reasons just given, some held that the
+
+76 Kuhner, T. K. (2015). The Corruption of Liberal and Social Democracies. Fordham L. Rev., 84, 2453.
+77 Allen, J. L. (2012). Derivatives clearinghouses and systemic risk: a bankruptcy and Dodd-Frank analysis. Stanford Law Review, 1079-1108.
+78 Ibid.
+79 Ibid.
+
+government should stop the foreclosures by bailing out the banks.80 On the other hand, some held that the banks were failing because they were failing the economy and that they should therefore be allowed to fail. The government took the position that the banks should be bailed out. If the banking system were allowed to collapse, so the official reasoning went, the economy would grind to a halt; and the banks must therefore be bailed out, however misguided their previous conduct had been.81
+      So, in 2008, the government passed the Emergency Economic Stabilization Act (EESA). The most important provision of this act was to spend $700 billion buying CDO’s from the banks that owned them. Since these CDO’s were now worthless, this amounted to simply giving failing banks $700 billion. As this money was being distributed, millions of Americans continued to lose their homes; the total number of homes lost was 3.8 million.82 EESA met with fierce criticism from two quarters. On the one hand, many were outraged at the fact that banks were essentially being rewarded for nearly destroying the economy through incompetence and greed, especially when little was being done to help the millions who had lost their homes or the millions who had lost their jobs because of the financial crisis.83 On the other hand, many held that the government bailout was preventing the economy from purging itself of these various failed banks and either replacing them with new and better banks and possibly developing a new and better kind of banking.84
+
+80 Hira, A., Gaillard, N., & Cohn, T. H. (Eds.). (2019). The failure of financial regulation: why a major crisis could happen again. Springer.
+81 Ibid.
+82 Gerding, E. (2013). Law, bubbles, and financial regulation. Routledge.
+83 Ibid.
+84 Ibid.
+
+      The crisis caused the stock market to plummet: it was the worst stock market crash since 1929, surpassing even the 2000 dot com crash. EESA prevented the stock market from falling even further, and this would certainly appear to be EESA’s credit. But even this is questionable. The reason the bailout stabilized the stock market is that the banks that were being bailed owned a disproportionate amount of the stocks in the market. Therefore, so it could be argued, the bailout simply allowed these banks to maintain control over the market. On the other hand, so it could be argued, bank participation in the market helps finance the companies whose stock is being traded.
+Exactly how this debate is to be adjudicated is not clear; the relevant fact is that EESA, though perhaps ultimately good for the economy, was not unambiguously so.85
+      In 2008, the government passed and implemented the Economic Stimulus ACT (ESA) which provided massive tax breaks to individuals and businesses. This greatly increased the amount of money that people and businesses had at their disposal to spend and invest with.86 At the same time, the Federal Reserve lowered interest rates from 4.25% to near zero—the lowest in the history of the Fed.87 Both measures were designed to maximize the amount of liquidity in the economy. This lowered the cost of borrowing money, increasing the ability of people and businesses to spend and invest.88 As intended, both measures increased spending and investment.89 This helped the
+85 Stroebel, J., & Taylor, J. B. (2012). Estimated impact of the Federal Reserve's mortgage-backed securities purchase program. international Journal of central Banking, 8(2).
+86 Crawford, C. (2011). The repeal of the Glass-Steagall Act and the current financial crisis. Journal of Business & Economics Research (JBER), 9(1).
+87 Ibid.
+88 Crawford, C. (2011). The repeal of the Glass-Steagall Act and the current financial crisis. Journal of Business & Economics Research (JBER), 9(1).
+89 Agarwal, S., Barrett, J., Cun, C., & De Nardi, M. (2010). The asset-backed securities markets, the crisis, and TALF. Economic Perspectives, 34(4).
+
+economy to recover. It also led to a stock market boom. (This boom turned into a bubble, which burst in early 2022, resulting in another stock market crash. The relevance of this is discussed below.)90
+      There are two schools of thought concerning these two measures.91 On the one hand, some believe they were necessary to prevent the crisis from leading to a depression. On the other hand, some believe that, although they provided short term economic relief, they ultimately weakened the economy by debasing the currency and increasing dependence, on the part of both businesses and individuals, on government handouts.92 Either way, they clearly gave the economy a much-wanted short-term boost. At the same time, they did nothing to change the regulatory framework that had allowed the crisis to happen in the first place. Nonetheless, the government did attempt to make the necessary regulatory changes, the most important such attempt being the Dodd-Frank Act of 2010. 93
+      Dodd-Frank had several provisions. First, it created the Financial Stability Oversight Council (FOC) and the Orderly Liquidation Authority (OLA).94 The monitors major financial firms; and when it judges them to be in imminent danger of failing, it meets with them to discuss how to address the issue. When a financial firm is past the point of no return, the FOC determines how to sell it off and dismantle it in a minimally
+
+90 Ibid.
+91 Moosa, I. A. (2016). Good Regulation, Bad Regulation: The Anatomy of Financial Regulation. Springer.
+92 Ibid.
+93 Moosa, I. A. (2016). Good Regulation, Bad Regulation: The Anatomy of Financial Regulation. Springer.
+94 Allen, J. L. (2012). Derivatives clearinghouses and systemic risk: a bankruptcy and Dodd-Frank analysis. Stanford Law Review, 1079-1108.
+
+impactful manner, and the OLA provides the funding needed to do this.95 Relatedly, Dodd-Frank created the Federal Insurance Office (FIO), which monitored large insurance companies and arranged to have those on the brink of failure to be dismantled in a minimally impactful manner.
+      Next, Dodd-Frank established the Consumer Financial Protection Bureau (CFPB). The CFPB is tasked with preventing banks from engaging in predatory lending. To this end, CFPB requires banks to comply with several strictures when issuing loans. First, banks are required to be extremely transparent with customers about the terms of the loans it is offering them. Additionally, it prohibits banks from steering customers towards loans with unfavorable terms when there are available loans with favorable terms, and it therefore prevents banks from recommending loans that profit the bank as opposed to the customer. The CFPB also regulates credit and debit cards, requiring card issuers to provide card-related information in as transparent a form as possible. Finally, the CFPB receives and manages customer complaints concerning banks and credit cards.96
+      More generally, Dodd-Frank limits predatory behavior in connection with credit cards. Before Dodd-Frank, banks issued a huge volume of high-interest prepaid credit cards. This practice targeted with bad credit who either had no alternatives or didn’t understand what they were getting themselves into.97 Either way, this practice was predatory, and Dodd-Frank prohibited it. Also, before Dodd Frank, banks aggressively
+95 Wilmarth Jr, A. E. (2010). The Dodd-Frank Act: A flawed and inadequate response to the too-big-to-fail problem. Or. L. Rev., 89, 951.
+96 Nwogugu, M. I. (2015). Un-constitutionality of the Dodd-Frank act. Eur. JL Reform, 17, 185.finan
+97 Ibid.
+
+marketed high-interest debit and credit cards to college students, setting up booths on college campuses to this end.98 This practice targeted people who were financially desperate and unlikely to understand what they were getting into.99 Dodd Frank prohibited this practice. Dodd Frank also required credit cards to make the terms and conditions of the cards they issued as clear as possible: it was no longer an option for them to hide behind fine print.100
+      The Volcker Rule is another important provision of Dodd-Frank. The Volcker Rule limits the extent to which banks may engage in proprietary trading.101 Proprietary trading is when a bank trades customer funds with the intention of generating profits for itself. Proprietary trading is to be distinguished from functioning as a mere broker that executes orders for a client and makes money from commissions rather than from the trade itself. Brokers make money only from transaction fees; when they place a successful trade on a client’s behalf, they do not share in the profits, and they don’t share in the losses when they place an unsuccessful trade on a client’s behalf.
+Consequently, the amount of money to be made from brokering is extremely limited. By contrast, there is no limit to how much one make from proprietary trading, since there is no limit to how much an investment can rise in value; but one can also lose everything, since investments can go to zero.
+
+
+98 Leifer, S. C. (2014). Protecting whistleblower protections in the Dodd–Frank Act. Michigan Law Review, 121-149.
+99 Ibid.
+100 Wilmarth Jr, A. E. (2010). The Dodd-Frank Act: A flawed and inadequate response to the too-big-to-fail problem. Or. L. Rev., 89, 951.
+101 Gates, B. L. (2013). The SEC on a Forum Shopping Spree: SEC Enforcement Power and Control Person Liability After Dodd-Frank. Iowa L. Rev., 99, 393.
+
+      Importantly, the Volcker Rule does not categorically prohibit banks from engaging in proprietary trading. 102 It actually allows banks to engage in proprietary trading provided that they match customer funds with their own funds when doing so.103 In other words, whenever a bank engages in a proprietary investment, it must make the same investment, in the same amount, using its own money. Put simply, banks are not allowed to make trades with customer funds that they are not also making using their own funds.104
+      The Volcker Rule does not prohibit banks from engaging on their own behalf. It only prohibits them from doing so with customer deposits. Large banks have massive trading desks. These trading desks have the ability to execute millions of trades in a fraction of a second. They also have relatively unlimited access to both capital and information. Consequently, while the Volcker Rule may prevent banks from squandering customer funds on bad trades, it does nothing to prevent them exploiting markets in other respects—a fact whose significance we will later discuss.
+      While not prohibiting banks from trading on their own behalf or even necessarily from doing so with customer funds, the Volcker Rule does require that that commercial and investment functions of banks be strictly separated. The two must be separated by a so-called “firewall”, meaning that they cannot communicate directly with each other, even though they are owned and managed by the same parties. The presence of such a
+
+102 Ibid.
+103 Leifer, S. C. (2014). Protecting whistleblower protections in the Dodd–Frank Act. Michigan Law Review, 121-149.
+104 Gates, B. L. (2013). The SEC on a Forum Shopping Spree: SEC Enforcement Power and Control Person Liability After Dodd-Frank. Iowa L. Rev., 99, 393.
+
+firewall makes it difficult to use customer funds in proprietary trades. Doing so requires the approval of a series of mutually independent bank operatives, each tasked with ensuring compliance with all relevant regulations. In effect, the Volcker Rule requires each bank to have a regulatory agency within itself which conditionalized the movement funds between the commercial and investment sides of the bank on the relevant regulations.
+      The Volcker Rule also prohibits banks from partnering with hedge funds and private equity firms. A hedge fund is a relatively unregulated firm that engages in high-risk trades on behalf of wealthy clients. A private equity firm is a firm that invests in start-ups, which is inherently risky. By prohibiting such partnerships, the Volcker Rule limits the extent to which large banks can endanger themselves and, by extension, the market as a whole.105
+      The Volcker Rule monitors and regulates banks’ use of high-risk derivatives, such as CDO’s, stepping in when it judges that a bank is overusing them and thereby endangering both itself and its stakeholders. Additionally, the Volcker Rule created centralized derivatives exchanges. Prior to the 2008 crisis, derivatives were traded directly, as opposed to through an exchange. This had several consequences. First, there was unlimited counterparty risk, meaning that one of the parties to a transaction might simply not pay. Also, there was nothing to prevent institutions who could not possibly have made good on losses from entering into derivatives transactions. Finally, in the
+
+105 Gates, B. L. (2013). The SEC on a Forum Shopping Spree: SEC Enforcement Power and Control Person Liability After Dodd-Frank. Iowa L. Rev., 99, 393.
+
+absence of such exchanges, there was no way for authorities to monitor derivatives activities or therefore to head off derivatives-related disasters. 106
+      Prior to the 2008 Crash, credit rating agencies had given favorable ratings to banks that did not deserve them. There was no systematic way of rating credit agencies themselves, and such agencies were therefore inherently unreliable. To solve this problem, Dodd-Frank created the Office of Credit Ratings (OFC). A branch of the Securities and Exchange Commission (SEC), the OFC oversees credit rating agencies and ensures that their ratings are credible.107
+      Finally, Dodd-Frank expanded on existing corporate whistleblower programs. Under Dodd-Frank, the financial rewards for whistleblowing were increased. Also, the range of people who could be whistleblowers was expanded. Previously, one could blow the whistle on a given company only if one worked directly for that company.
+Under Dodd-Frank, employees of companies affiliated with a given company could blow the whistle on it, provided that they did indeed have material information. Also, Dodd-Frank allowed whistleblowers to come forward up to 180 days after the authorities had discovered a violation on the part of the company in question.108
+      The partial repeal of Dodd-Frank: In 2018,the Economic Growth, Regulatory Relief and Consumer Protection Act (EGRC) was passed. EGRC partially repealed some aspects of Dodd-Frank. Under EGRC, the Volcker Rule no longer applies to banks with
+
+106 Allahrakha, M., Cetina, J., Munyan, B., & Watugala, S. W. (2019). The effects of the Volcker Rule on corporate bond trading: Evidence from the underwriting exemption. Available at SSRN 3068476.
+107 Kempf, E., & Tsoutsoura, M. (2021). Partisan professionals: Evidence from credit rating analysts. The journal of finance, 76(6), 2805-2856.
+108 Schiff, J. (2020). The Volcker Rule in Practice: Its Impact, Reception, and Evolving Profile. Colum. Bus. L. Rev., 743.
+
+less than $10 billion. Also, under EGRC, banks must be worth at least $250 billion to be considered “too big to fail.” Under Dodd-Frank, in its original form, banks only had to be worth $50 billion to fall into this category. Many of the provisions of Dodd-Frank only hold with respect to banks that are considered too big to fail, and EGRC therefore limits the scope of Dodd-Frank. That said, EGRC left the basic framework of
+Dodd-Frank intact, granting that it did represent a non-trivial encroachment on Dodd-Frank.109
+      According to its critics, EGRC would give big banks undue power and will likely lead to another financial crisis.110 According to its advocates, EGRC would help promote economic growth by undoing Dodd Frank, which, so they claim, hobbled the financial industry and the economy as a whole. More specifically, opponents of Dodd-Frank have the following criticisms of it:
+      Criticism #1: Dodd-Frank reduces the amount of liquidity (money) in the economy. This means means that people and businesses have less access to capital for personal and commercial purposes. Dodd Frank increases reserve requirements for banks. This limits how much money they can loan out, and it also limits how much they can invest.111
+
+
+
+
+
+109 Kempf, E., & Tsoutsoura, M. (2021). Partisan professionals: Evidence from credit rating analysts. The journal of finance, 76(6), 2805-2856.
+110 Zamore, S., Beisland, L. A., & Mersland, R. (2019). Geographic diversification and credit risk in microfinance. Journal of Banking & Finance, 109, 105665.
+111 Lepley, J. (2022). Labor in the Age of Finance: Pensions, Politics, and Corporations from Deindustrialization to Dodd-Frank.
+
+      Criticism #2: By limiting what investment banks can do in the way of financing ventures, Dodd-Frank limits how much American companies can profit and therefore limits how much Americans can profit.
+      Criticism #3: Dodd-Frank is expensive. Dodd-Frank created a giant regulatory infrastructure that is expensive to run and maintain. This money comes out of the economy and therefore weakens it.
+      Criticism #4: Dodd-Frank increases costs for banks, and banks pass these costs onto to the consumer in the form of higher fees and reduced ability to service customer needs (e.g. reduced ability to give out home loans).
+      Criticism #5: Dodd-Frank gives government bureaucrats undue control over the financial system. Dodd-Frank gives the government the power to decide when a bank or insurance company is on the brink of disaster, and gives it the power to dismantle it. This could hurt the financial system, since government bureaucrats do not know better than financial professionals how to evaluate the fitness of a company. Also, it represents an encroachment on the free market and therefore on freedom in general.
+      Criticism #6: Dodd-Frank hurts small banks, since they can’t absorb the extra regulatory costs, but it doesn’t hurt large banks, since they can absorb them.
+Consequently, Dodd-Frank has led to a situation in which a few mega-banks monopolize the financial system.
+      Later we will evaluate these criticisms. By way of anticipation, each is either false or is outweighed by a corresponding countercriticism. The real problem with
+Dodd-Frank, we will find, is that it doesn’t go far enough. Dodd-Frank prevents certain
+
+forms of predatory or otherwise destructive behavior on the part of banks. But it does nothing to limit the size of banks, and it therefore does nothing to prevent the damage they can do by virtue of being so large.
+       The role of interest rates: Interest rates have an enormous effect on the financial system and the economy as a whole, and the just-described events are to some extent to be understood in terms of the interest-rate changes that have occurred over the last several decades.
+Let us start with some general points.
+      References to inflation are references to inflation-rates, viz. rates at which the dollar is losing value. “Inflation is at 13%” means that, at the current rate, the dollar is losing 13% of its value per year.
+      Inflation rates depend largely on interest rates. Interest rates are set by the Federal Reserve. When interest rates are high, money is cheap; people spend freely; this drives up costs, meaning that there is inflation. When rates are low, money is expensive; people don’t spend freely; costs sink, meaning that there is deflation.
+      Inflation is more of a negative than a positive, since the economy depends on the purchasing power of the dollar. But there is a positive side to inflation; when people spend freely, this being the cause of inflation, businesses do well, leading to high salaries and high employment. Similarly, there is a negative side to deflation: when people don’t spend freely, this being the cause of deflation, businesses do not do well, leading to salary cuts and layoffs. The ideal scenario is one in which inflation grows slowly (at, for example, an annual rate of 2%). When the economy is lagging, the Fed
+
+tends to lower interest rates, which boosts the economy but leads to inflation. When inflation is too high, the Fed raises rates, which curbs inflation but slows down the economy.112
+      When the Fed raises rates, that means that the government has to pay high interest rate on its debt. This limits how much the Fed can raise rates. If the government’s debt is too large, then too much of an interest rate hike would paralyze the government financially. Thus, when government debt is high, as it is now, there is only so much that the Fed can raise interest rates without creating a situation worse than the inflation that those hikes are meant to combat.
+       In 1980, inflation was at 14%. (In other words, the dollar was losing value at a rate of 14%/year. In general, references to inflation are references to inflation-rates, viz. rates at which the dollar is losing value.) Then Fed Chair Paul Volcker dealt with this problem by raising interest rates from approximately 5% to 20%. This solved the problem; within two years, inflation fell to under 5%. During this period, it should be pointed out, the government had relatively little debt: its debt to GDP (Gross Domestic Product) ratio was 31.80%, whereas the government’s current debt to GDP ratio is 130%. In 1980, it was therefore possible to raise interest rates without financially crippling the government, whereas that it much less of a possibility now.
+      During the 1980s, interest rates slowly drifted downward, while still remaining high; but in the 1990s, interest rates plummeted to under 10%. In the early 2000s, in the immediate aftermath of the dot com bubble, interest rates were further slashed, falling
+
+112 Ahmed, S. (2021). The Rise of Shadow Banking and Dodd-Frank Regulations. Manag Econ Res J, 7(3).
+
+to 5%. Low interest rates catalyzed the various financial practices that led to the 2008 Crisis. Because money was so cheap, banks borrowed heavily and were willing to gamble on high-risk assets, such as CDO’s.
+      The response on the part of the Fed/government to the 2008 was to lower interest rates still further; in fact, they were lowered to near zero---the lowest rates in American history. The purpose of this was to inject money into the economy, so as to accelerate its recovery. This measure worked: the economy immediately began to recover, and the stock market, which plummeted in 2008, soon reached new highs.
+Some argue that lowering interest rates was a strictly short term fix and weakened the foundations of the economy; others hold that it helped the economy in both the short and long terms.
+      The first view is probably closer to the truth. In 2022, inflation reached 14%. (Some argue that the actual inflation rate was much higher.) This was a consequence of thirty years of low interest rates and loose monetary policy. The Fed responded by raising interest rates 500%. The purpose of this was to curb inflation by slowing down the economy. It appears to have worked. The economy slowed down considerably, leading to millions of lost jobs and millions of pay cuts; and the stock market crashed—the fourth largest crash in US history in terms of percentage and the worst in terms of absolute value. As a result, inflation has begun to abate, albeit rather marginally. But because the government’s debt to GDP ratio is so high (140%), high interest rates make it prohibitively expensive for the government to service its debt; and if they aren’t lowered, the government would likely have to default on its debt, which
+
+would be a catastrophe, since it would destroy all confidence in the dollar. But if interest rates are lowered, inflation will once again rise to unacceptable levels.
+      In any case, during the low interest rate period from 1990 to 2022, the assets under management by investment banks and equity funds grew exponentially. As a result, large investment banks absorbed smaller financial firms, resulting in the situation we have today, where a few megabanks have tens of trillions of dollars’ worth of assets under management and where, more generally, the financial sector is a disproportionately large part of the economy.
+      A few figures will make it clear how extreme our current situation is. The USA’s net aggregate wealth is approximately $120 trillion. Its total assets are approximately
+$270 trillion, and its total liabilities are approximately $150 trillion.) Approximately one third of the US’s wealth is managed, or simply owned, by a few firms. BlackRock has
+$10 trillion under management; Vanguard, $8 trillion; UBS, Fidelity, and State Street, $4 trillion each; Morgan Stanley, J.P. Morgan, Allianz, and Capital Group, $3 trillion each; Goldman Sachs, BNY Mellon, and Pimco, $2 trillion. Each; and Edward Jones, PGIM, Bank of American, and Invesco, $1.5 trillion each. In other words, the top 11 firms manage $46 trillion dollars, in a nation whose net worth is $125 trillion.113
+      These megabanks have absorbed many regional banks or have put them out of business. At the same time, these megabanks have relatively little interest in servicing the communities whose banks they displaced. It is more profitable for a megabank to focus on a few extremely large deals than it is to dissipate its money and resources on
+
+113 Xiao, J. J., & Kim, K. T. (2022). The able worry more? Debt delinquency, financial capability, and financial stress. Journal of Family and Economic Issues, 43(1), 138-152.
+
+thousands of scattered communities. Consequently, the business needs of those communities are not as well serviced as they were when they still had their own local banks. Amazon and Walmart provide better and cheaper service than the local businesses they displaced, because their clients are individuals, not corporations. By contrast, megabanks provide worse service. But J.P. Morgan and Bank of America provide worse regional service than the banks they displaced, because their main clients are corporations, not individuals.114
+      Economists refer to the current (2023) US economy as the FIRE (Finance, Insurance, Real Estate) economy, meaning that the economy is largely based on these areas. These areas are non-productive; they involve wealth-transference, as opposed to wealth-production. To be sure, the financial sector finances investments in non-financial areas, such as health, technology, and medicine. But as the economy becomes increasingly financialized, the financial sector is decreasingly less about investment and increasingly about non-productive speculation.115
+      The Fed: The Fed is the central bank of the United States. The Fed’s job is to keep the financial system and economy healthy. To this end, it attempts to control inflation, keep unemployment low, and supervise the behavior of financial institutions. It does this by setting interest rates; controlling the money supply (by buying and selling
+
+
+
+
+114 Chowdhury, E. K., Dhar, B. K., & Stasi, A. (2022). Volatility of the US stock market and business strategy during COVID?19. Business Strategy & Development, 5(4), 350-360.
+115 Zhang, X., Zhang, T., & Lee, C. C. (2022). The path of financial risk spillover in the stock market based on the R-vine-Copula model. Physica A: Statistical Mechanics and its Applications, 600, 127470.
+
+securities); and monitoring financial systems, including the behavior of member banks.116
+      In setting interest rates and controlling the money supply, the Fed is obviously regulating key aspects of the financial sector. The Fed is therefore a financial regulatory agency—a supremely important one in fact. But unlike other regulatory agencies, it is itself a participant in the financial sector. The Fed buys and sells assets, including stocks, sometimes in order to regulate and sometimes in order to generate revenue for itself. No other regulatory agency owns stock or indeed has holdings of any kind.117
+      Also, many of the banks that the Fed monitors themselves belong to the Federal Reserve System and are therefore themselves de facto branches of the Fed. Bank of America is a member bank, as is J.P. Morgan. Each member bank pays subscription fees to the Fed. Moreover, each member banks investments are monitored by the Fed. The Fed has the power to revoke the membership of a bank of whose activities it does not approve. This also shows that the Fed is itself a part of the markets that it regulates. 118
+      The Fed also issues stock to private companies. Citibank owns approximately 88 million Federal Reserve Bank Shares, this being 43% of the total. JP Morgan Chase owns 60 million shares, or 30% of the total; and Goldman Sachs owns 8 million shares, or 4% of the total. The rest of the shares are distributed among the rest of the nation’s largest
+
+116 Nguyen, H. (2022). Does the Dodd-Frank Act Stress Test Improve Bank Equity Risk and Liquidity Risk?. Journal of Business, 7(03), 12-19.
+117 Liyanage, K. D. H. E., Nadolnyak, D., & Hartarska, V. (2022). Financial Inclusion of Rural and Urban Households and the Dodd-Frank Act. International Journal of Economics and
+Finance, 14(11), 1-90.
+118 Nodira, T., & Jushkunbek, X. (2022). THE ROLE AND PLACE OF INTERNATIONAL
+ECONOMIC ORGANIZATIONS IN SOLVING GLOBAL ISSUES. Web of Scientist: International Scientific Research Journal, 3(11), 1176-1190.
+
+banks. This underscores how intertwined the Fed is with the very entities it is supposed to regulate.
+      Given that three banks own over 75% of the Fed’s shares, it must be asked: Do these banks control the Fed? At the very least, they have a great deal of influence over it. At best, the Fed has a serious conflict of interest; at worst, it has no existence separate from the various banks that own it. Either way, its ability to regulate is presumably seriously impaired.119
+      In any case, the Fed’s role as a regulatory agency is ambiguous, since unlike every other financial regulatory agency, it is partly made up of the very entities that it is supposed to regulate.
+      Evaluating the role of financial regulation and deregulation in American history: Because of its ambiguous relationship to the financial sector, the Federal Reserve must be discussed separately from other financial regulatory agencies. We will therefore start by discussing Fed-based regulation; then we will discuss non-Fed-based regulation; then we will weigh in on the totality of the resulting data.
+      Financial regulation (of the non-Fed-based variety) has done a great deal of good and very little harm; and financial deregulation, as well as an absence of financial regulation, have done a great deal of harm and very little good. The 1929 Crash was caused by an absence of regulation. In the aftermath of the 1929, regulations were instated, and there were crashes so long as these remained operative. These regulations were lifted in mid-90s, and in 2000 the so-called “Dot Bomb” crash happened--the worst
+
+119 Gunay, S., & Can, G. (2022). The source of financial contagion and spillovers: An evaluation of the covid-19 pandemic and the global financial crisis. PloS one, 17(1), e0261835.
+
+crash since 1929. Between 2000 and 2003, the DJIA (Dow Jones Industrial Average) fell a 20% and the the Nasdaq fell 80%. No new regulations of any significance were instated in the aftermath of this crash and no existing regulations were meaningfully altered. In fact, there was heavy-duty deregulation.
+      To boost the sagging stock market and the equally sagging economy, the Fed slashed interest rates. Presumably as a result, the stock market surged for the next few years. But in 2008, the so-called “financial crisis” happened. Between 2008 and 2009, both the Nasdaq and the DJIA fell 40%. This time, there was a meaningful regulatory response: Dodd-Frank was instated, which reactivated some of the regulations that had been lifted in the mid-1990s.
+      To boost the shattered economy and stock market, the Fed lowered interest rates to near zero. This caused a massive stock market boom and temporarily stimulated the economy. But by 2022, zero interest rates had led to massive inflation. To curb inflation, the Fed increased interest rates, which crashed the stock market---fourth worst crash in the last 100 years-and seriously slowed down the economy.120
+      Thus, in the 25 since post-1929 financial regulations were lifted, the worst three worst financial crashes have occurred. The first two were unambiguously consequences of deregulation. The Dot Bomb crash was a consequence of massive institutional investment in substandard tech companies, which was possible only because, thanks to deregulation, there were banks large enough to generate such overinvestment. The 2008 crisis was a consequence of megabanks investing huge amounts of money, much of it
+
+belonging to customers, in toxic assets. As for the 2022 crash, that is not in any obvious way a consequence of deregulation. Arguably, it is a consequence of regulation since it is in part a consequence of the Fed’s raising interest rates. Does this mean that financial regulation is a mixed bag or does it rather mean that what the Fed is doing isn’t really regulation? To answer this, let us say a few words about the Fed.121
+      The Fed’s Role in American Financial History: We only have time take a cursory glance at the Fed’s effect on the financial system. Plus, because the Fed is so intertwined in so many ways with the financial system, it is inherently hard to know what its effect on it is. But that effect certainly seems to be negative. The Fed was created in 1913, supposedly with the intention preventing the occurrence of banking and other financial crashes. By all appearances, it failed to do this. The 1929 Crash was by far the largest that had ever occurred in the United States.122
+      The Fed may not have caused the 1929 Crash, but it didn’t stop it. At the same time, the Fed did have a hand in causing the Great Depression. The responded to the 1929 Crash by tightening monetary policy, meaning that it made capital less accessible, not more. Its reasoning was that the economy was undergoing a “healthy correction” that shouldn’t be interfered with. The resulting depression eliminated thousands of smaller banks, leaving a relatively small number of relatively large banks, in which financial power was now concentrated. It can reasonably be asked whether this, given that the Fed is and always has been privately owned, its owners being large bank.123
+121 Stone, A. L. (2022). Dodd-Frank and unlimited deposit insurance. Finance Research Letters, 47, 102739.
+122 Duffie, D., & Singleton, K. J. (2012). Credit risk. In Credit Risk. Princeton university press.
+
+      Because of the strict banking regulations that were put in place in the aftermath of the 1929 Crash, the next 60 years or were relatively crisis-free. By the mid-1990s, these regulations had been largely dismantled, a consequence of which was that the top banks were now bigger than ever and could operate more freely than ever. In the 1990s, the Fed aggressively cut interest rates, giving banks access to unprecedently large amounts of capital, which they recklessly invested, leading the Dot Bomb Crisis. The Fed’s response to this crisis was to lower interest rates even further, which led to reckless investment on an even larger scale, leading to the 2008 Crisis. The Fed’s response to this crisis was lower interest rates even further, this time almost to zero. This led to runaway inflation, to control which the Fed quintupled interest rates in 2022, leading to the third largest stock market crash since the Great Depression.124
+      The Fed, so these facts suggest, is in the practice of managing self-generated crises. The 1929 Crash—which the Fed did nothing to prevent and may even have had a hand in causing—warranted loose monetary policy, but the Fed responded with tight monetary policy, which led to the Great Depression. In the mid-1990s, the Fed had a loose monetary policy, which led to the Dot Bomb Crash. The Fed responded with even looser monetary policy, which led to the 2008 Crisis. The Fed responded to this with still looser monetary policy, which led to the 2022 Crash.
+We cannot banks to self-regulate, and we therefore cannot expect the Fed to
+self-regulate to the extent that it is owned by banks. Therefore, to the extent that the Fed is bank-owned, those banks are presumably under-regulated; and when the Fed’s
+
+124 Darcillon, T. (2022). Book review: Labor in the Age of Finance. Pensions, politics and corporations from deindustrialization to Dodd-Frank.
+
+policies hurt the financial system, it is likely because of an absence of financial regulation. Therefore, given only that the Fed’s conduct has often hurt the financial system, it doesn’t follow that financial regulation sometimes hurts the financial system; if anything, what follows that is that its absence does so.125
+V. Conclusion
+      In the United States, financial regulation has done more good than harm. To be sure, no regulation, no matter how necessary or useful, is unambiguously successful. But where the United States is concerned, appear to have been about as unambiguously successful as regulations can be. Regulation has prevented financial crises, and its absence has caused them. Moreover, financial regulation has done nothing to thwart economic growth. If anything, it has done the opposite. During periods of intense financial regulation, the economy grew both quickly and steadily. During periods of little financial regulation, the resulting financial crashes led to economic downturns, sometimes catastrophic ones.
+      Proponents of financial deregulation typically claim that they are defending “the free market.” According to this reasoning, the free market leads to wealth, and regulation, including financial regulation, cripples the economy, leading to poverty.
+Some regulations do indeed crippled the economy, but some prevent it from being crippled. Economies slow down when access to capital is restricted. When financial markets are unregulated, capital is centralized and access to it is restricted. In the United States, financial regulations have decentralized access to capital. The regulations
+
+125 O'Sullivan, J. R. (2022). The Government's Power to Bring Transnational Securities Fraudsters to Account: Dodd-Frank Rendered Morrison Irrelevant. Am. Crim. L. Rev., 59, 231.
+
+prohibiting interstate banking decentralized banking and therefore decentralized the ability to loan money. By separating commercial and investment banking, Glass-Steagall decentralized access to capital: it prevented investment banks from investing with customer deposits and it therefore kept those deposits in the hands of the depositors. By decentralizing access to capital, financial regulations in this country have kept the economy going; and financial deregulation has hindered the economy by centralizing access to to capital. Thus, even by the lights of a radical free marketeer, financial regulation has been a success. In conclusion, financial regulation done more good than harm in the United States, and the arguments to the contrary not only fail but do so on their own terms.
+
+Bibliography
+I. Books
+a. Armour, J., Awrey, D., Davies, P. L., Enriques, L., Gordon, J. N., Mayer, C. P., & Payne, J. (2016). Principles of financial regulation. Oxford University Press.
+b. Atalllah, G. (2004). The Practice of Bank Mergers.
+c. Barnett, G. E. (1911). State banks and trust companies since the passage of the National-bank act (Vol. 659). US Government Printing Office.
+d. Duffie, D., & Singleton, K. J. (2012). Credit risk. In Credit Risk. Princeton university press.
+e. Fabozzi, F. J. (Ed.). (2016). The handbook of mortgage-backed securities. Oxford University Press.
+
+f. Fabozzi, F. J., & Goodman, L. S. (Eds.). (2001). Investing in Collateralized Debt Obligations (Vol. 81). John Wiley & Sons.
+g. Gerding, E. (2013). Law, bubbles, and financial regulation. Routledge.
+h. Gerding, E. (2013). Law, bubbles, and financial regulation. Routledge.
+i. Goodhart, C., Hartmann, P., Llewellyn, D. T., Rojas-Suarez, L., & Weisbrod, S. (2013). Financial regulation: Why, how and where now?. Routledge.
+j. Hall, M. (2008). Money. Heinemann-Raintree Library.
+k. Hira, A., Gaillard, N., & Cohn, T. H. (Eds.). (2019). The failure of financial regulation: why a major crisis could happen again. Springer.
+l. Konings, M. (2011). The development of American finance. Cambridge University Press.
+m. Levitin, A. J. (2013). The politics of financial regulation and the regulation of financial politics: A review essay.
+n. Litan, R. E. (2010). American finance for the 21st century. Brookings Institution Press.
+o. Lucas, D. J., Goodman, L. S., & Fabozzi, F. J. (2006). Collateralized debt obligations: structures and analysis (Vol. 140). John Wiley & Sons.
+p. Moosa, I. A. (2016). Good Regulation, Bad Regulation: The Anatomy of Financial Regulation. Springer.
+q. Moosa, I. A. (2016). Good Regulation, Bad Regulation: The Anatomy of Financial Regulation. Springer.
+
+r. Noyes, A. D. (1926). The War Period of American Finance, 1908-1925. GP Putnam's Sons.
+s. Sobel, R. (1999). Panic on Wall Street: A History of America's Financial Disasters.
+Beard Books.
+t. Stone, A. L. (2022). Dodd-Frank and unlimited deposit insurance. Finance Research Letters, 47, 102739.
+u. Tavakoli, J. M. (2004). Collateralized debt obligations and structured finance: New developments in cash and synthetic securitization (Vol. 249). John Wiley & Sons.
+v. Unger, I. (2022). The Greenback Era: A Social and Political History of American Finance, 1865-1888. Graymalkin Media.
+w. Weaver, K. (2008). The sub-prime mortgage crisis: a synopsis. Global Securitisation and Structured Finance, 22-31.
+II. Journal Articles
+
+
+a. Abdel-Khalik, A. R. (2016). Transforming Big Banks into Bucket Shops: The Impact of Gramm-Leach-Bliley Act & The Commodity Futures Modernization Act. Available at SSRN 2814100.
+b. Acharya, V. V., & Richardson, M. (2009). Causes of the financial crisis. Critical review, 21(2-3), 195-210.
+c. Agarwal, S., Barrett, J., Cun, C., & De Nardi, M. (2010). The asset-backed securities markets, the crisis, and TALF. Economic Perspectives, 34(4).
+
+d. Ahmed, S. (2021). The Rise of Shadow Banking and Dodd-Frank Regulations. Manag Econ Res J, 7(3).
+e. Allahrakha, M., Cetina, J., Munyan, B., & Watugala, S. W. (2019). The effects of the Volcker Rule on corporate bond trading: Evidence from the underwriting exemption. Available at SSRN 3068476.
+f. Allen, J. L. (2012). Derivatives clearinghouses and systemic risk: a bankruptcy and Dodd-Frank analysis. Stanford Law Review, 1079-1108.
+g. Alper, C. E. (2014). Banking act of 1933 (Glass-Steagall bill). St. John's Law Review, 8(1), 38.
+h. Ang, J. S., & Richardson, T. (1994). The underwriting experience of commercial bank affiliates prior to the Glass-Steagall Act: A reexamination of evidence for passage of the act. Journal of Banking & Finance, 18(2), 351-395.
+i. Carruthers, B. G. (2022). Sanford M. Jacoby. Labor in the Age of Finance: Pensions, Politics, and Corporations from Deindustrialization to Dodd-Frank.
+j. Chowdhury, E. K., Dhar, B. K., & Stasi, A. (2022). Volatility of the US stock market and business strategy during COVID?19. Business Strategy & Development, 5(4), 350-360.
+k. Crawford, C. (2011). The repeal of the Glass-Steagall Act and the current financial crisis. Journal of Business & Economics Research (JBER), 9(1).
+l. Drew, M. E. (2010). The future of financial regulation: Lessons from the global financial crisis. Griffith Law Review, 19(1), 1-5.
+
+m. Drew, M. E. (2010). The future of financial regulation: Lessons from the global financial crisis. Griffith Law Review, 19(1), 1-5.
+n. Du, D. (2010). Illinois free banks, 1851-1865. In Business History Conference.
+Business and Economic History On-line: Papers Presented at the BHC Annual Meeting (Vol. 8, p. 1). Business History Conference.
+o. Erkens, M. H., & Gan, Y. (2022). Rolling back Dodd-Frank: Investors’ and banks’ responses to financial market deregulation. Available at SSRN 4125990.
+p. Fein, M. L. (1995). Functional Regulation: A Concept for Glass-Steagall Reform. Stan. JL Bus. & Fin., 2, 89.
+q. Franke, G., & Krahnen, J. P. (2007). Default risk sharing between banks and markets: the contribution of collateralized debt obligations. In The risks of financial institutions (pp. 603-634). University of Chicago Press.
+r. Garcia, G., Baer, H., Brewer, E., Allardice, D. R., Cargill, T. F., Dobra, J., ... & Mote,
+L. R. (1983). The Garn-St Germain Depository Institutions Act of 1982. Economic Perspectives, 7(2), 3-31.
+s. Gates, B. L. (2013). The SEC on a Forum Shopping Spree: SEC Enforcement Power and Control Person Liability After Dodd-Frank. Iowa L. Rev., 99, 393.
+t. Gelpern, A., & Levitin, A. J. (2008). Rewriting Frankenstein contracts: workout prohibitions in residential mortgage-backed securities. S. Cal. L. Rev., 82, 1075.
+u. Grossman, R. S. (1993). The macroeconomic consequences of bank failures under the national banking system. Explorations in Economic History, 30(3), 294-320.
+
+v. Grossman, R. S. (2007). Fear and greed: The evolution of double liability in American banking, 1865–1930. Explorations in Economic History, 44(1), 59-80.
+w. Guillén, A. (2014). Financialization and financial profit. Brazilian Journal of Political Economy, 34, 451-470.
+x. Gunay, S., & Can, G. (2022). The source of financial contagion and spillovers: An evaluation of the covid-19 pandemic and the global financial crisis. PloS
+one, 17(1), e0261835.
+y. Hawke Jr, J. D. (1986). Glass-Steagall Legacy: A Historical Perspective. NYL Sch.
+L. Rev., 31, 255.
+z. Kempf, E., & Tsoutsoura, M. (2021). Partisan professionals: Evidence from credit rating analysts. The journal of finance, 76(6), 2805-2856.
+aa. Kloner, D. (2001). The commodity futures modernization act of 2000. Securities Regulation Law Journal, 29(3), 286-286.
+bb. Kloner, D. (2001). The commodity futures modernization act of 2000. Securities Regulation Law Journal, 29(3), 286-286.
+cc. Kroszner, R. S., & Rajan, R. G. (1994). Is the Glass-Steagall Act justified? A study of the US experience with universal banking before 1933. The American Economic Review, 810-832.
+dd.Kuhner, T. K. (2015). The Corruption of Liberal and Social Democracies. Fordham
+L. Rev., 84, 2453.
+ee. Law Review Articles
+
+ff. Leifer, S. C. (2014). Protecting whistleblower protections in the Dodd–Frank Act. Michigan Law Review, 121-149.
+gg. Lepley, J. (2022). Labor in the Age of Finance: Pensions, Politics, and Corporations from Deindustrialization to Dodd-Frank.
+hh. Liyanage, K. D. H. E., Nadolnyak, D., & Hartarska, V. (2022). Financial Inclusion of Rural and Urban Households and the Dodd-Frank Act. International Journal of Economics and Finance, 14(11), 1-90.
+ii. Longstreth, B. (1986). Glass-Steagall: The Case for Repeal. NYL Sch. L. Rev., 31, 281.
+jj. Lucas, D. J., Goodman, L. S., & Fabozzi, F. J. (2007). Collateralized debt obligations and credit risk transfer.
+kk. Macey, J. R. (1984). Special interest groups legislation and the judicial function: the dilemma of Glass-Steagall. Emory LJ, 33, 1.
+ll. Mamun, A. A., Hassan, M. K., Karels, G. V., & Maroney, N. (2005). financial services modernization act of 1999: market assessment of winners and losers in the insurance industry. Journal of Insurance Issues, 103-128.
+mm. Maues, J. (2013). Banking Act of 1933 (Glass-Steagall). Federal Reserve History, November, 22.
+nn. McNeill, C. R. (1980). The Depository Institutions Deregulation and Monetary Control Act of 1980. Fed. Res. Bull., 66, 444.
+
+oo. Millon-Cornett, M. H., & Tehranian, H. (1989). Stock market reactions to the depository institutions deregulation and monetary control act of 1980. Journal of Banking & Finance, 13(1), 81-100.
+pp.Neal, L., & White, E. N. (2012). The glass–steagall act in historical perspective. The Quarterly Review of Economics and Finance, 52(2), 104-113.
+qq. Nguyen, H. (2022). Does the Dodd-Frank Act Stress Test Improve Bank Equity Risk and Liquidity Risk?. Journal of Business, 7(03), 12-19.
+rr. Nwogugu, M. I. (2015). Un-constitutionality of the Dodd-Frank act. Eur. JL Reform, 17, 185.finan
+ss. Ospina, J., & Uhlig, H. (2018). Mortgage-backed securities and the financial crisis of 2008: a post mortem (No. w24509). National Bureau of Economic Research.
+tt. O'Sullivan, J. R. (2022). The Government's Power to Bring Transnational Securities Fraudsters to Account: Dodd-Frank Rendered Morrison Irrelevant. Am. Crim. L. Rev., 59, 231.
+uu.Schiff, J. (2020). The Volcker Rule in Practice: Its Impact, Reception, and Evolving Profile. Colum. Bus. L. Rev., 743.
+vv. Stine, A. C., & Gorman, E. D. (2012). Ebbing the Tide of Local Bank Concentration: Granting Sole Authority to the Department of Justice to Review the Competitive Effects of Bank Mergers. Syracuse L. Rev., 62, 405.
+ww.	Stroebel, J., & Taylor, J. B. (2012). Estimated impact of the Federal Reserve's mortgage-backed securities purchase program. international Journal of central Banking, 8(2).
+
+xx. White, E. N. (1986). Before the Glass-Steagall Act: An analysis of the investment banking activities of national banks. Explorations in Economic History, 23(1), 33-55.
+yy. Wilmarth Jr, A. E. (2010). The Dodd-Frank Act: A flawed and inadequate response to the too-big-to-fail problem. Or. L. Rev., 89, 951.
+zz. Xiao, J. J., & Kim, K. T. (2022). The able worry more? Debt delinquency, financial capability, and financial stress. Journal of Family and Economic Issues, 43(1),
+138-152.
+aaa.	Zamore, S., Beisland, L. A., & Mersland, R. (2019). Geographic diversification and credit risk in microfinance. Journal of Banking & Finance, 109, 105665.
+bbb.	Zaring, D. (2011). Finding legal principle in global financial regulation. Va. J. Int'l L., 52, 683.
+
+III. Case Law
+
+
+a. Act, C. F. M. (2000). Incorporated by reference in the Consolidated Appropriations Act of 2001. Pub. L, 106-554.
+b. Act, C. F. M. (2000). Incorporated by reference in the Consolidated Appropriations Act of 2001. Pub. L, 106-554.
+c. Federal Reserve Bank of Chicago, Board of Governors of the Federal Reserve System (US), & Federal Reserve Bank of Cleveland. (1980). Depository Institutions Deregulation and Monetary Control Act of 1980: A Summary. Federal Reserve Bank of Chicago.
+
+d. Jickling, M., & Government and Finance Division. (2003, February). The Commodity Futures Modernization Act (PL 106-554). Library of Congress, Congressional Research Service.
+e. Kaszycki, M. J. (2006). COMMODITY FUTURES TRADING COMMISSION 17 CFR Part 170.
+f. Marquette Nat. Bank v. First of Omaha Corp., 439 U.S. 299, 99 S. Ct. 540, 58 L. Ed. 2d 534 (1978).
+g. Statutes/Acts
+
+
+
+
+
+
+
+
+
+
+
+

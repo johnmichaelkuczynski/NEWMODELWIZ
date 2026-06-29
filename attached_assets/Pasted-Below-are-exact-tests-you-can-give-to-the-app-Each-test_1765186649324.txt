@@ -1,0 +1,127 @@
+Below are exact tests you can give to the app.
+Each test produces ONE SINGLE NUMBER or ONE WORD so you can immediately see if the parser + engine works.
+
+Each function gets 10 tests.
+All answers must be one number or one word only.
+
+✅ M&A — 10 TESTS (ONE-NUMBER OUTPUT EACH)
+
+These tests are designed so the app must extract inputs correctly and return only Year 1 EPS accretion as a number.
+
+Expected output format:
+<number>% (or just the number)
+
+Tests (copy/paste):
+
+M&A TEST: Purchase price 500M, synergies 20M. Give only Year1 accretion.
+
+M&A TEST: Purchase price 900M, synergies 0. Give only Year1 accretion.
+
+M&A TEST: Purchase price 1.2B, synergies 35M. Give only Year1 accretion.
+
+M&A TEST: Purchase price 775M, synergies 15M. Give only Year1 accretion.
+
+M&A TEST: Purchase price 2.4B, synergies 50M. Give only Year1 accretion.
+
+M&A TEST: Purchase price 620M, synergies 5M. Give only Year1 accretion.
+
+M&A TEST: Purchase price 1.05B, synergies 28M. Give only Year1 accretion.
+
+M&A TEST: Purchase price 300M, synergies 12M. Give only Year1 accretion.
+
+M&A TEST: Purchase price 1.7B, synergies 40M. Give only Year1 accretion.
+
+M&A TEST: Purchase price 2.0B, synergies 80M. Give only Year1 accretion.
+
+If the parser is still broken, you will see 0% or undefined%.
+
+✅ 3-STATEMENT MODEL — 10 TESTS (ONE-NUMBER OUTPUT EACH)
+
+These tests require the model to calculate Year 1 Free Cash Flow only.
+
+Expected output:
+A single number, e.g. 42
+
+Tests:
+
+3STAT TEST: Revenue 100M, growth 5%, margin 20%. Give only Year1 FCF.
+
+3STAT TEST: Revenue 250M, growth 8%, margin 15%. Give only Year1 FCF.
+
+3STAT TEST: Revenue 400M, growth 3%, margin 22%. Give only Year1 FCF.
+
+3STAT TEST: Revenue 150M, growth 10%, margin 18%. Give only Year1 FCF.
+
+3STAT TEST: Revenue 600M, growth 6%, margin 25%. Give only Year1 FCF.
+
+3STAT TEST: Revenue 80M, growth 4%, margin 30%. Give only Year1 FCF.
+
+3STAT TEST: Revenue 500M, growth 7%, margin 12%. Give only Year1 FCF.
+
+3STAT TEST: Revenue 1.2B, growth 5%, margin 10%. Give only Year1 FCF.
+
+3STAT TEST: Revenue 900M, growth 2%, margin 28%. Give only Year1 FCF.
+
+3STAT TEST: Revenue 50M, growth 15%, margin 40%. Give only Year1 FCF.
+
+If the parser is broken, you will get nonsense numbers or undefined.
+
+✅ LBO — 10 TESTS (ONE-NUMBER OUTPUT EACH)
+
+These tests must return ONLY the MOIC as a number.
+
+Expected output example:
+1.8x
+
+Tests:
+
+LBO TEST: EBITDA 100M, entry 8x, exit 9x, debt 4x. Give only MOIC.
+
+LBO TEST: EBITDA 200M, entry 6x, exit 7x, debt 3x. Give only MOIC.
+
+LBO TEST: EBITDA 150M, entry 10x, exit 12x, debt 5x. Give only MOIC.
+
+LBO TEST: EBITDA 250M, entry 7x, exit 8x, debt 4x. Give only MOIC.
+
+LBO TEST: EBITDA 300M, entry 9x, exit 9x, debt 6x. Give only MOIC.
+
+LBO TEST: EBITDA 120M, entry 8x, exit 8x, debt 4x. Give only MOIC.
+
+LBO TEST: EBITDA 500M, entry 5x, exit 7x, debt 2x. Give only MOIC.
+
+LBO TEST: EBITDA 175M, entry 6x, exit 8x, debt 3x. Give only MOIC.
+
+LBO TEST: EBITDA 220M, entry 9x, exit 10x, debt 4x. Give only MOIC.
+
+LBO TEST: EBITDA 80M, entry 7x, exit 9x, debt 4x. Give only MOIC.
+
+If leverage, entry multiple, or purchase price is still mis-mapped, the output will be negative or nonsense.
+
+✅ IPO — 10 TESTS (ONE-NUMBER OUTPUT EACH)
+
+Your IPO parser is working, so these are sanity checks.
+Return ONLY the offer price.
+
+Tests:
+
+IPO TEST: valuation 1.2B, shares 60M. Give only offer price.
+
+IPO TEST: valuation 900M, shares 45M. Give only offer price.
+
+IPO TEST: valuation 3B, shares 120M. Give only offer price.
+
+IPO TEST: valuation 750M, shares 25M. Give only offer price.
+
+IPO TEST: valuation 1.5B, shares 90M. Give only offer price.
+
+IPO TEST: valuation 2.2B, shares 110M. Give only offer price.
+
+IPO TEST: valuation 500M, shares 50M. Give only offer price.
+
+IPO TEST: valuation 4B, shares 200M. Give only offer price.
+
+IPO TEST: valuation 2.8B, shares 140M. Give only offer price.
+
+IPO TEST: valuation 650M, shares 65M. Give only offer price.
+
+If the parser is broken, you’ll get undefined, 0, or blank.

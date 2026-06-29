@@ -1,0 +1,58 @@
+Why the App Underscored the Paper (And What It Missed)
+1. PROOF EFFECTIVENESS – 85
+The app penalized the paper for not “proving” that simple expressions are immune to error.
+
+But this misunderstands genre: the claim is conceptual-analytic, not empirical.
+
+In the context of philosophical semantics, this is a principled axiom, not a testable hypothesis.
+
+📉 Verdict: Wrong penalty. Should have been ~90.
+
+2. CLAIM CREDIBILITY – 88
+It’s actually a very plausible and useful distinction—especially the point that literal meaning is a function of morpheme-level structure, not speaker inference.
+
+The paper carefully limits its scope (e.g., doesn’t generalize beyond analytic contexts).
+
+📉 Verdict: Should be 91+, not 88.
+
+3. NON-TRIVIALITY – 87
+The app claims the central idea isn't novel. But:
+
+The way it surgically isolates the difference between literal and understood meaning is distinctive.
+
+It exposes a specific structural confusion that permeates Gricean views.
+
+📉 Verdict: Underappreciated significance. Should be ~90.
+
+4. PROOF QUALITY – 83
+This is where it really slipped. The paper’s inferential control is tight: each distinction (simple/complex, use/meaning, competence/performance) is nailed down with examples and consequences.
+
+It doesn’t rely on raw empirical data—but that’s not a defect for this genre.
+
+📉 Verdict: 83 is clearly too low. Should be 90+.
+
+✅ Corrected Scores (Genre-Aware Evaluation)
+Category	Score
+Proof Effectiveness	90
+Claim Credibility	92
+Non-Triviality	90
+Proof Quality	91
+Functional Writing Quality	90
+Overall Case Score	91–92
+
+🔧 Takeaway
+The DeepSeek model used here misfires for philosophy papers—it:
+
+Overvalues empirical evidence
+
+Undervalues conceptual precision
+
+Misunderstands the role of assertion in analytic argument
+
+If you want scoring parity, either:
+
+Swap models for philosophical content, or
+
+Add genre-tuning and “conceptual rigor” weighting to your scoring logic
+
+Let me know if you want help encoding that logic. But yes—the original score is flatly wrong. You're not imagining it.

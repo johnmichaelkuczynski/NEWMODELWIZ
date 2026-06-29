@@ -1,0 +1,113 @@
+**REPLIT REWRITE SYSTEM CRITICAL FAILURE REPORT**
+
+---
+
+### 🚨 SUBJECT: Total Systemic Failure in Rewrite + Evaluation Logic ("Economics in an Hour")
+
+**ORIGINAL DOCUMENT**: "Economics in an Hour" (uploaded)
+**REWRITE FILE**: "rewritten-text-2025-05-01 (1).docx" (uploaded)
+**ORIGINAL SCORE**: 70
+**NEW SCORE (after "fixes"): 67**
+
+---
+
+### ❌ CORE VERDICT: SYSTEM STILL FUNDAMENTALLY BROKEN
+
+Despite prior diagnostic instructions, the rewrite engine and evaluator remain catastrophically flawed. The rewrite was **inferior**, and the scoring system is **malfunctioning**. Intelligence scoring is **inverted**: as the writing improves (or remains strong), the score drops.
+
+---
+
+### 🔥 SPECIFIC FAILURE POINTS
+
+#### 1. ❌ INTELLIGENCE SCORE GOT LOWER (From 70 to 67)
+- The system gave a **worse score** to a rewrite that was longer, more verbose, and less precise.
+- This directly violates the most basic requirement of an intelligence evaluator: **to detect degradation** in clarity, density, and logic.
+
+**Conclusion**: The scoring algorithm remains fatally misaligned.
+
+---
+
+#### 2. ❌ THE REWRITE IS OBJECTIVELY WORSE
+
+##### EXAMPLE:
+**Original**: "Currency is money. Money is a certificate of wealth that is not itself of any value."
+
+**Rewritten**: "Currency equates to money, which serves as a representation of wealth without intrinsic value."
+
+**FAILURE**:
+- Lost directness.
+- Lost conceptual sharpness.
+- Added zero content.
+- Inflated word count with empty synonyms.
+
+This pattern repeats throughout the entire rewrite.
+
+**Conclusion**: The rewrite engine is still optimizing for fake intelligence — verbosity, padding, vague formalism — rather than logic, structure, and density.
+
+---
+
+#### 3. ❌ SUMMARY MISDIAGNOSIS
+
+**Evaluator still claims**:
+> "Standard surface-polish cognitive fingerprints with moderate inferential continuity."
+
+This is categorically false. The original document includes:
+- Operational definitions
+- Recursive logical chains
+- Precise term disambiguation
+- Conceptual build-up across lectures
+
+**Conclusion**: The summary generation is blind to structural reasoning.
+
+---
+
+### 🚒 BROKEN PROMISES (Your Instructions Not Followed)
+
+| PROMISED FIX                                | IMPLEMENTED? | COMMENTS                                  |
+|---------------------------------------------|--------------|-------------------------------------------|
+| Penalize verbosity                          | ❌           | Rewrite became **more** verbose            |
+| Prioritize semantic compression             | ❌           | Compression **still penalized**            |
+| Detect recursive structure                  | ❌           | No recursion recognized in lecture design |
+| Block rewrites that degrade clarity         | ❌           | Degradation passed through unflagged      |
+| Compare rewrite vs. original                | ❌           | No regression detection                    |
+| Add AI sanity-checks                        | ❌           | AI fluff not blocked                      |
+| Fix scoring logic (density + clarity)       | ❌           | Score **dropped to 67**                   |
+
+**Conclusion**: None of the required patches were applied correctly.
+
+---
+
+### 🔧 WHAT MUST BE FIXED **NOW**
+
+#### ✅ REWRITE ENGINE
+- Strip out synonym-padding logic.
+- Add hard constraint: no sentence may be rewritten unless it adds semantic *depth* or *structure*.
+- Enforce sentence-by-sentence compression retention (95%+ info-per-word parity).
+
+#### ✅ EVALUATION METRICS
+- Add compression/density scoring.
+- Add recursive-structure detection.
+- Add logical step tracking across paragraphs.
+- Add length-adjusted signal-to-noise ratio as core metric.
+
+#### ✅ SANITY CHECKS
+- If rewrite score < original score AND rewrite is longer → auto-reject.
+- If rewrite contains fewer inferential transitions → auto-reject.
+- If user triggers override, generate diagnostic diff.
+
+---
+
+### 🚫 FINAL DIAGNOSIS: THIS IS A TOTAL FAILURE
+
+- Rewrite = bloated and conceptually flatter.
+- Score = worse than previous (and previously broken).
+- Evaluation = still rewards fluff, still penalizes rigor.
+
+If this rewrite passes, then the engine is **not an intelligence optimizer** — it's a tone-reformatter.
+
+**It must be rebuilt or entirely replaced.**
+
+---
+
+**END OF REPORT**
+

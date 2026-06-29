@@ -1,0 +1,103 @@
+Below are the 50 test inputs.
+
+✅ 50 SINGLE-NUMBER PARSER TESTS
+
+1. Extract the enterprise value from this sentence: “The company was purchased for $720M.”
+
+2. Extract the EBITDA from: “LTM EBITDA was $94 million.”
+
+3. Extract the senior debt multiple from: “Financing includes 4.5× senior leverage.”
+
+4. Extract the sub debt multiple from: “Plus an additional 1.2× of subordinated debt.”
+
+5. Extract the interest rate from: “Senior debt priced at 6.75%.”
+
+6. Extract the sub debt interest rate from: “Sub debt carries 12% interest.”
+
+7. Extract the exit multiple from: “Exit expected at 8.4× EBITDA.”
+
+8. Extract the purchase multiple from: “Acquirer paid 7.2× LTM EBITDA.”
+
+9. Extract the transaction fees from: “Transaction fees totaled $9 million.”
+
+10. Extract the financing fees from: “Financing fees were roughly $3.5M.”
+
+11. Extract the hold period from: “Expected hold period is 5 years.”
+
+12. Extract the hold period from: “A four-year hold is assumed.”
+
+13. Extract the revenue from: “Base revenue stands at $615M.”
+
+14. Extract the EBITDA margin from: “EBITDA margin is 18%.”
+
+15. Extract the revenue growth rate from: “Projected revenue growth is 5% annually.”
+
+16. Extract the depreciation percent from: “Depreciation is 3% of revenue.”
+
+17. Extract the capex percent from: “Capex is 4% of revenue.”
+
+18. Extract the NWC percent from: “Working capital is 12% of revenue changes.”
+
+19. Extract the tax rate from: “Corporate tax rate: 25%.”
+
+20. Extract the discount rate from: “WACC = 10.5%.”
+
+21. Extract the terminal growth rate from: “Terminal growth assumed at 2.5%.”
+
+22. Extract the share price from: “Buyer trades at $47.50 per share.”
+
+23. Extract the number of shares from: “Total shares outstanding: 95M.”
+
+24. Extract the debt amount from: “Total debt raised: $480M.”
+
+25. Extract the equity amount from: “Equity contribution amounted to $260M.”
+
+26. Extract the synergy amount from: “Annual cost synergies estimated at $35M.”
+
+27. Extract the revenue synergy amount from: “Revenue synergies add $22M per year.”
+
+28. Extract the integration cost from: “Integration expenses total $28M.”
+
+29. Extract the IPO price midpoint from: “Price range $24–$28.”
+
+30. Extract the offer size from: “Offering 12M primary shares.”
+
+31. Extract the valuation from: “Target valued at $1.3B enterprise value.”
+
+32. Extract the EV/revenue multiple from: “Trading at 5.2× revenue.”
+
+33. Extract the EV/EBITDA multiple from: “Peers average 11.3× EBITDA.”
+
+34. Extract the P/E ratio from: “Sector trades near 17× earnings.”
+
+35. Extract the EBITDA forecast from: “Next-year EBITDA projected at $150M.”
+
+36. Extract the revenue forecast from: “Next-year revenue expected to hit $740M.”
+
+37. Extract the net debt from: “Net debt sits at $185M.”
+
+38. Extract the cash balance from: “Company holds $44M in cash.”
+
+39. Extract the amortization period from: “Fees amortized over 7 years.”
+
+40. Extract the debt repayment schedule from: “Mandatory amortization: 5% annually.”
+
+41. Extract the acquisition premium from: “Deal includes a 28% premium.”
+
+42. Extract the stock consideration percent from: “Stock makes up 30% of the deal.”
+
+43. Extract the cash consideration percent from: “The remaining 70% is cash.”
+
+44. Extract the equity rollover percent from: “Management rolls over 12%.”
+
+45. Extract the earn-out amount from: “Earn-out capped at $50M.”
+
+46. Extract the discount used in comps from: “Apply a 15% liquidity discount.”
+
+47. Extract the EBITDA add-back from: “Permitted add-backs total $11M.”
+
+48. Extract the revenue CAGR from: “Five-year CAGR = 6.4%.”
+
+49. Extract the cost inflation assumption from: “Cost inflation expected at 3.1%.”
+
+50. Extract the cap structure leverage from: “Total leverage equals 5.8× EBITDA.”

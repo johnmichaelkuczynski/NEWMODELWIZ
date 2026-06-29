@@ -1,0 +1,723 @@
+# Philosophical Coherence: Complete Specification
+
+## Overview
+
+Philosophical Coherence evaluates whether philosophical arguments are conceptually sound, internally consistent, and properly address relevant objections. Unlike Mathematical Coherence (which demands formal rigor) or Logical Cohesiveness (which checks argument structure), Philosophical Coherence assesses whether arguments succeed *as philosophy*—engaging with the right concepts, avoiding equivocation, handling counterexamples, and maintaining consistent positions across cases.
+
+**IMPORTANT PLACEMENT:** Add this as the 9th option within the Coherence Meter dropdown menu, labeled "Philosophical (Conceptual Rigor)".
+
+---
+
+## Core Concept
+
+Philosophical arguments have unique coherence requirements:
+
+1. **Conceptual Clarity** - Terms must be used consistently and with proper philosophical precision
+2. **Position Consistency** - Commitments in one area must be compatible with commitments elsewhere
+3. **Counterexample Handling** - Must address obvious objections, not just ignore them
+4. **Dialectical Engagement** - Must engage with opposing views fairly
+5. **Principle Application** - Principles must apply consistently across relevantly similar cases
+6. **Hidden Assumption Detection** - Implicit premises must be identified and justified
+
+Philosophy is neither pure logic (which allows weird axioms) nor empirical science (which defers to data). It operates in conceptual space where consistency, clarity, and principle matter most.
+
+---
+
+## What Philosophical Coherence Checks
+
+### 1. Conceptual Consistency
+- Are key terms used consistently throughout?
+- Is there equivocation (using same word with different meanings)?
+- Do concepts have clear, stable boundaries?
+
+### 2. Position Coherence
+- Do commitments in different areas conflict?
+- Example: Claiming free will exists but also strict determinism
+- Are there tensions between stated principles and applied judgments?
+
+### 3. Counterexample Vulnerability
+- Are there obvious objections the argument doesn't address?
+- Does the principle generate absurd results in edge cases?
+- Are thought experiments properly analogous?
+
+### 4. Principle Consistency
+- If you accept X in case A, must you accept X in relevantly similar case B?
+- Are distinctions principled or ad hoc?
+- Does the view apply its own standards consistently?
+
+### 5. Dialectical Fairness
+- Are opposing views represented accurately?
+- Are steel-man versions addressed, or just straw men?
+- Is there engagement with the strongest counterarguments?
+
+### 6. Hidden Assumptions
+- What unstated premises does the argument require?
+- Are these assumptions defensible?
+- Would the arguer accept these assumptions in other contexts?
+
+---
+
+## The Two Output Modes
+
+### Mode A: Argument is Repairable
+**When:** The core position is defensible but has coherence issues
+
+**Output:**
+1. Analysis of philosophical problems (equivocations, unaddressed counterexamples, etc.)
+2. Repaired version that maintains the position but fixes coherence issues
+3. Explanation of what was fixed philosophically
+
+### Mode B: Position is Philosophically Untenable
+**When:** The core position generates contradictions or absurdities that can't be fixed
+
+**Output:**
+1. Explanation of why the position is untenable
+2. Demonstration of incoherence (contradiction, infinite regress, etc.)
+3. Nearest coherent philosophical position
+4. Rewritten argument for the modified position
+5. Explanation of how the new position avoids the original problems
+
+---
+
+## Sample Inputs and Outputs
+
+### Sample 1: Equivocation Error (Mode A - Repairable)
+
+**Input:**
+```
+Free will requires that our choices are not determined by prior causes. If determinism 
+is true, then all events, including our choices, are determined by prior causes. 
+However, we can still be free as long as we act according to our own desires and 
+beliefs, without external coercion. Our choices are determined by our character and 
+values, which makes them authentically ours. Therefore, free will is compatible with 
+determinism.
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHILOSOPHICAL COHERENCE ANALYSIS
+
+Position Status: ⚠ CONCEPTUAL EQUIVOCATION
+Overall Score: 4/10
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED ANALYSIS:
+
+ERROR 1: Equivocation on "Free Will"
+Location: Lines 1 and 3-4
+Severity: CRITICAL
+
+The argument uses "free will" in two incompatible senses:
+
+**Sense 1 (Line 1):** Free will = choices not determined by prior causes
+  → This is libertarian free will (requires indeterminism)
+  
+**Sense 2 (Lines 3-4):** Free will = acting according to own desires without coercion
+  → This is compatibilist free will (consistent with determinism)
+
+The argument begins by defining free will in a way that EXCLUDES determinism, then 
+concludes that free will is COMPATIBLE with determinism by switching to a different 
+definition. This is invalid reasoning.
+
+ERROR 2: Unaddressed Tension
+Location: Line 4 - "determined by our character and values, which makes them ours"
+Issue: This assumes that having desires/character "makes choices ours" even when 
+those desires/character are themselves determined by prior causes outside our control.
+
+Objection not addressed: If your character was determined by genetics and environment 
+(factors beyond your control), how does acting from that character make you truly free?
+
+The compatibilist needs to explain why determination by internal states (character) 
+is freedom-granting while determination by external factors (coercion) is not.
+
+ERROR 3: Hidden Premise
+The argument assumes: "Acting from one's own desires = freedom"
+
+But this is precisely what's at issue. The incompatibilist will deny this, arguing 
+that if those desires are themselves determined, acting from them is still unfree.
+
+Impact Assessment:
+The argument fails as a defense of compatibilism because it doesn't actually engage 
+with the incompatibilist position—it just redefines free will in compatibilist terms 
+and declares victory. This is question-begging.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPAIRED VERSION (Compatibilist Position, Coherent):
+
+Free will, properly understood, does not require that our choices be uncaused or 
+undetermined. Rather, it requires that our choices flow from our own reasoning, 
+desires, and values—that they are expressions of who we are as agents. 
+
+Determinism states that all events, including our choices, are the result of prior 
+causes. This is compatible with free will because what matters for freedom is not 
+whether our choices are caused, but whether they are caused in the right way—by our 
+own deliberative processes rather than by external coercion or compulsion.
+
+Consider the difference between two cases:
+(A) You choose to donate to charity because, after reflection, you value helping others
+(B) Someone hypnotizes you and makes you donate to charity against your will
+
+In both cases, your action is caused. But only in (A) does the action flow from your 
+authentic values and reasoning. This is what makes (A) free and (B) unfree. The 
+presence of causation is not the issue; the type of causation is.
+
+The incompatibilist objects that if your values and reasoning are themselves determined 
+by factors outside your control (genetics, upbringing), then acting from them cannot 
+make you truly free. The compatibilist response is that this sets the bar for freedom 
+impossibly high. We cannot choose the initial conditions that shaped us, but we can 
+choose how to respond to our circumstances based on reflection and reasoning. This 
+capacity for rational self-governance is sufficient for moral responsibility and the 
+kind of freedom worth wanting.
+
+Therefore, free will, understood as the capacity for rational self-governance, is 
+compatible with determinism.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGES MADE:
+
+• Removed equivocation: now uses "free will" consistently in compatibilist sense
+• Added explicit contrast case to clarify what makes actions free vs unfree
+• Addressed the key incompatibilist objection directly
+• Made the compatibilist criterion explicit: "caused in the right way"
+• Provided positive argument for why rational self-governance suffices for freedom
+• Acknowledged what's being given up (ability to choose initial conditions)
+• Result: A coherent compatibilist argument that engages with objections
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+### Sample 2: Unaddressed Counterexample (Mode A - Repairable)
+
+**Input:**
+```
+Actions are morally right if and only if they maximize overall happiness. This is 
+because happiness is the only thing that is intrinsically valuable—everything else 
+we value, we value as a means to happiness. Therefore, the moral theory that makes 
+happiness the ultimate good is the correct one. A just society is one that produces 
+the greatest happiness for the greatest number.
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHILOSOPHICAL COHERENCE ANALYSIS
+
+Position Status: ⚠ IGNORES STANDARD OBJECTIONS
+Overall Score: 5/10
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED ANALYSIS:
+
+The argument presents a clear utilitarian position, but fails to address well-known 
+counterexamples that challenge whether happiness-maximization is always right.
+
+UNADDRESSED COUNTEREXAMPLE 1: The Utility Monster
+Suppose one person derives vastly more happiness from resources than others. A 
+happiness-maximizing theory would require giving everything to that person, even 
+if it means severe deprivation for everyone else. This seems unjust.
+
+UNADDRESSED COUNTEREXAMPLE 2: The Innocent Scapegoat
+Suppose framing and executing an innocent person would prevent a riot that would 
+kill many people, producing more total happiness. Does the utilitarian have to 
+endorse this injustice?
+
+UNADDRESSED COUNTEREXAMPLE 3: The Experience Machine
+If happiness is all that matters, we should prefer being plugged into a machine 
+that gives us perfect happiness while we do nothing. But most people think a life 
+of real achievement matters even if it involves less happiness.
+
+HIDDEN ASSUMPTION:
+The argument assumes "happiness is the only intrinsic value" without defending it 
+against alternatives like autonomy, justice, knowledge, or authentic relationships.
+
+PRINCIPLE CONSISTENCY ISSUE:
+The phrase "greatest happiness for the greatest number" contains an ambiguity:
+- Maximize TOTAL happiness? (could mean making many slightly happy)
+- Maximize AVERAGE happiness? (could mean making few very happy)
+- Balance both? (but how?)
+
+The argument doesn't specify how to handle trade-offs between total and distribution.
+
+Impact Assessment:
+While the utilitarian position is coherent in principle, this presentation fails to 
+engage with standard objections. A philosophically mature defense would need to either:
+(a) Bite the bullet on counterexamples and explain why they're acceptable
+(b) Modify the theory to avoid them (e.g., add side-constraints)
+(c) Argue that intuitions about counterexamples are mistaken
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPAIRED VERSION (Sophisticated Utilitarianism):
+
+Actions are morally right if and only if they maximize overall happiness, properly 
+understood. Happiness is the fundamental good—the only thing valuable in itself—while 
+other goods (knowledge, autonomy, relationships) are valuable as constituents or 
+reliable means to happiness.
+
+However, this principle faces important objections that must be addressed:
+
+**Objection 1: The Innocent Scapegoat**
+Wouldn't maximizing happiness sometimes require punishing the innocent to prevent 
+greater harm? 
+
+Response: Sophisticated utilitarianism recognizes that a society permitting such 
+injustices would generate massive insecurity and unhappiness in the long run. The 
+utilitarian can endorse rights and rules as happiness-maximizing constraints. Breaking 
+them in individual cases may seem beneficial short-term but undermines the social 
+framework that produces happiness long-term.
+
+**Objection 2: The Experience Machine**  
+If only happiness matters, why not plug into a machine providing perfect experiences?
+
+Response: Most people's reluctance about the experience machine reflects their 
+preference for certain KINDS of happiness—happiness from real achievement, real 
+relationships, and authentic engagement with the world. A sophisticated hedonism 
+distinguishes between empty pleasure and rich, meaningful happiness. The latter 
+requires connection to reality, so the machine fails to maximize the right kind of 
+happiness.
+
+**Objection 3: Distribution Matters**
+What about the Utility Monster who monopolizes resources?
+
+Response: The utilitarian cares about overall happiness, which includes everyone's 
+happiness. While we should prioritize those who can convert resources into happiness 
+most efficiently, this is constrained by diminishing marginal utility (the billionth 
+dollar produces less happiness than the first). In practice, more equal distributions 
+typically maximize happiness because basic needs have high marginal utility.
+
+Therefore, utilitarianism—when properly developed to address these concerns—provides 
+a coherent and defensible moral framework. A just society maximizes happiness while 
+recognizing that this requires stable rules, authentic wellbeing, and attention to 
+distribution.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGES MADE:
+
+• Explicitly acknowledged and addressed three major counterexamples
+• Distinguished crude hedonism from sophisticated utilitarianism
+• Added responses showing how utilitarian can handle objections
+• Clarified that "happiness" includes qualitative dimensions
+• Addressed the distribution ambiguity with diminishing marginal utility
+• Result: A philosophically mature defense that engages with challenges
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+### Sample 3: Position Inconsistency (Mode B - Untenable)
+
+**Input:**
+```
+Knowledge requires absolute certainty. If there is any possibility of doubt, then 
+we do not truly know. I can doubt the existence of the external world—perhaps I'm 
+dreaming or deceived by an evil demon. Therefore, I cannot know that the external 
+world exists. However, I do know many things about the world, such as that I have 
+hands and that water is H2O. Science has given us genuine knowledge about reality. 
+We should base our beliefs on what we can truly know.
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHILOSOPHICAL COHERENCE ANALYSIS
+
+Position Status: ✗ INTERNALLY CONTRADICTORY
+Overall Score: 2/10
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED ANALYSIS:
+
+CRITICAL CONTRADICTION:
+
+**Premise 1 (Lines 1-2):** Knowledge requires absolute certainty
+**Premise 2 (Lines 2-3):** I can doubt the external world exists  
+**Conclusion (Line 4):** Therefore I cannot know the external world exists
+**BUT THEN (Lines 4-5):** "However, I do know... I have hands... water is H2O"
+
+This is a direct contradiction. The argument establishes that:
+- Knowledge requires freedom from any possible doubt
+- The external world can be doubted (evil demon scenario)
+- Therefore knowledge of the external world is impossible
+
+But then immediately claims:
+- I do know I have hands (external world claim)
+- I do know water is H2O (external world claim)
+
+These cannot both be true.
+
+DIAGNOSIS: Cartesian Skeptical Paradox
+
+This is the classic skeptical problem: If you accept the Cartesian standard for 
+knowledge (absolute certainty), you get radical skepticism—you can't know anything 
+about the external world. But this conclusion is implausible and even the skeptic 
+doesn't actually believe it.
+
+The position is PHILOSOPHICALLY UNTENABLE because it leads to a conclusion (radical 
+skepticism) that contradicts our most basic epistemic practices and the argument's 
+own claims about scientific knowledge.
+
+OPTIONS FOR RESOLUTION:
+
+**Option A:** Accept radical skepticism (we know almost nothing)
+→ But this means giving up the claim that we know about hands, water, etc.
+
+**Option B:** Reject the certainty requirement for knowledge  
+→ This is the more plausible route
+
+**Option C:** Argue that we CAN have certainty about the external world
+→ Very difficult to defend; requires refuting all skeptical scenarios
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+NEAREST COHERENT POSITION: Fallibilist Epistemology
+
+Since the certainty requirement leads to contradiction, we should adopt a fallibilist 
+account of knowledge.
+
+**Revised Position:**
+Knowledge does not require absolute certainty. Rather, knowledge requires justified 
+true belief where the justification is sufficiently strong relative to practical 
+and theoretical purposes, even if it remains logically possible to be mistaken.
+
+**Argument:**
+
+While I can imagine skeptical scenarios (dreaming, evil demon) where my beliefs about 
+the external world are false, these scenarios are merely logically possible, not 
+epistemically probable. I have overwhelming evidence for the existence of the external 
+world: the coherence of my experiences, the success of predictions based on assuming 
+an external world, the reliability of my senses across contexts, and the fact that 
+skeptical scenarios themselves presuppose much of what they claim to doubt.
+
+This evidence is defeasible—I could be wrong—but it is more than sufficient to 
+constitute knowledge. To require absolute certainty would make knowledge impossible 
+and would be an unreasonably high standard. After all, even in mathematics and logic, 
+we might worry about the possibility of error in our reasoning.
+
+A more reasonable standard is this: Knowledge requires justification strong enough 
+that doubt would be unreasonable given our evidence and purposes. By this standard, 
+I do know I have hands, I do know water is H2O, and science does give us genuine 
+knowledge—even though these beliefs are not absolutely certain.
+
+The fallibilist position avoids skeptical paradox while preserving our ordinary and 
+scientific knowledge claims. It acknowledges the limits of certainty while recognizing 
+that we can still have genuine knowledge despite those limits.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TRANSFORMATION EXPLANATION:
+
+ORIGINAL POSITION: Knowledge requires certainty + We have knowledge of the world
+PROBLEM: These commitments contradict each other given skeptical possibilities
+
+MODIFIED POSITION: Knowledge requires strong but defeasible justification
+ADVANTAGES:
+• Avoids skeptical paradox
+• Preserves scientific and ordinary knowledge
+• Acknowledges our epistemic limitations without giving up knowledge claims
+• More faithful to actual epistemic practices
+
+The key move: Reject the Cartesian certainty requirement. This is the root of the 
+contradiction. By adopting fallibilism, we can coherently maintain that we have 
+extensive knowledge while acknowledging we could be wrong.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+### Sample 4: Ad Hoc Distinction (Mode A - Repairable)
+
+**Input:**
+```
+It is wrong to kill animals for food because they are sentient beings capable of 
+suffering. We should extend moral consideration to all beings that can experience 
+pain. However, it is acceptable to kill plants for food, and also acceptable to 
+kill insects, since they are very different from us. Mammals and birds have complex 
+nervous systems similar to humans, which is why their suffering matters morally.
+```
+
+**Output:**
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PHILOSOPHICAL COHERENCE ANALYSIS
+
+Position Status: ⚠ INCONSISTENT PRINCIPLE APPLICATION
+Overall Score: 5/10
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DETAILED ANALYSIS:
+
+PRINCIPLE INCONSISTENCY:
+
+**Stated Principle (Lines 1-2):**  
+"It is wrong to kill sentient beings / extend moral consideration to all beings 
+that can experience pain"
+
+**Application (Line 3):**
+"However, acceptable to kill insects"
+
+**Problem:** Insects ARE sentient—they have nervous systems, respond to noxious 
+stimuli, exhibit pain-avoidance behavior. If the principle is "sentience = moral 
+consideration," then insects should matter morally.
+
+AD HOC EXCEPTION:
+
+The argument tries to exclude insects by saying they are "very different from us."
+But this introduces a NEW criterion (similarity to humans) that contradicts the 
+stated criterion (sentience/capacity for suffering).
+
+**Question:** What matters morally—sentience or similarity to humans?
+
+If sentience: insects should be protected  
+If similarity to humans: the original principle was wrong
+
+The argument cannot have it both ways.
+
+SIMILAR ISSUE WITH PLANTS:
+
+The argument correctly notes that plants aren't sentient (no nervous system, no 
+pain experience), so excluding them is consistent with the sentience principle.
+But the insect exception undermines this consistency.
+
+HIDDEN MOVE:
+
+Line 4 suggests the criterion is "complex nervous systems similar to humans."
+This is different from the original "capacity for suffering" principle, and it's 
+introduced without justification. Why does SIMILARITY matter if suffering is what 
+grounds moral status?
+
+CHALLENGE FOR THE POSITION:
+
+Where do you draw the line?
+- Fish have nervous systems—are they protected?
+- Octopuses have complex nervous systems but are very dissimilar to us—protected?
+- What about future AI systems that might be sentient but totally unlike biological creatures?
+
+The position needs a principled, non-arbitrary criterion.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REPAIRED VERSION (Consistent Sentience Criterion):
+
+It is wrong to kill or cause unnecessary suffering to sentient beings—those capable 
+of experiencing pain and pleasure. Sentience is the morally relevant criterion 
+because suffering is intrinsically bad, regardless of who experiences it.
+
+This principle applies across the animal kingdom based on evidence of sentience:
+
+**Clear cases of sentience (strong moral protection):**
+- Mammals (including humans): Complex nervous systems, pain receptors, behavioral 
+  indicators of suffering
+- Birds: Similar nervous system features, pain avoidance, distress vocalizations
+- Some fish and cephalopods (octopuses, squid): Nociceptors, learning-based pain 
+  avoidance
+
+**Uncertain cases (precautionary protection):**
+- Insects: Simple nervous systems, nociceptive responses, but unclear whether this 
+  constitutes phenomenal experience of pain. Given uncertainty and low cost of 
+  avoiding harm, we should extend some moral consideration.
+
+**Non-sentient (no direct moral status):**
+- Plants: No nervous system, no pain receptors, no plausible mechanism for 
+  experience
+
+The key principle is: Wherever there is sentience, there is moral status proportional 
+to the capacity for suffering. This means:
+
+1. We should avoid killing or harming sentient beings when possible
+2. When necessary killing occurs (self-defense, predation), we should minimize 
+   suffering
+3. In uncertain cases, we should err on the side of caution
+4. Similarity to humans is morally irrelevant—what matters is capacity to suffer
+
+This principle is consistent, non-arbitrary, and extensible to novel cases (e.g., 
+potentially sentient AI). It does not depend on ad hoc exceptions based on how much 
+creatures resemble us.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CHANGES MADE:
+
+• Removed ad hoc exception for insects
+• Made sentience the consistent criterion throughout
+• Acknowledged empirical uncertainty about insect sentience
+• Provided principled categories based on evidence
+• Explained why similarity to humans doesn't matter morally
+• Added precautionary principle for uncertain cases
+• Made the position extensible to novel cases (AI, aliens, etc.)
+• Result: A consistent animal ethics position without arbitrary exceptions
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
+## Technical Implementation
+
+### Core Algorithm:
+
+```
+1. Parse philosophical argument:
+   - Identify main thesis
+   - Extract key concepts and how they're used
+   - Map logical structure
+   - Identify stated principles
+   
+2. Check conceptual consistency:
+   - Are terms used with stable meanings?
+   - Are there equivocations?
+   - Do concepts have clear boundaries?
+   
+3. Check position coherence:
+   - Do commitments in different areas conflict?
+   - Are principles applied consistently?
+   - Are distinctions principled or ad hoc?
+   
+4. Identify unaddressed objections:
+   - Standard counterexamples in the literature
+   - Obvious problem cases
+   - Thought experiments that challenge the view
+   
+5. Check hidden assumptions:
+   - What must be true for the argument to work?
+   - Would the arguer accept these assumptions elsewhere?
+   
+6. Generate diagnosis:
+   IF position is coherent but needs improvement:
+     → Identify issues (equivocations, unaddressed objections)
+     → Provide repaired version
+     
+   ELSE IF position is fundamentally incoherent:
+     → Explain the contradiction/absurdity
+     → Identify nearest coherent position
+     → Provide argument for modified position
+     
+7. Explain transformation:
+   - What was philosophically problematic
+   - How it was fixed
+   - Why the new version is more coherent
+```
+
+### Prompt Template:
+
+```
+You are a philosophical coherence analyzer. Your task is to evaluate whether 
+philosophical arguments are conceptually sound and internally consistent.
+
+INPUT ARGUMENT:
+{user_text}
+
+Evaluate for:
+
+1. CONCEPTUAL CONSISTENCY
+   - Equivocations (same term, different meanings)
+   - Stable use of key concepts
+   - Clear conceptual boundaries
+
+2. POSITION COHERENCE
+   - Do commitments conflict?
+   - Principles applied consistently?
+   - Ad hoc vs principled distinctions
+
+3. COUNTEREXAMPLE HANDLING
+   - Standard objections in literature
+   - Obvious problem cases
+   - Relevant thought experiments
+
+4. HIDDEN ASSUMPTIONS
+   - Unstated premises
+   - Their defensibility
+   - Consistency with other commitments
+
+IF argument is repairable:
+  → Identify philosophical problems
+  → Provide coherent repaired version
+  → Explain improvements
+
+IF position is fundamentally untenable:
+  → Explain the incoherence
+  → Identify nearest coherent position  
+  → Provide argument for modified view
+  → Explain transformation
+
+Use philosophical precision. Cite relevant thought experiments, distinctions, and 
+positions from the literature when applicable.
+```
+
+---
+
+## Success Criteria
+
+Philosophical Coherence successfully evaluates arguments when it:
+
+1. **Detects equivocations** that philosophers would catch
+2. **Identifies relevant counterexamples** from the literature
+3. **Catches inconsistent principle application** across cases
+4. **Recognizes ad hoc moves** vs principled distinctions
+5. **Generates philosophically sophisticated repairs** that address objections
+6. **Finds appropriate "nearest coherent positions"** when original is untenable
+
+The function fails when it:
+- Marks coherent philosophy as incoherent
+- Misses obvious equivocations or contradictions
+- Suggests "repairs" that miss the philosophical point
+- Fails to recognize standard objections in the literature
+- Generates modified positions that are still incoherent
+
+---
+
+## Integration Notes
+
+**Add to Coherence Meter as 9th option:**
+- Label: "Philosophical (Conceptual Rigor)"
+- Uses same UI structure as other coherence types
+- Output format matches other analyses
+- Should recognize when text is attempting philosophical argument (vs other types)
+
+---
+
+## Example Use Cases
+
+### Use Case 1: Philosophy Student
+Writes paper equivocating between two senses of "freedom"
+Gets analysis showing the equivocation and repaired version with consistent usage
+
+### Use Case 2: Philosopher Drafting Article
+Proposes ethical theory but hasn't addressed standard counterexamples
+Gets list of relevant objections and suggested responses
+
+### Use Case 3: Applied Ethics
+Argument about animal rights makes ad hoc exceptions
+Gets analysis showing inconsistent principle application and coherent alternative
+
+### Use Case 4: Epistemology Paper
+Defends position that leads to skeptical paradox
+Gets explanation of contradiction and nearest coherent fallibilist position
+
+---
+
+## Implementation Checklist
+
+- [ ] Add "Philosophical (Conceptual Rigor)" to coherence dropdown
+- [ ] Equivocation detection system
+- [ ] Position consistency checker across cases
+- [ ] Counterexample database (standard objections by topic)
+- [ ] Principle application consistency evaluator
+- [ ] Hidden assumption identifier
+- [ ] Coherent position generator for untenable cases
+- [ ] Philosophical repair system that:
+  - [ ] Addresses objections
+  - [ ] Removes equivocations
+  - [ ] Makes principles consistent
+  - [ ] Adds missing distinctions
+- [ ] Testing with standard philosophical examples:
+  - [ ] Free will arguments
+  - [ ] Ethics (utilitarian, deontological, virtue)
+  - [ ] Epistemology (skepticism, justification)
+  - [ ] Metaphysics (personal identity, causation)
+  - [ ] Mind (consciousness, intentionality)
+- [ ] Integration with Coherence Meter UI
+- [ ] Documentation for philosophical users
+
+---
+
+This specification is complete and ready for implementation.

@@ -1,0 +1,85 @@
+Build a corrected IPO pricing function that handles convertible debt and fixes the unit bug.
+
+1. CORE INPUTS (Collect These)
+text
+company_name = "Test Co"
+ltm_revenue = 50.0          # in millions of dollars
+industry_multiple = 6.0     # unitless multiple
+pre_ipo_shares = 8.0        # in millions of shares
+primary_raise_target = 40.0 # in millions of dollars
+ipo_discount = 0.25         # 25% discount
+
+# CONVERTIBLE DEBT INPUTS (if applicable)
+conv_debt_amount = 100.0    # in millions of dollars
+conv_trigger_price = 12.0   # dollars per share
+conv_shares = 8.333         # in millions of shares
+2. FIXED CALCULATION LOGIC
+Step A: Convert inputs to full units
+
+text
+rev_dollars = ltm_revenue * 1_000_000
+raise_dollars = primary_raise_target * 1_000_000  # FIX: Only multiply by 1M once!
+pre_shares_actual = pre_ipo_shares * 1_000_000
+conv_shares_actual = conv_shares * 1_000_000
+Step B: Calculate WITHOUT conversion
+
+text
+pre_money_val = rev_dollars * industry_multiple
+theoretical_price = pre_money_val / pre_shares_actual
+tentative_price = theoretical_price * (1 - ipo_discount)
+Step C: Check & apply convertible debt
+
+text
+if tentative_price > conv_trigger_price:
+    # DEBT CONVERTS
+    adjusted_shares = pre_shares_actual + conv_shares_actual
+    new_theoretical_price = pre_money_val / adjusted_shares
+    final_price = new_theoretical_price * (1 - ipo_discount)
+    
+    # Safety check
+    if final_price < conv_trigger_price:
+        final_price = conv_trigger_price + 0.01
+else:
+    # NO CONVERSION
+    adjusted_shares = pre_shares_actual
+    final_price = tentative_price
+Step D: Calculate shares to issue
+
+text
+new_shares_issued = raise_dollars / final_price  # Result in actual shares
+new_shares_millions = new_shares_issued / 1_000_000  # For reporting
+Step E: Calculate key metrics
+
+text
+post_money_val = (final_price * adjusted_shares) + raise_dollars
+post_ipo_shares = adjusted_shares + new_shares_issued
+float_percentage = new_shares_issued / post_ipo_shares
+3. OUTPUT FORMAT
+text
+IPO PRICING RECOMMENDATION
+$[final_price] per share
+
+VALUATION
+- Theoretical Pre-Money: $[pre_money_val/1_000_000]M
+- Final Pre-Money: $[final_price * adjusted_shares / 1_000_000]M
+- Post-Money: $[post_money_val/1_000_000]M
+
+OFFERING
+- New Shares to Issue: [new_shares_millions]M shares
+- Post-IPO Shares: [post_ipo_shares/1_000_000]M shares
+- % of Company Sold: [float_percentage*100]%
+
+CONVERTIBLE DEBT
+- Triggered: [YES/NO]
+- Shares Added: [conv_shares]M (if triggered)
+4. TEST WITH INPUT #3 (Delta Dynamics)
+Using the inputs in Section 1, your output must be:
+
+Final Price: $13.78
+
+New Shares to Issue: ~2.90M (NOT 2.90B)
+
+Convertible Debt: Triggered YES
+
+Run this exact logic. The unit bug should now be fixed.
+

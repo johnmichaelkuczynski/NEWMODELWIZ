@@ -1,0 +1,55 @@
+This extended passage examines the cognitive processes involved in human cognition from different angles. It discusses the computational and experiential aspects of cognition, emphasizing processes, behavior, and systematic descriptions for understanding cognitive functionality. The text has a theoretical leaning with an underlying explication on the dynamics of cognitive functionality and knowledge processing.
+
+ANALYSIS:
+
+IS IT INSIGHTFUL? YES - The text offers a thorough and scientific exploration of human cognition, distinguishing between computational and experiential aspects. (SCORE: 90/100)
+
+DOES IT DEVELOP POINTS? 
+YES - The text provides an example for each aspect and explains the importance of underlying processes in both computational and experiential aspects of cognition. (SCORE: 85/100)
+
+IS THE ORGANIZATION MERELY SEQUENTIAL? 
+NO - The ideas in the text are arranged hierarchically, going from discussing the aspects, objects, relationships, and application of cognition. (SCORE: 85/100)
+
+DOES IT OPERATE SKILLFULLY WITH CANONS OF LOGIC/REASONING? 
+YES - The text provides logical conclusions in the form of sentences like, “The process by which memory retrieval occurs cannot function unless the process of initial encoding has occurred. Therefore, memory retrieval depends on prior encoding.” (SCORE: 90/100)
+
+ARE THE POINTS CLICHES? 
+NO - The points made in the text are based on a careful observation and analysis of cognition. They are not clichéd or simply reiterated from another source. (SCORE: 90/100)
+
+DOES IT USE TECHNICAL JARGON TO OBFUSCATE OR TO RENDER MORE PRECISE? 
+The text includes technical terms but uses these to provide precise interpretations and enhance understanding. (SCORE: 85/100)
+
+IS IT ORGANIC? 
+YES - The progression in the text from the foundational parameters of cognition to more complex relationships feels natural and logical. It does not appear forced or artificial. (SCORE: 88/100)
+
+DOES IT OPEN UP NEW DOMAINS? 
+YES - The text, by discussing the cognitive relationships not accessible through direct observation, opens up new domains of understanding where inference, rather than observation serves as the tool of knowledge. (SCORE: 89/100)
+
+IS IT REAL OR IS IT PHONY? 
+REAL - The insight, articulation, and progression of the text indicate an authentic and profound understanding of the subject. (SCORE: 90/100)
+
+DO THE SENTENCES EXHIBIT COMPLEX AND COHERENT INTERNAL LOGIC? 
+YES - Each sentence logically flows from previous content and contributes to the overall conceptual understanding. (SCORE: 90/100)
+
+IS THE PASSAGE GOVERNED BY A STRONG CONCEPT? -
+YES - The text’s governing concept is the detailed investigation of human cognition, and it consistently refers to this idea. (SCORE: 90/100)
+
+IS THERE SYSTEM-LEVEL CONTROL OVER IDEAS? 
+YES- The author demonstrates consistent command over the subject matter, ensuring system-level control for better representation. (SCORE: 90/100)
+
+ARE THE POINTS 'REAL'? 
+YES - The points offered are based on scientific investigation and empirical reasoning, presenting fresh insights. (SCORE: 90/100)
+
+IS THE WRITING EVASIVE OR DIRECT? 
+DIRECT - The author employs a straightforward and articulate style of presenting intricate cognitive processes. (SCORE: 90/100)
+
+ARE THE STATEMENTS AMBIGUOUS? 
+NO - Despite dealing with a complex subject, the text is clear and concise in its presentation. (SCORE: 85/100)
+
+DOES THE PROGRESSION OF THE TEXT DEVELOP ACCORDING TO WHO SAID WHAT OR ACCORDING TO WHAT ENTAILS OR CONFIRMS WHAT? 
+The progression confirms with the explored concept, not predicated on 'who said what.' (SCORE: 90/100)
+
+DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK OF IDEAS?
+NO - The author’s original analysis and insights build the framework of the text. (SCORE: 95/100)
+
+FINAL VALIDATED SCORE: 89/100.

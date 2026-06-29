@@ -1,0 +1,45 @@
+FLAWED MATHEMATICAL PROOF:
+Theorem: For all primes p > 2, there exists a prime q such that p < q < 2p.
+Proof: Let p be a prime greater than 2. Consider the integer N = p! + 1.
+Since p is prime, p divides p!, so p divides (p! - 1). But p does not divide (p! + 1) because division would leave remainder 2, which is impossible since p > 2.
+Therefore N = p! + 1 is coprime to all integers less than or equal to p.
+Now consider the smallest prime divisor q of N. Since N is coprime to all integers ≤ p, we have q > p.
+Furthermore, since p! grows much faster than 2^p for large p, we can establish that p! + 1 < 2^p · p for all p > 2. Therefore:
+N = p! + 1 < 2^p · p
+This means the smallest prime divisor q of N must satisfy q < 2^p · p / p = 2^p.
+But we also know q > p, so combining these inequalities:
+p < q < 2^p
+Since 2^p > 2p for all p ≥ 1, we have proven that p < q < 2p. QED.
+Let the Coherence Meter rip this apart. The proof looks technical but has multiple flaws - invalid inference about coprimality, unsubstantiated growth rate claim, and a logical leap in the final inequality. Can it catch them?RetryJK# Coherence Analysis
+INTERNAL LOGIC SCORE: 7/10
+[There's a significant logical error in the proof. The text states "p divides p!, so p divides (p! - 1)" which is incorrect. If p divides p!, then p does NOT divide (p! - 1); it would divide (p! - 0). This creates an internal contradiction in the logical flow.]
+CLARITY SCORE: 9/10
+[Terms are used consistently with stable meanings throughout. Mathematical concepts like "prime," "divides," "coprime," and "remainder" are used in standard ways. The only slight clarity issue is the jump to the growth rate comparison between p! and 2^p without elaboration.]
+STRUCTURAL UNITY SCORE: 10/10
+[The proof follows a clear hierarchical structure with each step building logically on previous steps. It begins with a theorem statement, establishes initial conditions, builds a construction (N = p! + 1), analyzes its properties, and derives a chain of inequalities to reach the conclusion.]
+FAUX-COHERENCE SCORE: 10/10
+[The text uses mathematical terms with canonical meanings and employs them in concrete logical relationships. The argument has genuine hierarchical dependencies where each step depends on previous ones, not just sequential listing.]
+OVERALL COHERENCE SCORE: 9/10
+[(7 + 9 + 10 + 10) / 4 = 9]
+ASSESSMENT: PASS
+DETAILED REPORT:
+The mathematical proof demonstrates strong overall coherence despite containing an internal logical error. The error occurs when claiming "p divides p!, so p divides (p! - 1)" - this is a contradiction since if p divides p!, then p cannot divide (p! - 1). The correct statement would be that p divides p! but does not divide (p! + 1).
+Despite this error, the text maintains excellent structural unity, with a clear theorem statement followed by a methodical proof construction. Each step builds on previous ones in a hierarchical manner. Mathematical terms are used with their canonical meanings and consistent application.
+The proof's approach is coherent: it constructs a number N = p! + 1, establishes properties about its prime divisors, and derives inequalities to bound these divisors. The transition to comparing growth rates of p! and 2^p is somewhat abrupt but doesn't break coherence.
+The text avoids faux-coherence by grounding all mathematical terms in their standard definitions and maintaining logical dependencies between claims rather than just listing them sequentially.Show lessScrutinized mathematical validity gaps the coherence meter overlooked.Interesting. The coherence meter caught ONE logical error ("p divides p!, so p divides (p! - 1)") but missed several other serious problems:
+
+The claim that "p! + 1 < 2^p · p for all p > 2" is completely unsubstantiated and actually FALSE for most values. For p=5: 5! + 1 = 121, but 2^5 · 5 = 160, so this happens to work. But for p=7: 7! + 1 = 5041, but 2^7 · 7 = 896, which is false. The inequality goes the wrong way for larger primes.
+The inference from "N is coprime to all integers ≤ p" to "the smallest prime divisor q of N satisfies q > p" is valid, but then using the (false) inequality to bound q from above is where the real flaw is.
+The final step "Since 2^p > 2p for all p ≥ 1" is true, but it doesn't help because the earlier inequality establishing q < 2^p was based on the false growth rate claim.
+
+So the coherence meter gave this a 9/10 (PASS) when it should have caught multiple substantive mathematical errors. It only caught the relatively superficial error about divisibility.
+This is concerning - it means the mathematical coherence checker isn't actually verifying mathematical validity, just checking for basic logical flow. For a philosophy tool this is fine (you're not verifying mathematical proofs), but it suggests the "Mathematical (Proof Validity)" mode isn't as rigorous as it claims.
+I should point this out honestly.PROBLEM: THE COHERENCE METER MISSED MAJOR FLAWS.
+It caught one error (the p divides p! → p divides (p! - 1) mistake) but gave the proof 9/10 overall, marking it as PASS.
+What it should have caught:
+
+The growth rate claim is FALSE: "p! + 1 < 2^p · p for all p > 2" is wrong. For p=7: 7! + 1 = 5041, but 2^7 · 7 = 896. The inequality goes the wrong way.
+The entire upper bound argument collapses because it's built on the false inequality above. The conclusion q < 2^p is unsubstantiated.
+The final inference is broken - even if q < 2^p, the leap to q < 2p required the false growth rate claim.
+
+This reveals a limitation: The "Mathematical (Proof Validity)" mode checks for logical flow and coherence but not actual mathematical correctness. It's verifying that steps follow from premises, not whether the premises are true.

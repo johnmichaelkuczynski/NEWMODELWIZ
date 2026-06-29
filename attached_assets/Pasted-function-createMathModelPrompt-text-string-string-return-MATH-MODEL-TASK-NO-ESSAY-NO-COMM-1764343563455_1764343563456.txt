@@ -1,0 +1,97 @@
+function createMathModelPrompt(text: string): string {
+  return `MATH-MODEL TASK (NO ESSAY, NO COMMENTARY)
+
+You have ONE job:
+
+Given the TEXT below, you must:
+1) Replace all concrete names and English predicates with a clean first-order signature.
+2) State a small finite set of axioms in that signature that captures the core structure of the argument.
+3) Build an explicit model (domain + interpretation) that makes all those axioms true if possible.
+4) Say clearly whether the axioms are jointly satisfiable in the model you gave.
+
+STRICT FORMAT. USE THESE HEADINGS EXACTLY. NO EXTRA SECTIONS.
+
+================================
+TEXT
+================================
+${text}
+
+================================
+1. SIGNATURE
+================================
+- DOMAIN: Describe the domain D in 1–2 short sentences.
+- CONSTANTS: List as c1, c2, ... with English gloss. Example:
+  c1 = "Manson"
+  c2 = "Max"
+- PREDICATES: List as P(x), R(x,y), etc., with English gloss. Example:
+  W(x,y) = "y worships x"
+  S(x) = "x is supernatural"
+  H(x) = "x is superhuman"
+  Pj(x,y) = "y projects onto x"
+
+No prose beyond these bullet-style glosses.
+
+================================
+2. TRANSLATION SCHEMA
+================================
+Map key English claims to schematic formulas by REPLACING concrete names with constants or variables.
+
+Give 5–15 lines of the form:
+- English: "...short sentence..."
+- Formula: W(c1, a) → S(c1)
+- English: ...
+- Formula: ...
+
+Keep each English line very short; focus on the core claims of the passage, not side remarks.
+
+================================
+3. AXIOMS
+================================
+Now extract 5–15 core claims from the TRANSLATION SCHEMA and state them as pure formulas, without English.
+
+Example format (this is just a format, DO NOT reuse these specific formulas unless they match the text):
+
+(AX1) ∀x∀y (W(x,y) → S(x))
+(AX2) ∀x (S(x) → Pj(x,y))
+(AX3) ∀x (H(x) → ¬S(x))
+(AX4) ∃x W(x, a)
+
+Your job here is to capture the actual content of the TEXT in the form of axioms.
+
+================================
+4. EXPLICIT MODEL
+================================
+Now build ONE concrete model M that makes all these axioms true if possible.
+
+- DOMAIN D: List its elements explicitly, e.g. D = {m, d, n}
+- CONSTANT INTERPRETATION:
+  c1 := m
+  c2 := d
+- PREDICATE INTERPRETATION:
+  W := { (m, d) }
+  S := { m }
+  H := { m, d }
+  Pj := { (m, d) }
+
+Be completely explicit: give the extension of every predicate you used in the axioms.
+
+================================
+5. SATISFACTION CHECK
+================================
+Now check, in a very compact, mechanical way, whether each axiom is true in M.
+
+For each axiom, write ONLY one line:
+
+(AX1): TRUE in M
+(AX2): TRUE in M
+(AX3): FALSE in M because ...
+...
+
+If any axiom fails, briefly say why (1 short clause), and then say:
+
+OVERALL: NO SINGLE MODEL SATISFYING ALL AXIOMS FOUND.
+
+If all axioms are true in M, say:
+
+OVERALL: MODEL FOUND THAT SATISFIES ALL AXIOMS.`;
+}

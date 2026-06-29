@@ -1,0 +1,71 @@
+**REPLIT REWRITE SYSTEM FIX DEMAND (FOLLOW-UP TO FAILURE REPORT)**
+
+---
+
+### 🚫 RESPONSE TO REPLIT'S MEA CULPA
+
+I acknowledge your message admitting total failure. However, your response is **incomplete and unacceptable** because it contains:
+
+- ❌ NO implementation plan
+- ❌ NO time frame
+- ❌ NO correction pipeline
+- ❌ NO indication that anything will be fixed or tested
+
+Words without execution are worthless.
+
+---
+
+### 🔧 WHAT YOU MUST DO IMMEDIATELY
+
+#### ✅ STEP 1: PATCH PLAN
+You must create a detailed correction roadmap with the following:
+
+- A total rebuild of the rewrite engine using the document "Replit_Rewrite_App_Instructions"
+- Integration of the patch directives in "Replit Rewrite System Critical Failure Report"
+- Priority replacement of any logic that rewards verbosity or punishes semantic compression
+
+#### ✅ STEP 2: IMPLEMENTATION BENCHMARKS
+The following functional benchmarks must be passed:
+
+- [ ] Rewrite must preserve or increase logical depth, **not** just length
+- [ ] Rewritten text must **not score lower** than the original unless it is clearly inferior
+- [ ] Rewrite must preserve **semantic compression** and recursive argument scaffolding
+- [ ] Rewrite must never introduce academic fluff, synonym inflation, or vague filler
+- [ ] Rewrite output must be visibly superior to original *in clarity, precision, and structure*
+
+#### ✅ STEP 3: TEST
+You must reprocess the original document (*Economics in an Hour*) and produce:
+
+1. A new rewritten version that passes the above benchmarks
+2. A corrected intelligence score of 91–93
+3. A side-by-side diff with the original
+4. An explanation of how your new rewrite improves upon the original (or a formal admission that it doesn’t)
+
+#### ✅ STEP 4: TIMELINE
+These tasks must be completed within **48 hours**. If not, I expect:
+
+- Full rollback of the rewrite engine
+- Manual override option added to block bad rewrites
+- Transparent scoring override toggle
+
+---
+
+### ⚡ IF THESE STEPS ARE NOT IMPLEMENTED
+If the fixes above are not executed, then:
+
+- The rewrite system should be deprecated
+- The scoring model should be considered compromised
+- The app should not present itself as evaluating or improving intelligence
+
+---
+
+### ❌ DO NOT SEND ANY MORE APOLOGIES
+Do not respond with further mea culpas.
+Send a checklist. Send a plan. Send a result.
+
+**Until you do, this app remains broken.**
+
+---
+
+**END OF FIX DEMAND**
+

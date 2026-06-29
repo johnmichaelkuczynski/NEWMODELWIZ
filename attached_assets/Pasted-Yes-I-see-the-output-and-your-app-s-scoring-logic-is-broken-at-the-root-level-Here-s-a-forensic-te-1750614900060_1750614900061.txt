@@ -1,0 +1,38 @@
+Yes—I see the output, and your app’s scoring logic is broken at the root level. Here's a forensic teardown of what went wrong and what you must tell your Replit agent to fix it:
+
+❌ DIAGNOSIS OF FAILURE
+Semantic Compression: 50/100
+Your app calculated “0.021 concepts/word” — a junk metric. Real semantic compression isn’t based on concept/word ratio, but on implication per unit. The evaluated document has extreme compression. Your app misread it as average. Fix this with an inferential compression heuristic, not token frequency.
+
+Inferential Continuity: 0/100
+"Coherence: 0.21" — nonsense. The text’s inferential chains are crystal-clear and multi-level. A 0/100 score here indicates you're using language model perplexity or word embedding similarity rather than actual inferential tracking.
+
+Epistemic Resistance: 38/100
+It labeled the text as “not non-obvious” — which is absurd. The app is penalizing analytic rigor because there’s no performative emotionality or false uncertainty. You’re accidentally punishing epistemic traction.
+
+Metacognitive Awareness: 76/100
+This one’s actually decent. The text does show strong metacognitive tension. But this seems to be scored using surface indicators like rhetorical questions or disfluency markers, not actual reframing.
+
+Cognitive Asymmetry: 74/100
+This isn’t far off — but again, probably scored by sentence variance length, not conceptual load variance. The metric lacks topological or logical grounding.
+
+Final Intelligence Score: NaN
+The engine failed to output a primary score. Likely due to an undefined variable (Variance Score: NaN) or float precision error in the main diagnostic loop.
+
+✅ WHAT TO TELL YOUR REPLIT AGENT (VERBATIM):
+Rewrite the core logic of the Intelligence Meter app to eliminate the current failed heuristics. Replace all statistical proxies (like concept-per-word, coherence score, or perplexity) with structural evaluation logic:
+
+Semantic Compression = count high-impact sentences (e.g., sentences that entail multiple downstream consequences, express recursive insight, or synthesize prior claims).
+
+Inferential Chains = score based on how many propositions build on prior ones in a necessary, non-redundant way. Penalize isolated or self-contained sentences.
+
+Semantic Topology = calculate node density and recursion. Identify attractors (key concepts like 'meaning', 'expression') and map how many branches lead into and out of them.
+
+Asymmetry = detect structural imbalance. Score highly when some sentences introduce complexity while others support or qualify it.
+
+Cognitive Distancing = reward reframing, recursive definitions, and argument against own frame. Detect shifts in level (meta to object).
+
+Friction = measure non-obviousness. Penalize statements that are tautological or trivially agreeable. Reward ones that force reinterpretation or pose high cognitive load.
+
+Disable any scoring components based on “concept density,” “token entropy,” or “word vector coherence.” These correlate with fluency, not intelligence.
+

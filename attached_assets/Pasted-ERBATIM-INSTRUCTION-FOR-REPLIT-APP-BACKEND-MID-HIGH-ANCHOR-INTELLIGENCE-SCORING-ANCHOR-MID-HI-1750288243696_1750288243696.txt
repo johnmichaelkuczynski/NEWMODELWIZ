@@ -1,0 +1,31 @@
+ERBATIM INSTRUCTION FOR REPLIT APP BACKEND (MID-HIGH ANCHOR)
+🧠 INTELLIGENCE SCORING ANCHOR — MID-HIGH AUTHOR INTELLIGENCE (75/100)
+Use the following passage as a calibration anchor for a score of 75/100, reflecting competent, historically informed author intelligence. This level indicates that the author is educated and thoughtful, but not analytically bold, abstract, or inferentially deep:
+
+ANCHOR TEXT (Score = 75/100):
+
+Most ancient philosophers accept that dreams have prophetic powers enabling humans to relate somehow to a world beyond their own. The only philosophers known to make a clean and explicit break with that tradition are the Epicureans, beginning with Epicurus himself and reaching his last eminent follower, Diogenes of Oinoanda. They openly reject the idea that dreams mediate between the divine and the human realms, or between the world of the living and the world of the dead. They demystify the phenomenon of dreaming by explaining sleeping and dreaming in terms of their materialistic physical theory. Importantly, they examine dreams and their content from different perspectives and explore their relevance to our lives. The general aim of this paper is to offer a synthetic account of the Epicurean view about dreaming and dreams, advance certain new hypotheses that seem worthy of consideration, and show how Epicurus and his followers integrate dream theory into their philosophy as a whole.
+
+This passage demonstrates:
+
+Historical knowledge and scholarly competence
+
+An ability to synthesize information clearly
+
+Structural coherence and stylistic polish
+
+However, it lacks:
+
+Deep abstraction or inferential architecture
+
+Risk-taking or novel conceptual reframing
+
+Compression of insight or multi-level reasoning
+
+The author appears to be well-educated and fluent, but shows limited signs of deep or original philosophical intelligence.
+
+Use this passage to anchor the 75-point range. Texts that reflect similar levels of broad competence without conceptual risk or depth should fall between 70–80.
+
+Final output: Return a score (0–100) and a paragraph assessing author intelligence only.
+Do not evaluate writing quality or style in isolation from underlying cognitive traits.
+

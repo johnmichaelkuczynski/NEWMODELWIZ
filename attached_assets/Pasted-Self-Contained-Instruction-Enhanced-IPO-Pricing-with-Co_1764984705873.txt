@@ -1,0 +1,136 @@
+Self-Contained Instruction: Enhanced IPO Pricing with Conditional Logic Parsing
+
+PROBLEM: Current app fails when inputs contain "if-then" conditions, multiple probabilities, and layered contingencies.
+
+SOLUTION: Add a pre-processing layer that interprets conditional statements and converts them into probability-weighted adjustments.
+
+STEP 1: NEW INPUT FORMAT FOR COMPLEX TERMS
+Replace free-text inputs with structured data:
+
+python
+# CONVERTIBLE INSTRUMENTS (list of dicts)
+convertibles = [
+    {"type": "SAFE", "amount": 200, "trigger": "lower_of", "price1": 18.00, "price2": "0.8*IPO"},
+    {"type": "Debt", "amount": 150, "trigger": "price_gt", "price": 22.00, "condition": "IPO>25"},
+    {"type": "Loan", "amount": 75, "shares": 3.75, "probability": 0.70, "trigger": "FDA_approval"}
+]
+
+# CONTINGENT LIABILITIES (list of dicts)  
+contingencies = [
+    {"type": "earnout", "shares": 6.2, "condition": "revenue>500", "probability": 0.65},
+    {"type": "warrant", "shares": 4.8, "strike": 15.00, "condition": "price>40_for_90d", "probability": 0.45},
+    {"type": "litigation", "payment": 120, "probability": 0.25}
+]
+
+# STRATEGIC DEALS (list of dicts)
+deals = [
+    {"partner": "Google", "shares": 5.5, "price": "IPO*1.05"},
+    {"partner": "Pfizer", "shares": 2.2, "price": 0.01, "probability": 0.60}
+]
+STEP 2: CONDITIONAL LOGIC PROCESSOR
+Add this function to evaluate "if-then" terms:
+
+python
+def evaluate_condition(condition, ipo_price, revenue=None):
+    """Convert text conditions to True/False"""
+    conditions = {
+        "IPO>25": ipo_price > 25,
+        "price>40_for_90d": ipo_price > 40,  # simplified
+        "revenue>500": revenue > 500 if revenue else False,
+        "FDA_approval": True  # external trigger, use probability only
+    }
+    return conditions.get(condition, False)
+STEP 3: PROBABILITY-WEIGHTED ADJUSTMENT CALCULATOR
+Add after base valuation but before final price:
+
+python
+# Initialize adjustments
+total_adjustment = 0
+total_dilution_shares = 0
+
+# Process convertibles
+for conv in convertibles:
+    if conv["type"] == "SAFE":
+        # Calculate conversion price
+        price_option1 = conv["price1"]
+        price_option2 = 0.8 * tentative_ipo_price  # from earlier calc
+        conversion_price = min(price_option1, price_option2)
+        shares = conv["amount"] / conversion_price
+        total_dilution_shares += shares
+        
+    elif conv["type"] == "Debt":
+        if evaluate_condition(conv["condition"], tentative_ipo_price):
+            shares = conv["amount"] / conv["price"]
+            total_dilution_shares += shares
+            
+    elif conv["type"] == "Loan":
+        shares = conv["shares"] * conv["probability"]  # expected shares
+        total_dilution_shares += shares
+
+# Process contingencies
+for cont in contingencies:
+    if cont["type"] in ["earnout", "warrant"]:
+        expected_shares = cont["shares"] * cont["probability"]
+        if cont.get("strike"):
+            # Cost = (IPO - strike) × expected shares
+            cost = (tentative_ipo_price - cont["strike"]) * expected_shares * 1_000_000
+            total_adjustment -= cost
+        total_dilution_shares += expected_shares
+        
+    elif cont["type"] == "litigation":
+        expected_cost = cont["payment"] * cont["probability"]
+        total_adjustment -= expected_cost * 1_000_000
+
+# Apply adjustments
+adjusted_valuation = base_pre_money + total_adjustment
+adjusted_shares = pre_ipo_shares + total_dilution_shares
+STEP 4: BLENDED VALUATION FIX
+
+python
+# Fix for Omega Neurotech example
+revenue_multiple = 28.0
+ai_multiple = 32.0
+revenue_weight = 0.6
+ai_weight = 0.4
+
+revenue_component = ltm_revenue * revenue_multiple * revenue_weight
+ai_component = ltm_revenue * ai_multiple * ai_weight
+base_pre_money = revenue_component + ai_component
+STEP 5: ANCHOR ORDER BOOST
+
+python
+if anchor_order_amount:
+    # $300M anchor reduces marketing risk
+    anchor_pct = anchor_order_amount / primary_raise_target
+    boost = 1.0 + (anchor_pct * 0.2)  # Max 20% boost for full anchor
+    base_pre_money *= boost
+STEP 6: OUTPUT ENHANCEMENT
+Add detailed breakdown:
+
+text
+COMPLEX INSTRUMENT ANALYSIS:
+1. SAFE Conversion: 200M at min($18.00, 80%×IPO) → X.XM shares
+2. Venture Debt: 150M converts if IPO>$25 → X.XM shares (Y% probability)
+3. Government Loan: 75M → 3.75M shares (70% probability)
+...
+
+EXPECTED DILUTION SUMMARY:
+- Base Shares: 45.0M
+- Convertible Additions: +X.XM shares
+- Contingent Additions: +Y.YM shares (probability-weighted)
+- Total Expected: Z.ZM shares
+TEST WITH OMEGA NEUROTECH:
+
+Input all structured data above
+
+Should produce different (lower) price than $164.00 due to:
+
+Higher base valuation ($9,472M vs $8,960M)
+
+Significant probability-weighted dilution (~15-20M extra shares)
+
+Litigation contingency discount
+
+Founder control should still pass (85% → likely ~70-75% with full dilution)
+
+This transforms your app from "formula calculator" to "conditional term sheet interpreter."
