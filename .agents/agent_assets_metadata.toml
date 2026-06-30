@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "EEZRqyy9ZZyW1CFWIUXCz"
+uri = "file://attached_assets/cognitive-analysis-platform-promo.mp4"
+type = "video"
+title = "Cognitive Analysis Platform — Promo Video (real app footage)"
