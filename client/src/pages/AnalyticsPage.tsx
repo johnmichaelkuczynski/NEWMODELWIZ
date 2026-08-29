@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Brain, TrendingUp, FileText, Clock, Target, Lightbulb, BarChart3, Mail } from 'lucide-react';
+import { Brain, TrendingUp, FileText, Clock, Target, Lightbulb, BarChart3 } from 'lucide-react';
 
 interface CognitiveProfile {
   userEmail: string;
@@ -52,46 +51,8 @@ interface UserActivity {
 }
 
 export const AnalyticsPage = () => {
-  const [userEmail, setUserEmail] = useState<string>('');
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [cognitiveProfile, setCognitiveProfile] = useState<CognitiveProfile | null>(null);
   const [activities, setActivities] = useState<UserActivity[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-
-  const handleEmailAuth = async () => {
-    if (!userEmail.trim()) return;
-    
-    setIsLoading(true);
-    try {
-      // Create/get user and fetch their cognitive profile
-      const userResponse = await fetch('/api/user/auth', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: userEmail })
-      });
-
-      if (userResponse.ok) {
-        setIsAuthenticated(true);
-        
-        // Fetch cognitive profile
-        const profileResponse = await fetch(`/api/user/cognitive-profile?email=${userEmail}`);
-        if (profileResponse.ok) {
-          const profile = await profileResponse.json();
-          setCognitiveProfile(profile);
-        }
-
-        // Fetch activity history
-        const activitiesResponse = await fetch(`/api/user/activities?email=${userEmail}`);
-        if (activitiesResponse.ok) {
-          const activitiesData = await activitiesResponse.json();
-          setActivities(activitiesData);
-        }
-      }
-    } catch (error) {
-      console.error('Authentication error:', error);
-    }
-    setIsLoading(false);
-  };
 
   const renderCognitiveInsights = () => {
     if (!cognitiveProfile) return null;
@@ -308,45 +269,6 @@ export const AnalyticsPage = () => {
     );
   };
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <CardTitle className="flex items-center justify-center gap-2">
-              <Brain className="h-6 w-6" />
-              Cognitive Analytics
-            </CardTitle>
-            <CardDescription>
-              Enter your email to access your personal cognitive profile and analytics
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Input
-                type="email"
-                placeholder="your.email@example.com"
-                value={userEmail}
-                onChange={(e) => setUserEmail(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleEmailAuth()}
-              />
-            </div>
-            <Button 
-              onClick={handleEmailAuth} 
-              disabled={!userEmail.trim() || isLoading}
-              className="w-full"
-            >
-              {isLoading ? 'Loading...' : 'Access Analytics'}
-            </Button>
-            <p className="text-xs text-gray-500 text-center">
-              No login required. Your data is linked to your email for easy access to past activity and cognitive insights.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
@@ -357,10 +279,6 @@ export const AnalyticsPage = () => {
               <p className="text-gray-600 mt-1">
                 Deep insights into your thinking patterns, writing evolution, and cognitive style
               </p>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Mail className="h-4 w-4" />
-              {userEmail}
             </div>
           </div>
         </div>

@@ -47,10 +47,11 @@ export const CREDIT_PACKAGES = {
 export type Provider = keyof typeof CREDIT_PACKAGES;
 export type PriceTier = keyof typeof CREDIT_PACKAGES.openai;
 
-// Helper to check if user has unlimited credits (JMK user)
+// Public access is unlimited while account-based access is disabled.
 export function hasUnlimitedCredits(username: string | undefined): boolean {
   if (!username) return false;
-  return username.toLowerCase() === "jmk" || username.toLowerCase() === "jmkuczynski";
+  const normalized = username.toLowerCase();
+  return normalized === "public" || normalized === "jmk" || normalized === "jmkuczynski";
 }
 
 // Calculate word count for credit deduction

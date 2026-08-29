@@ -36,16 +36,16 @@ export function CreditBalance() {
           <CreditCard className="h-4 w-4 text-gray-600 dark:text-gray-400" />
           <div className="flex gap-3 text-sm font-medium">
             <span className="text-gray-700 dark:text-gray-300" data-testid="openai-credits">
-              ZHI 1: {formatCredits(credits.openai)}
+              ZHI 1: {credits.unlimited ? "∞" : formatCredits(credits.openai)}
             </span>
             <span className="text-gray-700 dark:text-gray-300" data-testid="anthropic-credits">
-              ZHI 2: {formatCredits(credits.anthropic)}
+              ZHI 2: {credits.unlimited ? "∞" : formatCredits(credits.anthropic)}
             </span>
             <span className="text-gray-700 dark:text-gray-300" data-testid="deepseek-credits">
-              ZHI 3: {formatCredits(credits.deepseek)}
+              ZHI 3: {credits.unlimited ? "∞" : formatCredits(credits.deepseek)}
             </span>
             <span className="text-gray-700 dark:text-gray-300" data-testid="perplexity-credits">
-              ZHI 4: {formatCredits(credits.perplexity)}
+              ZHI 4: {credits.unlimited ? "∞" : formatCredits(credits.perplexity)}
             </span>
           </div>
         </div>

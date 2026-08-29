@@ -8,16 +8,26 @@ const checkoutSchema = z.object({
   amount: z.union([z.literal(5), z.literal(10), z.literal(25), z.literal(50), z.literal(100)]),
 });
 
+async function getPublicUser() {
+  const username = "public";
+  const existing = await storage.getUserByUsername(username);
+  if (existing) return existing;
+
+  return storage.createUser({
+    username,
+    password: "unused-public-account",
+    email: "public@cognitive.platform",
+  });
+}
+
 export function registerPaymentRoutes(app: Express) {
   // Create Stripe Checkout Session
   app.post("/api/payments/checkout", async (req: Request, res: Response) => {
     try {
-      if (!req.isAuthenticated() || !req.user) {
-        return res.status(401).json({ message: "Authentication required" });
-      }
+      const publicUser = await getPublicUser();
 
       // Check if user has unlimited credits (JMK)
-      if (hasUnlimitedCredits(req.user.username)) {
+      if (hasUnlimitedCredits(publicUser.username)) {
         return res.status(400).json({ 
           message: "You have unlimited credits and don't need to purchase more" 
         });
@@ -36,7 +46,7 @@ export function registerPaymentRoutes(app: Express) {
 
       // Create pending transaction
       const transaction = await storage.createCreditTransaction({
-        userId: req.user.id,
+        userId: publicUser.id,
         provider,
         amount: packageInfo.priceInCents,
         credits: packageInfo.credits,
@@ -68,9 +78,9 @@ export function registerPaymentRoutes(app: Express) {
         mode: "payment",
         success_url: `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}?payment=cancelled`,
-        client_reference_id: String(req.user.id),
+        client_reference_id: String(publicUser.id),
         metadata: {
-          userId: String(req.user.id),
+          userId: String(publicUser.id),
           provider,
           credits: String(packageInfo.credits),
           transactionId: String(transaction.id),
@@ -153,29 +163,20 @@ export function registerPaymentRoutes(app: Express) {
   // Get user credit balances
   app.get("/api/credits/balance", async (req: Request, res: Response) => {
     try {
-      if (!req.isAuthenticated() || !req.user) {
-        // Return zero credits for unauthenticated users
+      const publicUser = await getPublicUser();
+
+      // Check for unlimited credits
+      if (hasUnlimitedCredits(publicUser.username)) {
         return res.json({
           openai: 0,
           anthropic: 0,
           perplexity: 0,
           deepseek: 0,
-          unlimited: false,
-        });
-      }
-
-      // Check for unlimited credits
-      if (hasUnlimitedCredits(req.user.username)) {
-        return res.json({
-          openai: Infinity,
-          anthropic: Infinity,
-          perplexity: Infinity,
-          deepseek: Infinity,
           unlimited: true,
         });
       }
 
-      const credits = await storage.getAllUserCredits(req.user.id);
+      const credits = await storage.getAllUserCredits(publicUser.id);
       
       const balance = {
         openai: 0,
