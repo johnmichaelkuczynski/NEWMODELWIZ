@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { trackEvent } from "@/lib/analytics";
 
 interface CopyButtonProps {
   text: string;
@@ -23,6 +24,7 @@ export const CopyButton: React.FC<CopyButtonProps> = ({
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
+      trackEvent("result_copied", { character_count: text.length });
       toast({
         title: "Copied to clipboard",
         description: "Text has been copied successfully"

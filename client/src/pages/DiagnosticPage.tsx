@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, XCircle, AlertCircle, Loader2, Activity, Download } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 
 type CheckStatus = "pass" | "fail" | "warn";
 interface Check {
@@ -32,8 +33,15 @@ export default function DiagnosticPage() {
       const data = await r.json();
       if (!r.ok || !data.success) throw new Error(data?.message || "Diagnostic failed");
       setResult(data);
+      trackEvent("diagnostic_completed", {
+        passed: data.summary.passed,
+        failed: data.summary.failed,
+        warned: data.summary.warned,
+        duration_ms: data.summary.durationMs,
+      });
     } catch (e: any) {
       setError(e?.message || "Diagnostic could not complete. Please try again.");
+      trackEvent("diagnostic_failed");
     } finally {
       setRunning(false);
     }
@@ -73,6 +81,11 @@ export default function DiagnosticPage() {
     a.download = `diagnostic-${new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
+    trackEvent("diagnostic_report_downloaded", {
+      passed: result.summary.passed,
+      failed: result.summary.failed,
+      warned: result.summary.warned,
+    });
   };
 
   const StatusIcon = ({ status }: { status: CheckStatus }) => {

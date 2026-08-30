@@ -29,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 import CopyButton from "@/components/CopyButton";
 import SendToButton from "@/components/SendToButton";
 import { MathRenderer } from "@/components/MathRenderer";
+import { trackEvent } from "@/lib/analytics";
 
 async function safeJson(response: Response): Promise<any> {
   try {
@@ -2372,9 +2373,20 @@ Generated on: ${new Date().toLocaleString()}`;
           setIsStreaming(false);
           setStreamingContent(''); // Clean up streaming content
         }
+        trackEvent("analysis_completed", {
+          mode,
+          analysis_type: analysisType,
+          provider: selectedProvider,
+          word_count: contentA.trim().split(/\s+/).length,
+        });
         
       } catch (error) {
         console.error("Error analyzing document:", error);
+        trackEvent("analysis_failed", {
+          mode,
+          analysis_type: analysisType,
+          provider: selectedProvider,
+        });
         alert(`Analysis with ${selectedProvider} failed: ${error instanceof Error ? error.message : "Unknown error"}`);
       } finally {
         setIsAnalysisLoading(false);
@@ -2420,8 +2432,20 @@ Generated on: ${new Date().toLocaleString()}`;
         setAnalysisB(results.analysisB);
         setComparison(results.comparison);
       }
+      trackEvent("analysis_completed", {
+        mode,
+        analysis_type: analysisType,
+        provider: selectedProvider,
+        word_count_a: contentA.trim().split(/\s+/).length,
+        word_count_b: contentB.trim().split(/\s+/).length,
+      });
     } catch (error) {
       console.error("Error comparing documents:", error);
+      trackEvent("analysis_failed", {
+        mode,
+        analysis_type: analysisType,
+        provider: selectedProvider,
+      });
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       alert(`Comparison with ${selectedProvider} failed: ${errorMessage}\n\nPlease verify that the ${selectedProvider} API key is correctly configured.`);
     } finally {

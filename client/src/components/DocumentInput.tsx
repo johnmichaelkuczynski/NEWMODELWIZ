@@ -10,6 +10,7 @@ import { DocumentInput as DocumentInputType } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import SimpleSpeechInput from "@/components/SimpleSpeechInput";
 import { MathRenderer } from "@/components/MathRenderer";
+import { trackEvent } from "@/lib/analytics";
 
 interface DocumentInputProps {
   id: "A" | "B";
@@ -63,8 +64,17 @@ const DocumentInput: React.FC<DocumentInputProps> = ({
       setIsLoading(true);
       const result = await extractTextFromFile(file);
       setDocument(result);
+      trackEvent("document_upload_completed", {
+        document: id,
+        file_type: file.type || "unknown",
+        file_size_bytes: file.size,
+      });
     } catch (error) {
       console.error("Error extracting text from file:", error);
+      trackEvent("document_upload_failed", {
+        document: id,
+        file_type: file.type || "unknown",
+      });
     } finally {
       setIsLoading(false);
     }
