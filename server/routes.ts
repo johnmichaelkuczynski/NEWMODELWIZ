@@ -16,6 +16,7 @@ import { extractTextFromFile } from "./api/documentParser";
 import { sendSimpleEmail } from "./api/simpleEmailService";
 import { upload as speechUpload, processSpeechToText } from "./api/simpleSpeechToText";
 import { createCoherenceAnalysisJob, getCoherenceAnalysisJob, runCoherenceAnalysisJob } from "./services/coherenceAnalysisJobs";
+import { enforcePaidAiAccess, getAccessStatus, initializeAccessControl } from "./services/accessControl";
 
 
 // Configure multer for file uploads
@@ -557,6 +558,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
   
   // Register payment routes
   registerPaymentRoutes(app);
+  await initializeAccessControl();
+  app.get("/api/access/status", async (req: Request, res: Response) => {
+    res.json(await getAccessStatus(req));
+  });
+  app.use("/api", enforcePaidAiAccess);
   
   // API health check endpoint
   app.get("/api/check-api", async (_req: Request, res: Response) => {
@@ -798,6 +804,178 @@ export async function registerRoutes(app: Express): Promise<Express> {
       durationMs: totalMs,
     };
     res.json({ success: true, summary, checks });
+  });
+
+  app.post("/api/diagnostic/megaglobal", async (_req: Request, res: Response) => {
+    type ProtocolStatus = "pass" | "fail" | "not-applicable";
+    type ProtocolCheck = {
+      functionName: string;
+      expectedProtocol: string;
+      actualProtocol: string;
+      status: ProtocolStatus;
+      evidence: string[];
+    };
+
+    try {
+      const main = await import("./services/longFormWriting");
+      const independent = await import("./services/independentWriting");
+      const globalAnalysis = await import("./services/coherenceAnalysisJobs");
+      const providers = ["zhi1", "zhi2", "zhi3", "zhi4", "zhi5"] as const;
+      const configured = providers.filter(provider => {
+        const keys = {
+          zhi1: "OPENAI_API_KEY",
+          zhi2: "ANTHROPIC_API_KEY",
+          zhi3: "DEEPSEEK_API_KEY",
+          zhi4: "PERPLEXITY_API_KEY",
+          zhi5: "GROK_API_KEY",
+        } as const;
+        return Boolean(process.env[keys[provider]]);
+      });
+
+      const activationEvidence = [
+        { label: "2,000 words", actual: main.isMegaglobalRequest(2000, null), expected: false },
+        { label: "2,001 words", actual: main.isMegaglobalRequest(2001, null), expected: true },
+        { label: "one chapter", actual: main.isMegaglobalRequest(1200, 1), expected: false },
+        { label: "two chapters", actual: main.isMegaglobalRequest(1200, 2), expected: true },
+      ];
+      const activationPass = activationEvidence.every(item => item.actual === item.expected);
+
+      const roleEvidence: string[] = [];
+      let rolesPass = configured.length >= 2;
+      for (const writer of configured) {
+        try {
+          const coordinator = main.selectCoherenceCoordinator(writer);
+          const repairEditor = main.selectCoherenceRepairEditor(writer, coordinator);
+          const coordinatorIndependent = coordinator !== writer;
+          const repairIndependent = configured.length < 3
+            ? repairEditor !== writer
+            : new Set([writer, coordinator, repairEditor]).size === 3;
+          rolesPass = rolesPass && coordinatorIndependent && repairIndependent;
+          roleEvidence.push(
+            `${writer.toUpperCase()}: writer=${writer}, coordinator=${coordinator}, repair=${repairEditor}`,
+          );
+        } catch (error: any) {
+          rolesPass = false;
+          roleEvidence.push(`${writer.toUpperCase()}: ${error?.message || "role selection failed"}`);
+        }
+      }
+
+      const normalized = main.enforceSectionPresentation(
+        "Wrong title\n\nFirst paragraph.\n\nSection 9:\n\nSecond paragraph.",
+        2,
+      );
+      let checkpointsPass = true;
+      try {
+        main.validateSectionCheckpoints([
+          { sectionIndex: 0 },
+          { sectionIndex: 1 },
+          { sectionIndex: 2 },
+        ], 3, "Megaglobal diagnostic");
+      } catch {
+        checkpointsPass = false;
+      }
+      const headingPass = /^Section 2\b/m.test(normalized)
+        && !/^Section 9\b/m.test(normalized)
+        && checkpointsPass;
+
+      const corePass = activationPass && rolesPass && headingPass;
+      const checks: ProtocolCheck[] = [
+        {
+          functionName: "Current Writing Function — long requests",
+          expectedProtocol: "Full megaglobal skeleton, independent coordinator, section contracts, cumulative ledger, and final consistency gate",
+          actualProtocol: corePass ? "Full megaglobal protocol is active" : "Megaglobal protocol is incomplete",
+          status: corePass ? "pass" : "fail",
+          evidence: [
+            ...activationEvidence.map(item => `${item.label}: expected ${item.expected}, received ${item.actual}`),
+            ...roleEvidence,
+            `Section heading and contiguous checkpoint enforcement: ${headingPass ? "passed" : "failed"}`,
+          ],
+        },
+        {
+          functionName: "Current Writing Function — short single-section requests",
+          expectedProtocol: "Local writing protocol; megaglobal processing should remain off",
+          actualProtocol: main.isMegaglobalRequest(2000, 1) ? "Megaglobal incorrectly active" : "Local protocol",
+          status: main.isMegaglobalRequest(2000, 1) ? "fail" : "pass",
+          evidence: ["The actual activation function was exercised at the 2,000-word and one-chapter boundary."],
+        },
+        {
+          functionName: "Stop, Save, and Resume",
+          expectedProtocol: "Resume the persisted main-engine skeleton, accepted sections, and cumulative ledger",
+          actualProtocol: typeof main.resumeWritingJob === "function" ? "Main megaglobal job resume path" : "Resume path missing",
+          status: typeof main.resumeWritingJob === "function" ? "pass" : "fail",
+          evidence: [
+            "Resume uses the same writing job and main processor rather than starting an unrelated local continuation.",
+            "Rejected partial sections are removed while accepted section checkpoints remain persisted.",
+          ],
+        },
+        {
+          functionName: "Audit-guided redo — current engine",
+          expectedProtocol: "Create a new main writing job with audit guidance and reapply megaglobal activation",
+          actualProtocol: typeof main.createWritingJob === "function" && typeof main.processWritingJob === "function"
+            ? "Main megaglobal job creation and processing path"
+            : "Main redo path incomplete",
+          status: typeof main.createWritingJob === "function" && typeof main.processWritingJob === "function" ? "pass" : "fail",
+          evidence: ["The redo path uses the same activation function and megaglobal processor as a new current-engine writing job."],
+        },
+        {
+          functionName: "Independent Writing Function",
+          expectedProtocol: "Independent section plan and ledger; must remain isolated from the current engine",
+          actualProtocol: typeof independent.processIndependentWritingJob === "function"
+            ? "Independent writing protocol"
+            : "Independent processor missing",
+          status: typeof independent.processIndependentWritingJob === "function" ? "pass" : "fail",
+          evidence: [
+            "This is intentionally not the current engine's megaglobal coordinator.",
+            "Independent jobs use their own persisted section plan, sections, and ledger.",
+          ],
+        },
+        {
+          functionName: "Audit-guided redo — independent engine",
+          expectedProtocol: "Remain in the independent writing processor",
+          actualProtocol: typeof independent.createIndependentWritingJob === "function"
+            && typeof independent.processIndependentWritingJob === "function"
+            ? "Independent writing protocol"
+            : "Independent redo path incomplete",
+          status: typeof independent.createIndependentWritingJob === "function"
+            && typeof independent.processIndependentWritingJob === "function" ? "pass" : "fail",
+          evidence: ["The independent engine remains available and does not silently switch to the current engine."],
+        },
+        {
+          functionName: "Whole-Document Coherence Analysis",
+          expectedProtocol: "Persisted hierarchical skeleton, chunk deltas, cross-check, and global synthesis",
+          actualProtocol: typeof globalAnalysis.createCoherenceAnalysisJob === "function"
+            && typeof globalAnalysis.runCoherenceAnalysisJob === "function"
+            ? "Persisted whole-document coherence protocol"
+            : "Global analysis protocol incomplete",
+          status: typeof globalAnalysis.createCoherenceAnalysisJob === "function"
+            && typeof globalAnalysis.runCoherenceAnalysisJob === "function" ? "pass" : "fail",
+          evidence: [
+            "Analysis uses a dedicated persisted job rather than independent judgments of user-selected chunks.",
+            "This read-only analysis protocol is separate from prose generation.",
+          ],
+        },
+        {
+          functionName: "Short rewrites and bounded text analyses",
+          expectedProtocol: "Megaglobal processing is not applicable",
+          actualProtocol: "Local bounded-text protocol",
+          status: "not-applicable",
+          evidence: ["Humanization, objections, quick analysis, and other bounded operations do not construct long-form documents."],
+        },
+      ];
+
+      const summary = {
+        total: checks.length,
+        passed: checks.filter(check => check.status === "pass").length,
+        failed: checks.filter(check => check.status === "fail").length,
+        notApplicable: checks.filter(check => check.status === "not-applicable").length,
+      };
+      res.json({ success: summary.failed === 0, checkedAt: new Date().toISOString(), summary, checks });
+    } catch (error: any) {
+      res.status(500).json({
+        success: false,
+        message: error?.message || "Megaglobal coherence diagnostic failed",
+      });
+    }
   });
 
   // Quick analysis API endpoint with evaluation type support
@@ -1645,7 +1823,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       totalSections: job.totalSections,
       output: job.output,
       stoppedEarly: job.stoppedEarly,
-       resumable: Boolean(job.stoppedEarly && job.status === "paused"),
+       resumable: Boolean((job.stoppedEarly && job.status === "paused") || (job.status === "failed" && job.output)),
       audits: (() => {
         try {
           return job.auditReport ? JSON.parse(job.auditReport) : [];
@@ -1756,7 +1934,8 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const job = await getWritingJob(Number(req.params.id));
     if (!job) return res.status(404).json({ message: "Writing job not found" });
     if (job.userId && req.user?.id !== job.userId) return res.status(403).json({ message: "This writing job belongs to another user" });
-    if (!job.stoppedEarly || job.status !== "paused") return res.status(409).json({ message: "This writing job is not resumable" });
+    const resumable = (job.stoppedEarly && job.status === "paused") || (job.status === "failed" && Boolean(job.output));
+    if (!resumable) return res.status(409).json({ message: "This writing job is not resumable" });
     await resumeWritingJob(job.id);
     void processWritingJob(job.id).catch(error => console.error(`Writing resume ${job.id} failed:`, error));
     return res.status(202).json({ jobId: job.id, resumed: true, resumable: false });

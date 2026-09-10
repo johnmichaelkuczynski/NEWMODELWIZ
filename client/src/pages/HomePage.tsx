@@ -28,6 +28,7 @@ import { AnalysisMode, DocumentInput as DocumentInputType, AIDetectionResult, Do
 import { useToast } from "@/hooks/use-toast";
 import CopyButton from "@/components/CopyButton";
 import ProgressiveOutput from "@/components/ProgressiveOutput";
+import WordCountStatus from "@/components/WordCountStatus";
 import SendToButton from "@/components/SendToButton";
 import { MathRenderer } from "@/components/MathRenderer";
 import { trackEvent } from "@/lib/analytics";
@@ -504,9 +505,13 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       );
       const status = await safeJson(statusResponse);
       if (!statusResponse.ok) throw new Error(status?.message || "Unable to read writing progress");
-      if (status.status === "failed") throw new Error(status.error || "Writing failed");
       if (status.output) setGeneratedWriting(status.output);
+      setWritingJobId(status.id);
       setWritingResumable(Boolean(status.resumable));
+      if (status.status === "failed") {
+        setWritingProgress("Draft preserved, but megaglobal coherence did not pass. Resume to retry from the saved checkpoint.");
+        throw new Error(status.error || "Megaglobal coherence did not pass; the draft was preserved.");
+      }
       setWritingProgress(
         status.status === "auditing"
           ? "Writing complete. Running optional read-only audits..."
@@ -572,6 +577,14 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       });
       const data = await safeJson(response);
       if (!response.ok || !data?.jobId) {
+        if (data?.code === "SIGN_IN_REQUIRED") {
+          setWritingProgress("Free preview used. Sign in with Google to continue.");
+          throw new Error("Free preview used. Sign in with Google to receive additional free writing.");
+        }
+        if (data?.code === "SUBSCRIPTION_REQUIRED") {
+          setWritingProgress("Signed-in free usage used. Subscribe for unlimited writing.");
+          throw new Error("Signed-in free usage used. Subscribe for unlimited writing and analysis.");
+        }
         throw new Error(data?.message || "The requested writing could not be generated.");
       }
 
@@ -3128,6 +3141,11 @@ Generated on: ${new Date().toLocaleString()}`;
               className="max-h-[700px] min-h-[180px] overflow-y-auto whitespace-pre-wrap rounded-md bg-gray-50 p-4 text-sm leading-7 text-gray-900 dark:bg-gray-900 dark:text-gray-100"
               data-testid="generated-writing-output"
             >
+              <WordCountStatus
+                text={generatedWriting}
+                running={isWriting || isRedoingWritingAudits}
+                className="mb-3"
+              />
               {isWriting && !generatedWriting ? (
                 <div className="flex items-center justify-center gap-2 py-16 text-indigo-700 dark:text-indigo-300">
                   <Loader2 className="h-5 w-5 animate-spin" />
@@ -3565,6 +3583,11 @@ Generated on: ${new Date().toLocaleString()}`;
               </h3>
             </div>
             <div className="bg-white rounded-md p-4 border border-blue-100 min-h-[200px]">
+              <WordCountStatus
+                text={streamingContent}
+                running={isStreaming}
+                className="mb-3"
+              />
               <div className="prose prose-sm max-w-none text-gray-800 whitespace-pre-wrap font-mono text-sm leading-relaxed">
                 {!isStreaming ? (
                   <ProgressiveOutput text={streamingContent} filename="intelligence-analysis.txt" />
@@ -4904,6 +4927,7 @@ Generated on: ${new Date().toLocaleString()}`;
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="w-12 h-12 animate-spin text-emerald-600 mb-4" />
               <p className="text-gray-600 dark:text-gray-400">Processing text validation...</p>
+              <WordCountStatus running count={0} className="mt-2" />
             </div>
           )}
 
@@ -4913,6 +4937,7 @@ Generated on: ${new Date().toLocaleString()}`;
               <Loader2 className="w-12 h-12 animate-spin text-emerald-600 mb-4" />
               <p className="text-gray-600 dark:text-gray-400">Processing {validatorSelectedModes.length} functions...</p>
               <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">This may take a few minutes</p>
+              <WordCountStatus running count={0} className="mt-2" />
             </div>
           )}
 

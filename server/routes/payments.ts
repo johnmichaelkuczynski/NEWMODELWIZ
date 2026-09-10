@@ -11,18 +11,6 @@ const checkoutSchema = z.object({
   amount: z.union([z.literal(5), z.literal(10), z.literal(25), z.literal(50), z.literal(100)]),
 });
 
-async function getPublicUser() {
-  const username = "public";
-  const existing = await storage.getUserByUsername(username);
-  if (existing) return existing;
-
-  return storage.createUser({
-    username,
-    password: "unused-public-account",
-    email: "public@cognitive.platform",
-  });
-}
-
 function getSignedInUser(req: Request, res: Response) {
   if (!req.user) {
     res.status(401).json({ message: "Sign in to manage a subscription" });
@@ -183,8 +171,16 @@ export function registerPaymentRoutes(app: Express) {
   });
 
   app.get("/api/payments/subscription", async (req: Request, res: Response) => {
-    const user = getSignedInUser(req, res);
-    if (!user) return;
+    if (!req.user) {
+      return res.json({
+        status: null,
+        active: false,
+        canManage: false,
+        canSubscribe: false,
+        currentPeriodEnd: null,
+      });
+    }
+    const user = req.user;
 
     const currentUser = await storage.getUser(user.id);
     const legacySubscription = await storage.getUserSubscription(user.id, user.email);
@@ -248,10 +244,11 @@ export function registerPaymentRoutes(app: Express) {
   // Create Stripe Checkout Session
   app.post("/api/payments/checkout", async (req: Request, res: Response) => {
     try {
-      const publicUser = await getPublicUser();
+      const user = getSignedInUser(req, res);
+      if (!user) return;
 
       // Check if user has unlimited credits (JMK)
-      if (hasUnlimitedCredits(publicUser.username)) {
+      if (hasUnlimitedCredits(user.username)) {
         return res.status(400).json({ 
           message: "You have unlimited credits and don't need to purchase more" 
         });
@@ -270,7 +267,7 @@ export function registerPaymentRoutes(app: Express) {
 
       // Create pending transaction
       const transaction = await storage.createCreditTransaction({
-        userId: publicUser.id,
+        userId: user.id,
         provider,
         amount: packageInfo.priceInCents,
         credits: packageInfo.credits,
@@ -302,9 +299,9 @@ export function registerPaymentRoutes(app: Express) {
         mode: "payment",
         success_url: `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}?payment=success&session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${process.env.REPLIT_DEV_DOMAIN || 'http://localhost:5000'}?payment=cancelled`,
-        client_reference_id: String(publicUser.id),
+        client_reference_id: String(user.id),
         metadata: {
-          userId: String(publicUser.id),
+          userId: String(user.id),
           provider,
           credits: String(packageInfo.credits),
           transactionId: String(transaction.id),
@@ -434,10 +431,24 @@ export function registerPaymentRoutes(app: Express) {
   // Get user credit balances
   app.get("/api/credits/balance", async (req: Request, res: Response) => {
     try {
-      const publicUser = await getPublicUser();
+      if (!req.user) {
+        return res.json({
+          openai: 0,
+          anthropic: 0,
+          perplexity: 0,
+          deepseek: 0,
+          unlimited: false,
+        });
+      }
+      const user = await storage.getUser(req.user.id);
+      if (!user) return res.status(401).json({ message: "Sign in required" });
 
       // Check for unlimited credits
-      if (hasUnlimitedCredits(publicUser.username)) {
+      if (
+        hasUnlimitedCredits(user.username)
+        || user.subscriptionStatus === "active"
+        || user.subscriptionStatus === "trialing"
+      ) {
         return res.json({
           openai: 0,
           anthropic: 0,
@@ -447,7 +458,7 @@ export function registerPaymentRoutes(app: Express) {
         });
       }
 
-      const credits = await storage.getAllUserCredits(publicUser.id);
+      const credits = await storage.getAllUserCredits(user.id);
       
       const balance = {
         openai: 0,

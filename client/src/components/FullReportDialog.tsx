@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } from "docx";
 import { jsPDF } from "jspdf";
 import SimpleShareViaEmailModal from './SimpleShareViaEmailModal';
+import WordCountStatus from '@/components/WordCountStatus';
 
 interface FullReportDialogProps {
   open: boolean;
@@ -503,6 +504,7 @@ ${analysis.analysis || ''}
                 <span className="text-sm text-blue-600">/100</span>
               </div>
             </div>
+            <WordCountStatus text={analysis.overallAssessment} className="mb-2" />
             <p className="text-blue-900 whitespace-pre-wrap break-words">{analysis.overallAssessment}</p>
           </div>
           
@@ -559,6 +561,7 @@ ${analysis.analysis || ''}
             {/* Intelligence Report */}
             {analysis.analysis ? (
               <div className="whitespace-pre-wrap font-mono text-sm bg-gray-50 p-4 rounded border">
+                <WordCountStatus text={analysis.analysis} className="mb-3" />
                 {analysis.analysis}
               </div>
             ) : (

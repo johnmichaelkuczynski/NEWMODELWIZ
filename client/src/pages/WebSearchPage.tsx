@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileDown, Search, Loader2, ArrowLeft, ExternalLink, RefreshCw, FileText, Bot, BrainCircuit, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
+import WordCountStatus from "@/components/WordCountStatus";
 
 interface SearchResult {
   title: string;
@@ -494,6 +495,7 @@ Your task is to create a comprehensive synthesis of the provided content accordi
               
               {/* AI Responses Tab */}
               <TabsContent value="aiResults" className="space-y-4">
+                {isSearching && <WordCountStatus running count={0} />}
                 {aiResponses.length === 0 ? (
                   <p className="text-gray-500 italic">No AI responses available</p>
                 ) : (
@@ -509,6 +511,7 @@ Your task is to create a comprehensive synthesis of the provided content accordi
                           </CardTitle>
                         </CardHeader>
                         <CardContent>
+                           <WordCountStatus text={response.response} className="mb-2" />
                           <div className="bg-gray-50 p-3 rounded border text-sm max-h-96 overflow-y-auto">
                             <p className="whitespace-pre-wrap">{response.response}</p>
                           </div>
@@ -634,6 +637,7 @@ Your task is to create a comprehensive synthesis of the provided content accordi
               </Button>
               
               {/* Rewrite Results */}
+              {isRewriting && <WordCountStatus running count={0} className="mt-4" />}
               {rewrittenContent && (
                 <div className="mt-8 border border-green-300 rounded-lg p-4 bg-green-50">
                   <div className="flex justify-between items-center mb-4">
@@ -647,6 +651,7 @@ Your task is to create a comprehensive synthesis of the provided content accordi
                     </Button>
                   </div>
                   <div className="bg-white border rounded-md p-4 max-h-[500px] overflow-y-auto">
+                     <WordCountStatus text={rewrittenContent} className="mb-3" />
                     <pre className="whitespace-pre-wrap text-sm">{rewrittenContent}</pre>
                   </div>
                 </div>

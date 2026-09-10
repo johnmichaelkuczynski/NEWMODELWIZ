@@ -14,6 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
+import WordCountStatus from "@/components/WordCountStatus";
 
 // Language options for translation
 const languageOptions = [
@@ -425,7 +426,7 @@ export function TranslationInput() {
                   <FileText className="h-3 w-3 mr-1" />
                   <span>
                     <Badge variant="secondary" className="text-xs font-normal px-2 py-0">
-                      {translateWordCount} words
+                      <WordCountStatus count={translateWordCount} />
                     </Badge>
                   </span>
                 </div>
@@ -437,6 +438,7 @@ export function TranslationInput() {
               </div>
             </div>
           )}
+          {isLoading && <WordCountStatus running count={0} className="mt-3" />}
           
           {/* Hidden download link for the translated file */}
           <a 

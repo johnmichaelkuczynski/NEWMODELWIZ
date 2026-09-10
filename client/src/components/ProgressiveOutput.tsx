@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Check, Copy, Download, Pause, Play, Save, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import WordCountStatus from "@/components/WordCountStatus";
 
 type ProgressiveOutputProps = {
   text: string;
@@ -106,7 +107,11 @@ export default function ProgressiveOutput({
         <span aria-live="polite" className="font-medium">
           {complete ? "Complete" : paused ? (pauseReason === "limit" ? "Paused after 1,000-word interval" : saved ? "Saved and paused" : "Stopped") : "Revealing"}
         </span>
-        <span>{wordsRevealed.toLocaleString()} / {text.trim().split(/\s+/).filter(Boolean).length.toLocaleString()} words visible</span>
+        <WordCountStatus
+          text={complete ? text : visibleText}
+          running={!complete}
+          className="text-inherit"
+        />
         {!complete && <span>(presentation of a completed response)</span>}
         <div className="ml-auto flex flex-wrap gap-1">
           {paused && !complete ? (

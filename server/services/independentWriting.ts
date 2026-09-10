@@ -204,6 +204,16 @@ export const countIndependentWords = words;
 export async function processIndependentWritingJob(jobId: number): Promise<void> {
   const [job] = await db.select().from(writingJobs).where(eq(writingJobs.id, jobId));
   if (!job) throw new Error("Writing job not found");
+  if (job.usesLargeScaleCoherence && !job.userId) {
+    await db.update(writingJobs).set({
+      status: "paused",
+      stopRequested: true,
+      stoppedEarly: true,
+      error: "Sign in with Google before continuing database-backed large-scale writing.",
+      updatedAt: new Date(),
+    }).where(eq(writingJobs.id, jobId));
+    throw new Error("Database-backed large-scale writing requires a signed-in user owner.");
+  }
   const provider = job.provider as IndependentProvider;
   const chapters = chapterCount(job.instructions);
   const targets = sectionTargets(job.requestedWordCount, job.totalSections);

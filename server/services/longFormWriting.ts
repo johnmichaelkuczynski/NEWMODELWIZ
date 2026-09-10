@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, gte } from "drizzle-orm";
 import { db } from "../db";
 import { writingJobs, writingJobSections } from "@shared/schema";
 import { normalizeMathNotation, preserveRequestedMathNotation } from "@shared/mathNotation";
@@ -48,7 +48,7 @@ export function removeMarkdown(text: string): string {
 
 export function formatIntoParagraphs(text: string, targetParagraphWords = 130): string {
   const structurePreserved = text.replace(
-    /(^|\n)\s*(chapter\s+\d{1,3}\s*:[^\n]*)(?=\n|$)/gi,
+    /(^|\n)\s*((?:chapter|section)\s+\d{1,3}\s*:[^\n]*)(?=\n|$)/gi,
     "\n\n$2\n\n",
   );
   const sourceParagraphs = structurePreserved
@@ -146,6 +146,12 @@ export function appendNovelContinuation(existing: string, continuation: string):
     if (!duplicatesExisting) accepted.push(candidate);
   }
   return accepted.join("\n\n");
+}
+
+function boundedCurrentSectionEvidence(text: string): string {
+  const maximumCharacters = 16_000;
+  if (text.length <= maximumCharacters) return text;
+  return `${text.slice(0, 4_000)}\n\n[CURRENT SECTION MIDDLE OMITTED FOR CONTEXT BUDGET]\n\n${text.slice(-12_000)}`;
 }
 
 function boundedPriorManuscriptEvidence(sections: string[]): string {
@@ -290,6 +296,38 @@ async function callProvider(provider: WritingProvider, system: string, prompt: s
   return data.choices?.[0]?.message?.content || "";
 }
 
+function providerIsConfigured(provider: WritingProvider): boolean {
+  const keyByProvider: Record<WritingProvider, string | undefined> = {
+    zhi1: process.env.OPENAI_API_KEY,
+    zhi2: process.env.ANTHROPIC_API_KEY,
+    zhi3: process.env.DEEPSEEK_API_KEY,
+    zhi4: process.env.PERPLEXITY_API_KEY,
+    zhi5: process.env.GROK_API_KEY,
+  };
+  return Boolean(keyByProvider[provider]);
+}
+
+export function selectCoherenceCoordinator(writer: WritingProvider): WritingProvider {
+  const preferred: WritingProvider[] = ["zhi2", "zhi1", "zhi5", "zhi3", "zhi4"];
+  const coordinator = preferred.find(candidate => candidate !== writer && providerIsConfigured(candidate));
+  if (!coordinator) {
+    throw new Error("Megaglobal coherence requires a second configured ZHI model to coordinate the selected prose writer.");
+  }
+  return coordinator;
+}
+
+export function selectCoherenceRepairEditor(
+  writer: WritingProvider,
+  coordinator: WritingProvider,
+): WritingProvider {
+  const preferred: WritingProvider[] = ["zhi5", "zhi3", "zhi1", "zhi2", "zhi4"];
+  return preferred.find(candidate =>
+    candidate !== writer
+    && candidate !== coordinator
+    && providerIsConfigured(candidate)
+  ) || coordinator;
+}
+
 async function fillToTarget(
   provider: WritingProvider,
   initial: string,
@@ -303,6 +341,10 @@ async function fillToTarget(
   let text = removeMarkdown(initial);
   const minimumWords = hardMinimum ? targetWords : Math.ceil(targetWords * 0.9);
   const maximumWords = Math.floor(targetWords * 1.1);
+  const novelShortfallFloor = Math.ceil(targetWords * 0.72);
+  if (acceptNovelShortfall && countWords(text) >= novelShortfallFloor && countWords(text) < minimumWords) {
+    return formatIntoParagraphs(text);
+  }
   const maximumContinuationAttempts = Math.ceil(targetWords / 350) + 4;
   let nextContinuationPauseAt = (Math.floor(countWords(text) / 1000) + 1) * 1000;
   for (let attempt = 0; countWords(text) < minimumWords && attempt < maximumContinuationAttempts; attempt++) {
@@ -320,8 +362,17 @@ async function fillToTarget(
     const continuationWords = Math.min(500, deficit + 40);
     const continuation = await callProvider(
       provider,
-      `Continue prose in plain text only. Never use Markdown symbols. Return only the continuation. ${ASSIGNMENT_FIDELITY} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
-      `Continue the passage naturally by approximately ${continuationWords} words. ${deficit <= 500 ? "Bring it to a complete stopping point." : "Do not conclude the section yet."} Do not repeat prior material. Preserve the argument, terminology, voice, and continuity described below.\n\nCONTEXT:\n${context}\n\nPASSAGE END:\n${text.split(/\s+/).slice(-500).join(" ")}`,
+      `Continue the same assigned section in plain text only. Never use Markdown symbols. Return only new continuation prose. Do not restart the section, introduce its subject again, restate its controlling thesis, repeat an example, summarize work already performed, announce a later section, or write a second local conclusion. The first sentence must attach directly to the current argument position. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
+      `Add approximately ${continuationWords} words to the SAME section. ${deficit <= 500 ? "Complete only this section's still-unfinished obligation and handoff." : "Advance the next still-unfinished obligation without concluding."} Before writing, silently compare the binding contract with CURRENT SECTION ALREADY WRITTEN and identify the first unfinished item in PARAGRAPH-BY-PARAGRAPH ALLOCATION. Continue from that item in order. Write no unallocated paragraph. Each paragraph must perform one reserved operation and establish a result not established by any earlier paragraph. Do not repeat any claim, distinction, example, objection, answer, or conclusion already present. Never add a second example merely to illustrate a point already illustrated. If all allocated work is complete, return no text rather than padding.
+
+BINDING GLOBAL AND SECTION CONTEXT:
+${context}
+
+CURRENT SECTION ALREADY WRITTEN:
+${boundedCurrentSectionEvidence(text)}
+
+CURRENT ARGUMENT POSITION:
+${text.split(/\s+/).slice(-500).join(" ")}`,
       Math.min(1800, Math.ceil((continuationWords + 200) * 1.8)),
     );
     text = appendNovelContinuation(text, continuation);
@@ -330,7 +381,7 @@ async function fillToTarget(
     throw new Error("WRITING_STOPPED_BY_USER");
   }
   if (countWords(text) < minimumWords) {
-    if (acceptNovelShortfall && countWords(text) >= Math.ceil(targetWords * 0.72)) {
+    if (acceptNovelShortfall && countWords(text) >= novelShortfallFloor) {
       return formatIntoParagraphs(text);
     }
     throw new Error(`Provider stopped at ${countWords(text)} words; minimum acceptable length is ${minimumWords}`);
@@ -342,6 +393,10 @@ async function fillToTarget(
 
 function chapterHeadings(text: string): number[] {
   return [...text.matchAll(/(?:^|\n)\s*chapter\s+(\d{1,3})\b/gi)].map(match => Number(match[1]));
+}
+
+function sectionHeadings(text: string): number[] {
+  return [...text.matchAll(/(?:^|\n)\s*section\s+(\d{1,3})\b/gi)].map(match => Number(match[1]));
 }
 
 function enforceChapterPresentation(text: string, chapterNumber: number, title: string | null): string {
@@ -357,6 +412,50 @@ function enforceChapterPresentation(text: string, chapterNumber: number, title: 
     content = `${titlePrefix}Chapter ${chapterNumber}:\n\n${body}`;
   }
   return content;
+}
+
+export function enforceSectionPresentation(text: string, sectionNumber: number): string {
+  let content = text.trim();
+  const paragraphs = content.split(/\n\s*\n/).map(paragraph => paragraph.trim()).filter(Boolean);
+  const body = paragraphs
+    .filter(paragraph => !/^(?:chapter|section)\s+\d{1,3}\s*:/i.test(paragraph))
+    .join("\n\n");
+  const existingHeading = paragraphs.find(paragraph =>
+    new RegExp(`^section\\s+${sectionNumber}\\s*:`, "i").test(paragraph),
+  );
+  return `${existingHeading || `Section ${sectionNumber}:`}\n\n${body}`.trim();
+}
+
+function enforceAssignedPresentation(
+  text: string,
+  sectionIndex: number,
+  chapterNumber: number | null,
+  title: string | null,
+): string {
+  return chapterNumber
+    ? enforceChapterPresentation(text, chapterNumber, title)
+    : enforceSectionPresentation(text, sectionIndex + 1);
+}
+
+function validateAssignedPresentation(text: string, sectionIndex: number, chapterNumber: number | null): void {
+  const expected = chapterNumber || sectionIndex + 1;
+  const headings = chapterNumber ? chapterHeadings(text) : sectionHeadings(text);
+  const label = chapterNumber ? "Chapter" : "Section";
+  if (headings.length !== 1 || headings[0] !== expected) {
+    throw new Error(`${label} ${expected} structure failed: expected exactly one ${label} ${expected} heading; received ${headings.join(", ") || "none"}`);
+  }
+}
+
+export function validateSectionCheckpoints(
+  sections: Array<{ sectionIndex: number }>,
+  expectedCount: number,
+  label: string,
+): void {
+  const indexes = sections.map(section => section.sectionIndex);
+  const expected = Array.from({ length: expectedCount }, (_, index) => index);
+  if (indexes.length !== expected.length || indexes.some((index, position) => index !== expected[position])) {
+    throw new Error(`${label} failed: expected contiguous section checkpoints ${expected.map(index => index + 1).join(", ")}; received ${indexes.map(index => index + 1).join(", ") || "none"}`);
+  }
 }
 
 function removeUnassignedChapterReferences(text: string, chapterNumber: number, assignedDirective: string): string {
@@ -611,10 +710,11 @@ SPENT EXAMPLES NOT TO REUSE:
 ALLOWED ONE-CLAUSE DEPENDENCY REFERENCES:
 REQUIRED NEW ARGUMENT STEPS:
 REQUIRED NEW EXAMPLES OR APPLICATIONS:
+PARAGRAPH-BY-PARAGRAPH ALLOCATION:
 ENDING HANDOFF:
 BANNED MINI-ESSAY MOVES:
 
-Assign at least four ordered new argument steps. A later section may mention an earlier definition or conclusion only in one subordinate clause before deriving something new. Ban paragraphs whose main point is an already established definition, criterion, thesis, example, objection, or conclusion. Ban generic recap and fresh introductions.
+Assign at least four ordered new argument steps. Then allocate each planned paragraph to exactly one distinct operation: derive one new proposition, draw one new implication, state one objection, answer that objection, provide one uniquely assigned example, or execute the handoff. Give every paragraph a numbered slot and a one-sentence output claim. Do not allocate parallel examples of the same proposition. Do not allocate the same claim, criterion, or conclusion to more than one paragraph. Every paragraph after the first must take the preceding paragraph's result as an input and produce a further result. A later section may mention an earlier definition or conclusion only in one subordinate clause before deriving something new. Ban paragraphs whose main point is an already established definition, criterion, thesis, example, objection, or conclusion. Ban generic recap and fresh introductions. If the unique allocated work cannot honestly fill the target length, require a shorter section rather than repetition.
 
 IMMUTABLE GLOBAL SKELETON:
 ${blueprint}
@@ -708,8 +808,8 @@ async function repairCrossSectionRedundancy(
 ): Promise<string> {
   return callProvider(
     provider,
-    `Revise one section of a globally coherent long work. Return only the complete replacement section in plain text. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE}`,
-    `Replace semantic repetition with deeper deductions, distinctions, evidence, objections, implications, or connective reasoning assigned uniquely to Section ${sectionIndex + 1}. Preserve the section's required heading and all genuinely new material. Write approximately ${targetWords} words. Do not alter the controlling thesis or any fixed commitment.
+    `Revise one section of a globally coherent long work. Return only the complete replacement section in plain text. Follow the coordinator's paragraph allocation literally. Never create extra paragraphs to reach a word count. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE}`,
+    `Rebuild Section ${sectionIndex + 1} around PARAGRAPH-BY-PARAGRAPH ALLOCATION. Use at most one paragraph for each numbered allocation and preserve their order. Every paragraph must take a prior result as input and produce a distinct new result. Delete parallel examples, repeated definitions, repeated demonstrations, and repeated consequences. A claim may be the main point of only one paragraph. An example may appear only in its allocated paragraph and must support a new inferential step. Preserve the section's required heading and all genuinely new material. Aim for approximately ${targetWords} words only if the allocated work supports that length; otherwise return a shorter novel section. Do not alter the controlling thesis or any fixed commitment.
 
 GLOBAL SKELETON:
 ${blueprint}
@@ -764,7 +864,7 @@ export async function createWritingJob(input: {
   auditGuidance?: string;
 }) {
   const explicitChapterCount = detectExplicitChapterCount(input.instructions);
-  const usesLargeScaleCoherence = input.requestedWordCount > 2000 || Boolean(explicitChapterCount && explicitChapterCount > 1);
+  const usesLargeScaleCoherence = isMegaglobalRequest(input.requestedWordCount, explicitChapterCount);
   const totalSections = explicitChapterCount
     || (input.requestedWordCount > 2000 ? Math.ceil(input.requestedWordCount / 1200) : 1);
   const [job] = await db.insert(writingJobs).values({
@@ -779,6 +879,13 @@ export async function createWritingJob(input: {
   return job;
 }
 
+export function isMegaglobalRequest(
+  requestedWordCount: number,
+  explicitChapterCount: number | null,
+): boolean {
+  return requestedWordCount > 2000 || Boolean(explicitChapterCount && explicitChapterCount > 1);
+}
+
 export async function getWritingJob(jobId: number) {
   const [job] = await db.select().from(writingJobs).where(eq(writingJobs.id, jobId));
   return job;
@@ -791,6 +898,17 @@ export async function requestWritingStop(jobId: number): Promise<void> {
 }
 
 export async function resumeWritingJob(jobId: number): Promise<void> {
+  const [job] = await db.select({
+    status: writingJobs.status,
+    completedSections: writingJobs.completedSections,
+  }).from(writingJobs).where(eq(writingJobs.id, jobId));
+  if (!job) throw new Error("Writing job not found");
+  if (job.status === "failed") {
+    await db.delete(writingJobSections).where(and(
+      eq(writingJobSections.jobId, jobId),
+      gte(writingJobSections.sectionIndex, job.completedSections),
+    ));
+  }
   await db.update(writingJobs).set({
     status: "pending", stopRequested: false, stoppedEarly: true, error: null, updatedAt: new Date(),
   }).where(eq(writingJobs.id, jobId));
@@ -799,7 +917,21 @@ export async function resumeWritingJob(jobId: number): Promise<void> {
 export async function processWritingJob(jobId: number): Promise<void> {
   const [job] = await db.select().from(writingJobs).where(eq(writingJobs.id, jobId));
   if (!job) throw new Error("Writing job not found");
+  if (job.usesLargeScaleCoherence && !job.userId) {
+    await db.update(writingJobs).set({
+      status: "paused",
+      stopRequested: true,
+      stoppedEarly: true,
+      error: "Sign in with Google before continuing database-backed megaglobal coherence.",
+      updatedAt: new Date(),
+    }).where(eq(writingJobs.id, jobId));
+    throw new Error("Database-backed megaglobal coherence requires a signed-in user owner.");
+  }
   const provider = job.provider as WritingProvider;
+  const coordinator = job.usesLargeScaleCoherence ? selectCoherenceCoordinator(provider) : provider;
+  const repairEditor = job.usesLargeScaleCoherence
+    ? selectCoherenceRepairEditor(provider, coordinator)
+    : provider;
   let inProgressContent = "";
   const completedOutputParts: string[] = [];
   const auditFailures = new Map<number, { section: string; report: string }>();
@@ -810,13 +942,15 @@ export async function processWritingJob(jobId: number): Promise<void> {
 
   try {
     const savedSections = isResume ? existingSections : [];
-    const completedCount = savedSections.filter(section => section.sectionIndex < job.completedSections).length;
-    completedOutputParts.push(...savedSections.filter(section => section.sectionIndex < job.completedSections).map(section => section.content));
+    const completedSavedSections = savedSections.filter(section => section.sectionIndex < job.completedSections);
+    validateSectionCheckpoints(completedSavedSections, job.completedSections, "Saved writing continuity");
+    const completedCount = job.completedSections;
+    completedOutputParts.push(...completedSavedSections.map(section => section.content));
     const completedDeltas = savedSections
       .filter(section => section.sectionIndex < job.completedSections && section.continuitySummary)
       .map(section => section.continuitySummary as string);
     const blueprint = job.blueprint || (job.usesLargeScaleCoherence
-      ? await createBlueprint(provider, job.instructions, job.totalSections)
+      ? await createBlueprint(coordinator, job.instructions, job.totalSections)
       : removeMarkdown(job.instructions));
     let ledger = job.coherenceLedger || blueprint;
     if (!isResume) {
@@ -847,7 +981,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
         : assignedDirective;
       const executionContract = job.usesLargeScaleCoherence
         ? await createSectionExecutionContract(
-            provider,
+            coordinator,
             blueprint,
             `${ledger}\n\nACTUAL PRIOR MANUSCRIPT EVIDENCE:\n${boundedPriorManuscriptEvidence(completedOutputParts) || "None."}`,
             guidedDirective,
@@ -876,7 +1010,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
        const draft = partial?.content || await callProvider(
         provider,
         `Write polished prose in plain text only. Use readable paragraphs separated by blank lines. Do not use Markdown: no hashes, asterisks, code fences, blockquotes, link syntax, or bullet markers. LaTeX underscores inside mathematical expressions are allowed. Return only the requested prose section. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
-        `${structuralInstruction} Write the first approximately ${initialChunkWords} words of this ${targetWords}-word section.${streamsInChunks && initialChunkWords < targetWords ? " Stop at a natural paragraph boundary without concluding; later calls will continue the section." : index === job.totalSections - 1 ? " Complete the whole work's assigned ending naturally." : " End with a forward handoff, not a global conclusion."} Use readable paragraphs of roughly 80 to 160 words each, separated by blank lines. Execute every requirement in the assigned directive. Every paragraph must add a new inference, distinction, example, objection, answer, implication, or connective step. Do not add conversational summaries, promises about later content, or meta-commentary.${index > 0 ? " Do not introduce the paper or explain its overall thesis again." : ""} Do not preview, summarize, name, or perform material assigned to another chapter.${theoremInstruction}${globalStandard ? ` Apply this global standard: ${globalStandard}` : ""}
+        `${structuralInstruction} Write the first approximately ${initialChunkWords} words of this ${targetWords}-word section.${streamsInChunks && initialChunkWords < targetWords ? " Stop only after completing a numbered paragraph-allocation item; later calls will continue with the next unfinished item." : index === job.totalSections - 1 ? " Complete the whole work's assigned ending naturally." : " End with the assigned forward handoff, not a global conclusion."} Follow PARAGRAPH-BY-PARAGRAPH ALLOCATION literally and in order. Use at most one paragraph for each numbered allocation. Do not invent unallocated paragraphs to reach the target. If the unique allocated work is exhausted, stop short rather than pad. Use readable paragraphs of roughly 80 to 160 words each, separated by blank lines. Execute every requirement in the assigned directive. Every paragraph must add a new inference, distinction, example, objection, answer, implication, or connective step. No claim may be the main point of two paragraphs, and no parallel example may re-demonstrate an established point. Do not add conversational summaries, promises about later content, or meta-commentary.${index > 0 ? " Do not introduce the paper or explain its overall thesis again." : ""} Do not preview, summarize, name, or perform material assigned to another chapter.${theoremInstruction}${globalStandard ? ` Apply this global standard: ${globalStandard}` : ""}
 
 IMMUTABLE GLOBAL SKELETON:
 ${blueprint}
@@ -932,21 +1066,23 @@ ${executionContract}`,
           job.usesLargeScaleCoherence,
       );
       if (chapterNumber) {
-        content = enforceChapterPresentation(content, chapterNumber, workTitle);
+        content = enforceAssignedPresentation(content, index, chapterNumber, workTitle);
         content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
         content = removeRepetitiveSummaryParagraphs(content, globalStandard);
         if (countWords(content) < sectionMinimum) {
           content = await fillToTarget(provider, content, targetWords, fillContext, hardMinimum, undefined, 0, job.usesLargeScaleCoherence);
-          content = enforceChapterPresentation(content, chapterNumber, workTitle);
+          content = enforceAssignedPresentation(content, index, chapterNumber, workTitle);
           content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
           content = removeRepetitiveSummaryParagraphs(content, globalStandard);
         }
         content = enforceSingleFinalTheorem(content, assignedDirective);
+      } else {
+        content = enforceAssignedPresentation(content, index, null, null);
       }
       if (job.usesLargeScaleCoherence && index > 0) {
         for (let coherenceAttempt = 0; coherenceAttempt < 2; coherenceAttempt++) {
           const repetitionFinding = await inspectCrossSectionRedundancy(
-            provider,
+            coordinator,
             blueprint,
             boundedPriorManuscriptEvidence(completedOutputParts),
             executionContract,
@@ -956,7 +1092,7 @@ ${executionContract}`,
           );
           if (!/^REVISE\b/i.test(repetitionFinding)) break;
           content = await repairCrossSectionRedundancy(
-            provider,
+            repairEditor,
             blueprint,
             `${ledger}\n\nACTUAL PRIOR MANUSCRIPT EVIDENCE:\n${boundedPriorManuscriptEvidence(completedOutputParts)}`,
             guidedDirective,
@@ -985,14 +1121,16 @@ ${executionContract}`,
               true,
             );
             if (chapterNumber) {
-              content = enforceChapterPresentation(content, chapterNumber, workTitle);
+              content = enforceAssignedPresentation(content, index, chapterNumber, workTitle);
               content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
               content = enforceSingleFinalTheorem(content, assignedDirective);
+            } else {
+              content = enforceAssignedPresentation(content, index, null, null);
             }
           }
         }
         const finalSectionCoherence = await inspectCrossSectionRedundancy(
-          provider,
+          coordinator,
           blueprint,
           boundedPriorManuscriptEvidence(completedOutputParts),
           executionContract,
@@ -1001,20 +1139,12 @@ ${executionContract}`,
           content,
         );
         if (/^REVISE\b/i.test(finalSectionCoherence)) {
-          auditFailures.set(index, {
-            section: chapterNumber ? `Chapter ${chapterNumber}` : `Section ${index + 1}`,
-            report: `Pre-delivery global coherence gate remained unsatisfied after bounded repair: ${finalSectionCoherence}`,
-          });
+          throw new Error(`Megaglobal coherence gate rejected ${chapterNumber ? `Chapter ${chapterNumber}` : `Section ${index + 1}`} after bounded repair: ${finalSectionCoherence}`);
         }
       }
       content = preserveRequestedMathNotation(normalizeMathNotation(content), assignedDirective);
-      if (chapterNumber) {
-        try {
-          validateChapterSection(content, chapterNumber);
-        } catch (error) {
-          console.warn(`Chapter ${chapterNumber} delivered despite a remaining structural warning:`, error);
-        }
-      }
+      content = enforceAssignedPresentation(content, index, chapterNumber, workTitle);
+      validateAssignedPresentation(content, index, chapterNumber);
       content = removeMarkdown(content);
       if (containsEmptyVerbalGestures(content)) {
         console.warn(`Section ${index + 1} delivered with a remaining utilitarian-style warning.`);
@@ -1033,10 +1163,10 @@ ${executionContract}`,
       inProgressContent = content;
 
       const continuitySummary = job.usesLargeScaleCoherence
-        ? await extractSectionDelta(provider, blueprint, ledger, index, job.totalSections, content)
+        ? await extractSectionDelta(coordinator, blueprint, ledger, index, job.totalSections, content)
         : "";
       if (job.usesLargeScaleCoherence) {
-        ledger = await updateCumulativeLedger(provider, blueprint, ledger, continuitySummary);
+        ledger = await updateCumulativeLedger(coordinator, blueprint, ledger, continuitySummary);
         completedDeltas.push(continuitySummary);
       }
 
@@ -1063,6 +1193,7 @@ ${executionContract}`,
     let sections = await db.select().from(writingJobSections)
       .where(eq(writingJobSections.jobId, jobId))
       .orderBy(asc(writingJobSections.sectionIndex));
+    validateSectionCheckpoints(sections, job.totalSections, "Final writing structure");
 
     if (job.usesLargeScaleCoherence && sections.length > 1) {
       const [currentJob] = await db.select({ stopRequested: writingJobs.stopRequested })
@@ -1070,7 +1201,7 @@ ${executionContract}`,
       if (currentJob?.stopRequested) throw new Error("WRITING_STOPPED_BY_USER");
 
       const consistencyPlan = await createGlobalConsistencyPlan(
-        provider,
+        coordinator,
         blueprint,
         completedDeltas,
         job.totalSections,
@@ -1095,7 +1226,7 @@ ${executionContract}`,
           ? (extractChapterDirective(job.instructions, chapterNumber) || job.instructions)
           : job.instructions;
         const repairExecutionContract = await createSectionExecutionContract(
-          provider,
+          coordinator,
           blueprint,
           `EARLIER DELTAS:\n${completedDeltas.slice(0, sectionIndex).join("\n\n")}\n\nACTUAL EARLIER MANUSCRIPT:\n${boundedPriorManuscriptEvidence(sections.filter(item => item.sectionIndex < sectionIndex).map(item => item.content))}`,
           directive,
@@ -1104,7 +1235,7 @@ ${executionContract}`,
         );
         const title = chapterNumber === 1 ? extractWorkTitle(job.instructions) : null;
         let repaired = await repairCrossSectionRedundancy(
-          provider,
+          repairEditor,
           blueprint,
           boundedPriorManuscriptEvidence(sections.filter(item => item.sectionIndex < sectionIndex).map(item => item.content)),
           directive,
@@ -1116,9 +1247,11 @@ ${executionContract}`,
           section.targetWordCount,
         );
         if (chapterNumber) {
-          repaired = enforceChapterPresentation(repaired, chapterNumber, title);
+          repaired = enforceAssignedPresentation(repaired, sectionIndex, chapterNumber, title);
           repaired = removeUnassignedChapterReferences(repaired, chapterNumber, directive);
           repaired = enforceSingleFinalTheorem(repaired, directive);
+        } else {
+          repaired = enforceAssignedPresentation(repaired, sectionIndex, null, null);
         }
         repaired = preserveRequestedMathNotation(
           normalizeMathNotation(removeMarkdown(repaired)),
@@ -1139,13 +1272,15 @@ ${executionContract}`,
             true,
           );
           if (chapterNumber) {
-            repaired = enforceChapterPresentation(repaired, chapterNumber, title);
+            repaired = enforceAssignedPresentation(repaired, sectionIndex, chapterNumber, title);
             repaired = removeUnassignedChapterReferences(repaired, chapterNumber, directive);
             repaired = enforceSingleFinalTheorem(repaired, directive);
+          } else {
+            repaired = enforceAssignedPresentation(repaired, sectionIndex, null, null);
           }
         }
         const postRepairFinding = await inspectCrossSectionRedundancy(
-          provider,
+          coordinator,
           blueprint,
           boundedPriorManuscriptEvidence(sections.filter(item => item.sectionIndex < sectionIndex).map(item => item.content)),
           repairExecutionContract,
@@ -1155,7 +1290,7 @@ ${executionContract}`,
         );
         if (/^REVISE\b/i.test(postRepairFinding)) {
           repaired = await repairCrossSectionRedundancy(
-            provider,
+            repairEditor,
             blueprint,
             completedDeltas.slice(0, sectionIndex).join("\n\n"),
             directive,
@@ -1179,9 +1314,11 @@ ${executionContract}`,
             );
           }
           if (chapterNumber) {
-            repaired = enforceChapterPresentation(repaired, chapterNumber, title);
+            repaired = enforceAssignedPresentation(repaired, sectionIndex, chapterNumber, title);
             repaired = removeUnassignedChapterReferences(repaired, chapterNumber, directive);
             repaired = enforceSingleFinalTheorem(repaired, directive);
+          } else {
+            repaired = enforceAssignedPresentation(repaired, sectionIndex, null, null);
           }
           repaired = preserveRequestedMathNotation(
             normalizeMathNotation(removeMarkdown(repaired)),
@@ -1189,7 +1326,7 @@ ${executionContract}`,
           );
         }
         const repairedDelta = await extractSectionDelta(
-          provider,
+          coordinator,
           blueprint,
           completedDeltas.slice(0, sectionIndex).join("\n\n"),
           sectionIndex,
@@ -1208,18 +1345,27 @@ ${executionContract}`,
           .where(eq(writingJobSections.jobId, jobId))
           .orderBy(asc(writingJobSections.sectionIndex));
         const verificationPlan = await createGlobalConsistencyPlan(
-          provider,
+          coordinator,
           blueprint,
           completedDeltas,
           job.totalSections,
         );
         if (!/^PASS\s*$/i.test(verificationPlan.trim())) {
-          auditFailures.set(-1, {
-            section: "Global coherence",
-            report: `The bounded consistency repair completed, but the final delta verification still found: ${verificationPlan}`,
-          });
+          throw new Error(`Megaglobal final verification rejected the document after bounded consistency repair: ${verificationPlan}`);
         }
       }
+    }
+
+    sections = await db.select().from(writingJobSections)
+      .where(eq(writingJobSections.jobId, jobId))
+      .orderBy(asc(writingJobSections.sectionIndex));
+    validateSectionCheckpoints(sections, job.totalSections, "Pre-delivery writing structure");
+    for (const section of sections) {
+      validateAssignedPresentation(
+        section.content,
+        section.sectionIndex,
+        explicitChapterCount ? section.sectionIndex + 1 : null,
+      );
     }
 
     const output = preserveRequestedMathNotation(
@@ -1242,7 +1388,7 @@ ${executionContract}`,
       const audit = containsAcademicEvasion(section.content)
         ? "FAIL: The section contains academic evasion or a false-balance conclusion."
         : await auditSection(
-            provider,
+            coordinator,
             job.instructions,
             blueprint,
             section.content,
@@ -1265,7 +1411,13 @@ ${executionContract}`,
       const headings = chapterHeadings(output);
       const expected = Array.from({ length: explicitChapterCount }, (_, index) => index + 1);
       if (headings.length !== expected.length || headings.some((heading, index) => heading !== expected[index])) {
-        console.warn(`Final document delivered with a chapter-structure warning: expected ${expected.join(", ")}; received ${headings.join(", ") || "none"}.`);
+        throw new Error(`Final chapter structure failed: expected ${expected.join(", ")}; received ${headings.join(", ") || "none"}.`);
+      }
+    } else {
+      const headings = sectionHeadings(output);
+      const expected = Array.from({ length: job.totalSections }, (_, index) => index + 1);
+      if (headings.length !== expected.length || headings.some((heading, index) => heading !== expected[index])) {
+        throw new Error(`Final section structure failed: expected ${expected.join(", ")}; received ${headings.join(", ") || "none"}.`);
       }
     }
     if (containsEmptyVerbalGestures(output)) {
@@ -1298,20 +1450,21 @@ ${executionContract}`,
         normalizeMathNotation(removeMarkdown(deliverableParts.join("\n\n"))),
         job.instructions,
       );
-      console.error(`Writing job ${jobId} encountered an error after producing text; delivering the best available document instead:`, error);
+      const stoppedByUser = error.message === "WRITING_STOPPED_BY_USER";
+      console.error(`Writing job ${jobId} encountered an error after producing text; preserving the recoverable draft without marking it complete:`, error);
       const [freshJobState] = await db.select({ completedSections: writingJobs.completedSections })
         .from(writingJobs).where(eq(writingJobs.id, jobId));
       await db.update(writingJobs).set({
-         status: error.message === "WRITING_STOPPED_BY_USER" ? "paused" : "complete",
+         status: stoppedByUser ? "paused" : "failed",
         output: recoverableOutput,
          completedSections: freshJobState?.completedSections || 0,
         auditReport: JSON.stringify([
           ...Array.from(auditFailures.values()),
           { section: "Generation", report: error.message || "A later generation step failed after usable text had been produced." },
         ]),
-         stoppedEarly: error.message === "WRITING_STOPPED_BY_USER",
+          stoppedEarly: stoppedByUser,
         stopRequested: false,
-        error: null,
+         error: stoppedByUser ? null : (error.message || "Megaglobal coherence processing failed"),
         updatedAt: new Date(),
       }).where(eq(writingJobs.id, jobId));
       return;

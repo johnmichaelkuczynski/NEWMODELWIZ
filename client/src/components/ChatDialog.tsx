@@ -10,6 +10,7 @@ import { Send, Upload, Download, Mail, FileText, Paperclip, ArrowUpToLine, Datab
 import { MathRenderer } from './MathRenderer';
 import CopyButton from '@/components/CopyButton';
 import SendToButton from '@/components/SendToButton';
+import WordCountStatus from '@/components/WordCountStatus';
 
 interface ChatMessage {
   id: string;
@@ -389,6 +390,9 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
                     <div className="whitespace-pre-wrap">
                       <MathRenderer content={message.content} />
                     </div>
+                    {message.role === "assistant" && (
+                      <WordCountStatus text={message.content} className="mt-2 opacity-70" />
+                    )}
                   </div>
                   {/* Copy and Send buttons for AI responses */}
                   {message.role === 'assistant' && (
@@ -430,6 +434,7 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
                   <div className="animate-spin h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full"></div>
                   <span>AI is thinking...</span>
                 </div>
+                <WordCountStatus running count={0} className="mt-2" />
               </div>
             </div>
           )}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { DocumentAnalysis, DocumentComparison } from '@/lib/types';
 import { cleanAIResponse } from '@/lib/textUtils';
+import WordCountStatus from '@/components/WordCountStatus';
 import { Doughnut, Bar, Radar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -447,6 +448,10 @@ const AnalysisReport: React.FC<AnalysisReportProps> = ({
       <div className="mt-10 px-6 mb-10">
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">Detailed Analysis</h2>
         <div className="bg-white p-4 rounded-lg shadow">
+          <WordCountStatus
+            text={cleanAIResponse(analysisA.formattedReport || analysisA.analysis || '')}
+            className="mb-3"
+          />
           <div className="prose max-w-none">
             {/* Use the formatted report if available, otherwise fall back to the analysis field */}
             {analysisA.formattedReport ? (

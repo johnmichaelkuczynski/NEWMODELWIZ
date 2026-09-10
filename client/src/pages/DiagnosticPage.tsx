@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, AlertCircle, Loader2, Activity, Download } from "lucide-react";
+import { CheckCircle2, XCircle, AlertCircle, Loader2, Activity, Download, Network } from "lucide-react";
 import { trackEvent } from "@/lib/analytics";
+import WordCountStatus from "@/components/WordCountStatus";
 
 type CheckStatus = "pass" | "fail" | "warn";
 interface Check {
@@ -18,11 +19,28 @@ interface DiagnosticResult {
   summary: { total: number; passed: number; failed: number; warned: number; durationMs: number };
   checks: Check[];
 }
+type MegaglobalStatus = "pass" | "fail" | "not-applicable";
+interface MegaglobalCheck {
+  functionName: string;
+  expectedProtocol: string;
+  actualProtocol: string;
+  status: MegaglobalStatus;
+  evidence: string[];
+}
+interface MegaglobalResult {
+  success: boolean;
+  checkedAt: string;
+  summary: { total: number; passed: number; failed: number; notApplicable: number };
+  checks: MegaglobalCheck[];
+}
 
 export default function DiagnosticPage() {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<DiagnosticResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [megaglobalRunning, setMegaglobalRunning] = useState(false);
+  const [megaglobalResult, setMegaglobalResult] = useState<MegaglobalResult | null>(null);
+  const [megaglobalError, setMegaglobalError] = useState<string | null>(null);
 
   const runDiagnostic = async () => {
     setRunning(true);
@@ -47,12 +65,27 @@ export default function DiagnosticPage() {
     }
   };
 
-  const autoStarted = useRef(false);
-  useEffect(() => {
-    if (autoStarted.current) return;
-    autoStarted.current = true;
-    runDiagnostic();
-  }, []);
+  const runMegaglobalDiagnostic = async () => {
+    setMegaglobalRunning(true);
+    setMegaglobalError(null);
+    setMegaglobalResult(null);
+    try {
+      const response = await fetch("/api/diagnostic/megaglobal", { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.message || "Megaglobal diagnostic failed");
+      setMegaglobalResult(data);
+      trackEvent("megaglobal_diagnostic_completed", {
+        passed: data.summary.passed,
+        failed: data.summary.failed,
+        not_applicable: data.summary.notApplicable,
+      });
+    } catch (e: any) {
+      setMegaglobalError(e?.message || "Megaglobal diagnostic could not complete.");
+      trackEvent("megaglobal_diagnostic_failed");
+    } finally {
+      setMegaglobalRunning(false);
+    }
+  };
 
   const downloadReport = () => {
     if (!result) return;
@@ -117,7 +150,20 @@ export default function DiagnosticPage() {
           {running ? (
             <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Running diagnostic…</>
           ) : (
-            <><Activity className="w-5 h-5 mr-2" /> Re-run Diagnostic</>
+            <><Activity className="w-5 h-5 mr-2" /> Run Diagnostic</>
+          )}
+        </Button>
+        <Button
+          onClick={runMegaglobalDiagnostic}
+          disabled={megaglobalRunning}
+          variant="outline"
+          className="px-5 py-6 text-base border-violet-300"
+          data-testid="button-run-megaglobal-diagnostic"
+        >
+          {megaglobalRunning ? (
+            <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Checking megaglobal functions…</>
+          ) : (
+            <><Network className="w-5 h-5 mr-2" /> Check Megaglobal Coherence</>
           )}
         </Button>
         {result && (
@@ -126,6 +172,59 @@ export default function DiagnosticPage() {
           </Button>
         )}
       </div>
+
+      {megaglobalError && (
+        <Card className="p-4 mb-4 border-red-300 bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-300">
+          <div className="font-medium">Megaglobal diagnostic could not complete</div>
+          <div className="text-sm mt-1">{megaglobalError}</div>
+        </Card>
+      )}
+
+      {megaglobalResult && (
+        <Card className="p-4 mb-6 border-violet-300" data-testid="megaglobal-diagnostic-results">
+          <WordCountStatus text={JSON.stringify(megaglobalResult)} className="mb-3" />
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+            <div>
+              <div className="font-semibold text-lg">Megaglobal Coherence Function Check</div>
+              <div className="text-sm text-gray-500">
+                {megaglobalResult.summary.passed} proper · {megaglobalResult.summary.failed} improper · {megaglobalResult.summary.notApplicable} not applicable
+              </div>
+            </div>
+            <Badge variant={megaglobalResult.success ? "default" : "destructive"}>
+              {megaglobalResult.success ? "All relevant functions properly routed" : "Improper routing detected"}
+            </Badge>
+          </div>
+          <div className="space-y-3">
+            {megaglobalResult.checks.map((check) => (
+              <div
+                key={check.functionName}
+                className="p-3 rounded border bg-gray-50 dark:bg-gray-900 dark:border-gray-700"
+                data-testid={`megaglobal-check-${check.functionName.replace(/\s+/g, "-").toLowerCase()}`}
+              >
+                <div className="flex items-start gap-3">
+                  {check.status === "pass" ? (
+                    <CheckCircle2 className="w-5 h-5 mt-0.5 text-green-600 shrink-0" />
+                  ) : check.status === "fail" ? (
+                    <XCircle className="w-5 h-5 mt-0.5 text-red-600 shrink-0" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 mt-0.5 text-gray-500 shrink-0" />
+                  )}
+                  <div className="min-w-0">
+                    <div className="font-medium">{check.functionName}</div>
+                    <div className="text-sm mt-1"><span className="font-medium">Expected:</span> {check.expectedProtocol}</div>
+                    <div className="text-sm"><span className="font-medium">Actual:</span> {check.actualProtocol}</div>
+                    <div className="mt-2 space-y-1">
+                      {check.evidence.map((item, index) => (
+                        <div key={index} className="text-xs text-gray-600 dark:text-gray-400 break-words">Evidence: {item}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
 
       {error && (
         <Card className="p-4 mb-4 border-red-300 bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-300">
@@ -141,11 +240,13 @@ export default function DiagnosticPage() {
             Pinging providers, testing the database, and exercising analysis and long-form writing…
           </div>
           <div className="text-sm text-gray-500 mt-1">The large-scale prose test can take several minutes.</div>
+          <WordCountStatus running count={0} className="mt-2" />
         </Card>
       )}
 
       {result && (
         <>
+          <WordCountStatus text={JSON.stringify(result)} className="mb-3" />
           <Card className="p-4 mb-4">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
               <div><div className="text-2xl font-bold">{result.summary.total}</div><div className="text-xs text-gray-500">Total Checks</div></div>

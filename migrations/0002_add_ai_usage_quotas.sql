@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS ai_usage_quotas (
+  identity_key TEXT PRIMARY KEY,
+  tier TEXT NOT NULL,
+  actions_used INTEGER NOT NULL DEFAULT 0,
+  words_reserved INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
