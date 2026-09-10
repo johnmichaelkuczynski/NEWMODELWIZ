@@ -687,7 +687,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       await runCheck("AI Providers", "ZHI 4 reachable", () =>
         aiPing("https://api.perplexity.ai/chat/completions",
           { Authorization: `Bearer ${process.env.PERPLEXITY_API_KEY}` },
-          { model: "sonar", messages: [{ role: "user", content: "ping" }], max_tokens: 5 }));
+          { model: "sonar", messages: [{ role: "user", content: "Reply with OK." }], max_tokens: 16 }));
     }
     if (process.env.GROK_API_KEY) {
       await runCheck("AI Providers", "ZHI 5 reachable", () =>
@@ -749,6 +749,41 @@ export async function registerRoutes(app: Express): Promise<Express> {
       }, 180000);
       if (!d.output && !d.objectionsOutput) throw new Error("No output returned");
       return "Objections generated";
+    });
+
+    await runCheck("Writing", "Markdown detection and removal", async () => {
+      const { containsMarkdown, removeMarkdown } = await import("./services/longFormWriting");
+      const sample = "### Heading\n\n**Bold claim** with [source](https://example.com).";
+      if (!containsMarkdown(sample)) throw new Error("Markdown detector missed known syntax");
+      const cleaned = removeMarkdown(sample);
+      if (containsMarkdown(cleaned)) throw new Error("Markdown remained after cleanup");
+      return "Detected and removed headings, emphasis, and link markup";
+    });
+
+    await runCheck("Writing", "Coherent large-scale prose generation", async () => {
+      const {
+        createWritingJob,
+        processWritingJob,
+        getWritingJob,
+        countWords,
+        containsMarkdown,
+      } = await import("./services/longFormWriting");
+      const job = await createWritingJob({
+        instructions: "Write exactly 2,101 words of coherent plain prose explaining how a scientific theory preserves definitions and dependencies across multiple sections. Introduce three named principles early, apply all three later, and conclude by integrating them. Use no Markdown.",
+        provider: "zhi1",
+        requestedWordCount: 2101,
+      });
+      await processWritingJob(job.id);
+      const completed = await getWritingJob(job.id);
+      if (!completed?.output) throw new Error("Large-scale writing job returned no output");
+      if (!completed.usesLargeScaleCoherence) throw new Error("Large-scale coherence was not activated");
+      if (completed.completedSections < 2 || !completed.blueprint || !completed.coherenceLedger) {
+        throw new Error("Blueprint, continuity ledger, or persisted sections missing");
+      }
+      const words = countWords(completed.output);
+      if (words !== 2101) throw new Error(`Expected 2,101 words; received ${words}`);
+      if (containsMarkdown(completed.output)) throw new Error("Generated prose contains Markdown");
+      return `Generated exactly ${words.toLocaleString()} plain-text words across ${completed.completedSections} database-backed sections`;
     });
 
     const totalMs = Date.now() - t0;
@@ -1454,6 +1489,67 @@ export async function registerRoutes(app: Express): Promise<Express> {
         message: error.message || "Failed to make direct model request" 
       });
     }
+  });
+
+  app.post("/api/writing/jobs", async (req: Request, res: Response) => {
+    try {
+      const { instructions, provider = "zhi1", requestedWordCount } = req.body;
+      if (!instructions || typeof instructions !== "string") {
+        return res.status(400).json({ message: "Writing instructions are required" });
+      }
+      const validProviders = ["zhi1", "zhi2", "zhi3", "zhi4", "zhi5"];
+      if (!validProviders.includes(provider)) {
+        return res.status(400).json({ message: "Invalid writing provider" });
+      }
+
+      const {
+        createWritingJob,
+        processWritingJob,
+        extractRequestedWordCount,
+      } = await import("./services/longFormWriting");
+      const extractedCount = extractRequestedWordCount(instructions);
+      const wordCount = Number(requestedWordCount) || extractedCount || 1000;
+      if (!Number.isInteger(wordCount) || wordCount < 50 || wordCount > 100_000) {
+        return res.status(400).json({ message: "Requested word count must be between 50 and 100,000" });
+      }
+
+      const job = await createWritingJob({
+        userId: req.user?.id,
+        instructions,
+        provider,
+        requestedWordCount: wordCount,
+      });
+      void processWritingJob(job.id).catch(error => {
+        console.error(`Writing job ${job.id} failed:`, error);
+      });
+      return res.status(202).json({
+        jobId: job.id,
+        requestedWordCount: wordCount,
+        usesLargeScaleCoherence: wordCount > 2000,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message || "Unable to start writing job" });
+    }
+  });
+
+  app.get("/api/writing/jobs/:id", async (req: Request, res: Response) => {
+    const { getWritingJob, countWords } = await import("./services/longFormWriting");
+    const job = await getWritingJob(Number(req.params.id));
+    if (!job) return res.status(404).json({ message: "Writing job not found" });
+    if (job.userId && req.user?.id !== job.userId) {
+      return res.status(403).json({ message: "This writing job belongs to another user" });
+    }
+    return res.json({
+      id: job.id,
+      status: job.status,
+      requestedWordCount: job.requestedWordCount,
+      actualWordCount: job.output ? countWords(job.output) : null,
+      usesLargeScaleCoherence: job.usesLargeScaleCoherence,
+      completedSections: job.completedSections,
+      totalSections: job.totalSections,
+      output: job.output,
+      error: job.error,
+    });
   });
 
   app.post("/api/chat-with-memory", async (req: Request, res: Response) => {
@@ -3961,7 +4057,7 @@ The output should be ready to deliver as-is. No meta-commentary. No explanations
         const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
         
         const response = await anthropic.messages.create({
-          model: "claude-sonnet-4-20250514",
+          model: "claude-sonnet-4-5",
           max_tokens: 4000,
           system: systemPrompt,
           messages: [{ role: "user", content: userPrompt }]
@@ -4106,7 +4202,7 @@ Generate all 25 objections and responses now. Cover a wide range: logical flaws,
         const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
         
         const response = await anthropic.messages.create({
-          model: "claude-sonnet-4-20250514",
+          model: "claude-sonnet-4-5",
           max_tokens: 8000,
           system: systemPrompt,
           messages: [{ role: "user", content: userPrompt }]

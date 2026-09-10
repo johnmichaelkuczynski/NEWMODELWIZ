@@ -8,6 +8,7 @@ import {
   rewriteJobs,
   userCredits,
   creditTransactions,
+  userSubscriptions,
   type User, 
   type InsertUser, 
   type InsertDocument, 
@@ -19,7 +20,9 @@ import {
   type UserCredits,
   type InsertUserCredits,
   type CreditTransaction,
-  type InsertCreditTransaction
+  type InsertCreditTransaction,
+  type UserSubscription,
+  type InsertUserSubscription,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and } from "drizzle-orm";
@@ -66,6 +69,8 @@ export interface IStorage {
   getCreditTransactionByStripeSession(sessionId: string): Promise<CreditTransaction | undefined>;
   updateCreditTransactionStatus(id: number, status: string, paymentIntentId?: string): Promise<CreditTransaction>;
   updateCreditTransactionSessionId(id: number, sessionId: string): Promise<CreditTransaction>;
+  upsertUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription>;
+  updateUserSubscriptionStatus(stripeSubscriptionId: string, status: string): Promise<UserSubscription | undefined>;
 }
 
 const MemoryStore = createMemoryStore(session);
@@ -288,6 +293,36 @@ export class DatabaseStorage implements IStorage {
       .where(eq(creditTransactions.id, id))
       .returning();
     return updated;
+  }
+
+  async upsertUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription> {
+    const [result] = await db
+      .insert(userSubscriptions)
+      .values(subscription)
+      .onConflictDoUpdate({
+        target: userSubscriptions.userId,
+        set: {
+          googleEmail: subscription.googleEmail,
+          stripeCustomerId: subscription.stripeCustomerId,
+          stripeSubscriptionId: subscription.stripeSubscriptionId,
+          status: subscription.status,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return result;
+  }
+
+  async updateUserSubscriptionStatus(
+    stripeSubscriptionId: string,
+    status: string,
+  ): Promise<UserSubscription | undefined> {
+    const [result] = await db
+      .update(userSubscriptions)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(userSubscriptions.stripeSubscriptionId, stripeSubscriptionId))
+      .returning();
+    return result;
   }
 }
 

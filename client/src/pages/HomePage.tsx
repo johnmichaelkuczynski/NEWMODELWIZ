@@ -60,6 +60,7 @@ const HomePage: React.FC = () => {
   const [writingInstructions, setWritingInstructions] = useState("");
   const [generatedWriting, setGeneratedWriting] = useState("");
   const [isWriting, setIsWriting] = useState(false);
+  const [writingProgress, setWritingProgress] = useState("");
 
   // State for analysis results
   const [analysisA, setAnalysisA] = useState<DocumentAnalysis | null>(null);
@@ -381,28 +382,51 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
 
     setIsWriting(true);
     setGeneratedWriting("");
+    setWritingProgress("Planning the requested work...");
 
     try {
-      const response = await fetch("/api/chat-with-memory", {
+      const response = await fetch("/api/writing/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: `Write the requested work now. Follow every structural, conceptual, stylistic, formatting, length, and continuity requirement in the instructions. Produce the work itself rather than discussing the request or merely outlining what you would write.\n\nUSER INSTRUCTIONS:\n${writingInstructions}`,
+          instructions: writingInstructions,
           provider: selectedProvider,
-          useExternalKnowledge,
-          conversationHistory: [],
         }),
       });
       const data = await safeJson(response);
-      if (!response.ok || !data?.content) {
+      if (!response.ok || !data?.jobId) {
         throw new Error(data?.message || "The requested writing could not be generated.");
       }
 
-      setGeneratedWriting(data.content);
+      if (data.usesLargeScaleCoherence) {
+        setWritingProgress(`Large-scale coherence active: 0 sections completed`);
+      }
+
+      let completed: any = null;
+      while (!completed) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const statusResponse = await fetch(`/api/writing/jobs/${data.jobId}`);
+        const status = await safeJson(statusResponse);
+        if (!statusResponse.ok) throw new Error(status?.message || "Unable to read writing progress");
+        if (status.status === "failed") throw new Error(status.error || "Writing failed");
+        setWritingProgress(
+          status.usesLargeScaleCoherence
+            ? `Large-scale coherence active: ${status.completedSections} of ${status.totalSections} sections completed`
+            : "Writing and enforcing the exact word count...",
+        );
+        if (status.status === "complete") completed = status;
+      }
+
+      setGeneratedWriting(completed.output);
+      setWritingProgress(
+        `Complete: exactly ${completed.actualWordCount.toLocaleString()} words, plain text, ${completed.usesLargeScaleCoherence ? "large-scale coherence used" : "standard generation used"}`,
+      );
       trackEvent("writing_generated", {
         provider: selectedProvider,
         instruction_character_count: writingInstructions.length,
-        output_character_count: data.content.length,
+        output_character_count: completed.output.length,
+        requested_word_count: completed.requestedWordCount,
+        used_large_scale_coherence: completed.usesLargeScaleCoherence,
       });
       toast({
         title: "Writing Complete",
@@ -2589,7 +2613,14 @@ Generated on: ${new Date().toLocaleString()}`;
         {(isWriting || generatedWriting) && (
           <div className="mt-6 rounded-lg border border-indigo-200 bg-white p-5 dark:border-indigo-800 dark:bg-gray-950">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-semibold">Your Generated Work</h2>
+              <div>
+                <h2 className="text-lg font-semibold">Your Generated Work</h2>
+                {writingProgress && (
+                  <p className="mt-1 text-xs text-indigo-700 dark:text-indigo-300" data-testid="writing-validation-status">
+                    {writingProgress}
+                  </p>
+                )}
+              </div>
               {generatedWriting && (
                 <div className="flex gap-2">
                   <CopyButton text={generatedWriting} />
@@ -2612,7 +2643,7 @@ Generated on: ${new Date().toLocaleString()}`;
               {isWriting ? (
                 <div className="flex items-center justify-center gap-2 py-16 text-indigo-700 dark:text-indigo-300">
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  Following your instructions and writing the requested work...
+                  {writingProgress || "Following your instructions and writing the requested work..."}
                 </div>
               ) : (
                 <MathRenderer content={generatedWriting} />

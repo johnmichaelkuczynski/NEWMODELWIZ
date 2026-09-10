@@ -103,8 +103,8 @@ export default function DiagnosticPage() {
         <h1 className="text-3xl font-bold">System Diagnostic</h1>
       </div>
       <p className="text-gray-600 dark:text-gray-400 mb-6">
-        Verifies that all services, API providers, the database, and the core analysis pipeline
-        are functioning. This checks formal/operational behavior — not the content of any answers.
+        Verifies services, providers, the database, analysis tools, Markdown exclusion, exact word counts,
+        and database-backed large-scale prose coherence.
       </p>
 
       <div className="flex gap-3 mb-6">
@@ -138,9 +138,9 @@ export default function DiagnosticPage() {
         <Card className="p-6 text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-violet-600" />
           <div className="text-gray-700 dark:text-gray-300">
-            Pinging providers, testing the database, and exercising the analysis pipeline…
+            Pinging providers, testing the database, and exercising analysis and long-form writing…
           </div>
-          <div className="text-sm text-gray-500 mt-1">This usually takes 20–60 seconds.</div>
+          <div className="text-sm text-gray-500 mt-1">The large-scale prose test can take several minutes.</div>
         </Card>
       )}
 

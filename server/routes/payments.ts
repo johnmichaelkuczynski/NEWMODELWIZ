@@ -27,7 +27,11 @@ export function registerPaymentRoutes(app: Express) {
         return res.status(503).json({ message: "Stripe subscription is not configured" });
       }
 
-      const user = req.user || await getPublicUser();
+      if (!req.user?.email || !req.user.username.startsWith("google_") && process.env.NODE_ENV !== "development") {
+        return res.status(401).json({ message: "Sign in with Google before subscribing" });
+      }
+
+      const user = req.user;
       const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0];
       const protocol = forwardedProto || req.protocol;
       const baseUrl = `${protocol}://${req.get("host")}`;
@@ -164,8 +168,47 @@ export function registerPaymentRoutes(app: Express) {
     // Handle the checkout.session.completed event
     if (
       event.type === "checkout.session.completed" &&
-      event.data.object.metadata?.purchaseType !== "model-wiz-subscription"
+      event.data.object.metadata?.purchaseType === "model-wiz-subscription"
     ) {
+      const session = event.data.object;
+
+      try {
+        const userId = Number(session.metadata?.userId);
+        const user = await storage.getUser(userId);
+        if (!user?.email) {
+          throw new Error(`No Google user found for subscription checkout user ${userId}`);
+        }
+
+        const subscriptionId = typeof session.subscription === "string"
+          ? session.subscription
+          : session.subscription?.id;
+        const customerId = typeof session.customer === "string"
+          ? session.customer
+          : session.customer?.id;
+
+        if (!subscriptionId || !customerId) {
+          throw new Error("Stripe checkout did not include subscription and customer IDs");
+        }
+
+        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        await storage.upsertUserSubscription({
+          userId: user.id,
+          googleEmail: user.email,
+          stripeCustomerId: customerId,
+          stripeSubscriptionId: subscription.id,
+          status: subscription.status,
+        });
+      } catch (error) {
+        console.error("Error recording paid Google user:", error);
+        return res.status(500).json({ message: "Unable to record paid user" });
+      }
+    } else if (
+      event.type === "customer.subscription.updated" ||
+      event.type === "customer.subscription.deleted"
+    ) {
+      const subscription = event.data.object;
+      await storage.updateUserSubscriptionStatus(subscription.id, subscription.status);
+    } else if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       
       try {

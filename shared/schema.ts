@@ -8,6 +8,10 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   email: text("email"), // Optional email field
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  subscriptionStatus: text("subscription_status"),
+  subscriptionCurrentPeriodEnd: timestamp("subscription_current_period_end"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   lastActiveAt: timestamp("last_active_at").defaultNow().notNull(),
 });
@@ -339,6 +343,45 @@ export const creditTransactions = pgTable("credit_transactions", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id).notNull().unique(),
+  googleEmail: text("google_email").notNull(),
+  stripeCustomerId: text("stripe_customer_id").notNull().unique(),
+  stripeSubscriptionId: text("stripe_subscription_id").notNull().unique(),
+  status: text("status").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const writingJobs = pgTable("writing_jobs", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  instructions: text("instructions").notNull(),
+  provider: text("provider").notNull(),
+  requestedWordCount: integer("requested_word_count").notNull(),
+  usesLargeScaleCoherence: boolean("uses_large_scale_coherence").notNull().default(false),
+  status: text("status").notNull().default("pending"),
+  blueprint: text("blueprint"),
+  coherenceLedger: text("coherence_ledger"),
+  output: text("output"),
+  completedSections: integer("completed_sections").notNull().default(0),
+  totalSections: integer("total_sections").notNull().default(1),
+  error: text("error"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const writingJobSections = pgTable("writing_job_sections", {
+  id: serial("id").primaryKey(),
+  jobId: integer("job_id").references(() => writingJobs.id, { onDelete: "cascade" }).notNull(),
+  sectionIndex: integer("section_index").notNull(),
+  targetWordCount: integer("target_word_count").notNull(),
+  content: text("content").notNull(),
+  continuitySummary: text("continuity_summary"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const insertUserCreditsSchema = createInsertSchema(userCredits).omit({
   id: true,
   lastUpdated: true,
@@ -349,8 +392,17 @@ export const insertCreditTransactionSchema = createInsertSchema(creditTransactio
   createdAt: true,
 });
 
+export const insertUserSubscriptionSchema = createInsertSchema(userSubscriptions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export type InsertUserCredits = z.infer<typeof insertUserCreditsSchema>;
 export type UserCredits = typeof userCredits.$inferSelect;
 
 export type InsertCreditTransaction = z.infer<typeof insertCreditTransactionSchema>;
 export type CreditTransaction = typeof creditTransactions.$inferSelect;
+
+export type InsertUserSubscription = z.infer<typeof insertUserSubscriptionSchema>;
+export type UserSubscription = typeof userSubscriptions.$inferSelect;
