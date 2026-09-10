@@ -5,8 +5,10 @@ import { storage } from "../storage";
 
 const ANONYMOUS_ACTION_LIMIT = 3;
 const ANONYMOUS_WORD_LIMIT = 1200;
+const ANONYMOUS_WRITING_PREVIEW_WORDS = 400;
 const SIGNED_IN_ACTION_LIMIT = 10;
 const SIGNED_IN_WORD_LIMIT = 5000;
+const SIGNED_IN_WRITING_PREVIEW_WORDS = 1200;
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
 
 type AccessTier = "anonymous" | "free" | "subscriber";
@@ -266,17 +268,23 @@ export async function enforcePaidAiAccess(req: Request, res: Response, next: Nex
       ? { actionsUsed: 0, wordsReserved: 0 }
       : await currentUsage(access.identityKey);
 
-    if (!req.user && isWritingCreation) {
-      const actionsRemaining = ANONYMOUS_ACTION_LIMIT - usage.actionsUsed;
-      const wordsRemaining = ANONYMOUS_WORD_LIMIT - usage.wordsReserved;
+    if (!access.subscribed && isWritingCreation) {
+      const anonymous = access.tier === "anonymous";
+      const actionLimit = anonymous ? ANONYMOUS_ACTION_LIMIT : SIGNED_IN_ACTION_LIMIT;
+      const wordLimit = anonymous ? ANONYMOUS_WORD_LIMIT : SIGNED_IN_WORD_LIMIT;
+      const previewLimit = anonymous
+        ? ANONYMOUS_WRITING_PREVIEW_WORDS
+        : SIGNED_IN_WRITING_PREVIEW_WORDS;
+      const actionsRemaining = actionLimit - usage.actionsUsed;
+      const wordsRemaining = wordLimit - usage.wordsReserved;
       if (actionsRemaining > 0 && wordsRemaining >= 50) {
         const originallyRequestedWords = requestedWritingWords(req);
-        const previewWords = Math.min(originallyRequestedWords, wordsRemaining);
-        const ownerRequired = await requiresSignedInDatabaseOwner(req, requestPath);
-        if (ownerRequired || previewWords < originallyRequestedWords) {
+        const previewWords = Math.min(originallyRequestedWords, wordsRemaining, previewLimit);
+        if (previewWords < originallyRequestedWords) {
           req.body.originalRequestedWordCount = originallyRequestedWords;
           req.body.requestedWordCount = previewWords;
           req.body.forceSingleSectionPreview = true;
+          req.body.previewNextAction = anonymous ? "sign-in" : "subscribe";
         }
       }
     }

@@ -1680,6 +1680,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         requestedWordCount,
         originalRequestedWordCount,
         forceSingleSectionPreview,
+        previewNextAction,
       } = req.body;
       if (!instructions || typeof instructions !== "string") {
         return res.status(400).json({ message: "Writing instructions are required" });
@@ -1718,6 +1719,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         originalRequestedWordCount: forceSingleSectionPreview === true
           ? Number(originalRequestedWordCount) || wordCount
           : wordCount,
+        previewNextAction: forceSingleSectionPreview === true ? previewNextAction : null,
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Unable to start writing job" });
@@ -1732,6 +1734,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         requestedWordCount,
         originalRequestedWordCount,
         forceSingleSectionPreview,
+        previewNextAction,
       } = req.body;
       if (!instructions || typeof instructions !== "string") {
         return res.status(400).json({ message: "Writing instructions are required" });
@@ -1767,6 +1770,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         originalRequestedWordCount: forceSingleSectionPreview === true
           ? Number(originalRequestedWordCount) || wordCount
           : wordCount,
+        previewNextAction: forceSingleSectionPreview === true ? previewNextAction : null,
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Unable to start independent writing job" });

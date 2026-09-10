@@ -599,8 +599,11 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       }
 
       if (data.preview) {
+        const continuation = data.previewNextAction === "subscribe"
+          ? "Subscribe to generate the complete work."
+          : "Sign in to receive a larger free preview.";
         setWritingProgress(
-          `Generating a ${data.requestedWordCount.toLocaleString()}-word free preview now. Sign in to generate the complete ${data.originalRequestedWordCount.toLocaleString()}-word work.`,
+          `Generating a ${data.requestedWordCount.toLocaleString()}-word preview now. ${continuation}`,
         );
       } else if (data.usesLargeScaleCoherence) {
         setWritingProgress(`Large-scale coherence active: 0 sections completed`);
@@ -622,7 +625,9 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
             ? "Writing Stopped and Saved"
             : "Writing Complete",
         description: data.preview
-          ? `Your ${completed.requestedWordCount.toLocaleString()}-word preview appears below. Sign in to create the complete ${data.originalRequestedWordCount.toLocaleString()}-word work.`
+          ? data.previewNextAction === "subscribe"
+            ? `Your ${completed.requestedWordCount.toLocaleString()}-word signed-in preview appears below. Subscribe to create the complete ${data.originalRequestedWordCount.toLocaleString()}-word work.`
+            : `Your ${completed.requestedWordCount.toLocaleString()}-word preview appears below. Sign in to receive a larger preview of the requested ${data.originalRequestedWordCount.toLocaleString()}-word work.`
           : completed.stoppedEarly
           ? "Everything generated before you stopped has been saved below."
           : "The requested work appears directly below your instructions.",

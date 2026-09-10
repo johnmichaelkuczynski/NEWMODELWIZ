@@ -19,7 +19,7 @@ Anonymous writing entitlement must produce useful writing before presenting sign
 
 **Why:** A visitor who requests more than the anonymous allowance still needs to experience the product's output before deciding whether to create an account or pay.
 
-**How to apply:** Clamp an oversized first writing request to the remaining preview allowance, preserve the original requested length for the continuation prompt, label the result as a free preview, and present access prompts as neutral continuation notices rather than failed-writing errors.
+**How to apply:** Clamp an oversized request to the tier's preview size, preserve the original requested length for the continuation prompt, label the result as a preview, and present access prompts as neutral continuation notices rather than failed-writing errors. Logged-out users get a short sample, signed-in unpaid users get a larger sample, and subscribers get the complete work.
 
 The Replit development preview must automatically use its dedicated development user and receive unlimited access. Google OAuth and anonymous production quotas apply only to production visitors.
 
