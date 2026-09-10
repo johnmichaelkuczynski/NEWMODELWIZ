@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import ModeToggle from "@/components/ModeToggle";
 import DocumentInput from "@/components/DocumentInput";
 import DocumentResults from "@/components/DocumentResults";
@@ -171,6 +171,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
   
   // Text Model Validator State
   const [validatorInputText, setValidatorInputText] = useState("");
+  const validatorSectionRef = useRef<HTMLDivElement>(null);
+  const validatorInputRef = useRef<HTMLTextAreaElement>(null);
   const [validatorMode, setValidatorMode] = useState<"reconstruction" | "isomorphism" | "mathmodel" | "autodecide" | "truth-isomorphism" | "math-truth-select" | "axiomatic-transform" | null>(null);
   const [validatorOutput, setValidatorOutput] = useState<string>("");
   const [validatorLoading, setValidatorLoading] = useState(false);
@@ -877,6 +879,20 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     } finally {
       setValidatorLoading(false);
     }
+  };
+
+  const handleSendGeneratedWritingToValidator = () => {
+    const text = normalizeMathNotation(generatedWriting).trim();
+    if (!text) return;
+    setValidatorInputText(text);
+    requestAnimationFrame(() => {
+      validatorSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      window.setTimeout(() => validatorInputRef.current?.focus(), 500);
+    });
+    toast({
+      title: "Sent to Text Model Validator",
+      description: "The complete generated work is ready in the validator input.",
+    });
   };
 
   const handleValidatorClear = () => {
@@ -2775,6 +2791,17 @@ Generated on: ${new Date().toLocaleString()}`;
                       {isStoppingWriting ? "Stopping..." : "Stop and Save"}
                     </Button>
                   )}
+                  {!isWriting && !isRedoingWritingAudits && (
+                    <Button
+                      size="sm"
+                      onClick={handleSendGeneratedWritingToValidator}
+                      className="bg-emerald-700 text-white hover:bg-emerald-800"
+                      data-testid="button-send-writing-to-validator"
+                    >
+                      <ArrowRight className="mr-2 h-4 w-4" />
+                      Send to Text Model Validator
+                    </Button>
+                  )}
                   <CopyButton text={normalizeMathNotation(generatedWriting)} />
                   <Button
                     variant="outline"
@@ -3467,7 +3494,10 @@ Generated on: ${new Date().toLocaleString()}`;
 
 
       {/* TEXT MODEL VALIDATOR - Interpretive Generosity Framework */}
-      <div className="mt-16 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 p-8 rounded-lg border-2 border-emerald-200 dark:border-emerald-700">
+      <div
+        ref={validatorSectionRef}
+        className="mt-16 scroll-mt-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/10 dark:to-teal-900/10 p-8 rounded-lg border-2 border-emerald-200 dark:border-emerald-700"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-emerald-900 dark:text-emerald-100 mb-3 flex items-center justify-center gap-3">
@@ -3515,6 +3545,7 @@ Generated on: ${new Date().toLocaleString()}`;
               </label>
             </div>
             <Textarea
+              ref={validatorInputRef}
               value={validatorInputText}
               onChange={(e) => setValidatorInputText(e.target.value)}
               placeholder="Paste complex, obscure, or muddled text here... (philosophy papers, technical documents, draft arguments, etc.)"
