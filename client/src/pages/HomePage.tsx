@@ -69,6 +69,7 @@ const HomePage: React.FC = () => {
   const [writingProgress, setWritingProgress] = useState("");
   const [writingJobId, setWritingJobId] = useState<number | null>(null);
   const [writingAudits, setWritingAudits] = useState<Array<{ section: string; report: string }>>([]);
+  const [writingEngine, setWritingEngine] = useState<"current" | "independent">("current");
 
   // State for analysis results
   const [analysisA, setAnalysisA] = useState<DocumentAnalysis | null>(null);
@@ -443,15 +444,21 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     let completed: any = null;
     while (!completed) {
       await new Promise(resolve => setTimeout(resolve, 2000));
-      const statusResponse = await fetch(`/api/writing/jobs/${jobId}`);
+      const statusResponse = await fetch(
+        writingEngine === "independent"
+          ? `/api/writing-v2/jobs/${jobId}`
+          : `/api/writing/jobs/${jobId}`,
+      );
       const status = await safeJson(statusResponse);
       if (!statusResponse.ok) throw new Error(status?.message || "Unable to read writing progress");
       if (status.status === "failed") throw new Error(status.error || "Writing failed");
       if (status.output) setGeneratedWriting(status.output);
       setWritingProgress(
-        status.usesLargeScaleCoherence
-          ? `Large-scale coherence active: ${status.completedSections} of ${status.totalSections} sections completed`
-          : "Writing within 10% of the requested word count...",
+        status.status === "auditing"
+          ? "Writing complete. Running optional read-only audits..."
+          : status.usesLargeScaleCoherence
+            ? `Large-scale coherence active: ${status.completedSections} of ${status.totalSections} sections completed`
+            : "Writing within 10% of the requested word count...",
       );
       if (status.status === "complete") completed = status;
     }
@@ -484,7 +491,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     setWritingProgress("Planning the requested work...");
 
     try {
-      const response = await fetch("/api/writing/jobs", {
+      const response = await fetch(writingEngine === "independent" ? "/api/writing-v2/jobs" : "/api/writing/jobs", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -533,7 +540,12 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     setIsRedoingWritingAudits(true);
     setWritingProgress("Redoing the essay to correct the failed audits...");
     try {
-      const response = await fetch(`/api/writing/jobs/${writingJobId}/redo`, { method: "POST" });
+      const response = await fetch(
+        writingEngine === "independent"
+          ? `/api/writing-v2/jobs/${writingJobId}/redo`
+          : `/api/writing/jobs/${writingJobId}/redo`,
+        { method: "POST" },
+      );
       const data = await safeJson(response);
       if (!response.ok || !data?.jobId) throw new Error(data?.message || "Unable to redo the essay");
       setWritingJobId(data.jobId);
@@ -565,7 +577,12 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     setIsStoppingWriting(true);
     setWritingProgress("Stopping after the current chunk and saving everything generated...");
     try {
-      const response = await fetch(`/api/writing/jobs/${writingJobId}/stop`, { method: "POST" });
+      const response = await fetch(
+        writingEngine === "independent"
+          ? `/api/writing-v2/jobs/${writingJobId}/stop`
+          : `/api/writing/jobs/${writingJobId}/stop`,
+        { method: "POST" },
+      );
       const data = await safeJson(response);
       if (!response.ok) throw new Error(data?.message || "Unable to stop writing");
       toast({
@@ -2735,6 +2752,22 @@ Generated on: ${new Date().toLocaleString()}`;
         />
 
         <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="w-full sm:max-w-xs">
+            <Label className="mb-2 block">Writing Engine</Label>
+            <Select
+              value={writingEngine}
+              onValueChange={(value: "current" | "independent") => setWritingEngine(value)}
+              disabled={isWriting || isRedoingWritingAudits}
+            >
+              <SelectTrigger data-testid="select-writing-engine">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="current">Current Writing Function</SelectItem>
+                <SelectItem value="independent">New Independent Writing Function</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <ProviderSelector
             selectedProvider={selectedProvider}
             onProviderChange={setSelectedProvider}
@@ -2866,7 +2899,7 @@ Generated on: ${new Date().toLocaleString()}`;
                       data-testid="button-redo-writing-audits"
                     >
                       <RefreshCw className={`mr-2 h-4 w-4 ${isRedoingWritingAudits ? "animate-spin" : ""}`} />
-                      {isRedoingWritingAudits ? "Redoing Essay..." : "Redo Essay to Pass Audits"}
+                      {isRedoingWritingAudits ? "Rewriting to Pass Audit..." : "Rewrite to Pass Audit"}
                     </Button>
                   )}
                 </div>

@@ -1532,6 +1532,87 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
   });
 
+  app.post("/api/writing-v2/jobs", async (req: Request, res: Response) => {
+    try {
+      const { instructions, provider = "zhi1", requestedWordCount } = req.body;
+      if (!instructions || typeof instructions !== "string") {
+        return res.status(400).json({ message: "Writing instructions are required" });
+      }
+      if (!["zhi1", "zhi2", "zhi3", "zhi4", "zhi5"].includes(provider)) {
+        return res.status(400).json({ message: "Invalid writing provider" });
+      }
+      const {
+        createIndependentWritingJob,
+        processIndependentWritingJob,
+        independentRequestedWords,
+      } = await import("./services/independentWriting");
+      const wordCount = Number(requestedWordCount) || independentRequestedWords(instructions) || 1000;
+      if (!Number.isInteger(wordCount) || wordCount < 50 || wordCount > 100_000) {
+        return res.status(400).json({ message: "Requested word count must be between 50 and 100,000" });
+      }
+      const job = await createIndependentWritingJob({
+        userId: req.user?.id,
+        instructions,
+        provider,
+        requestedWordCount: wordCount,
+      });
+      void processIndependentWritingJob(job.id).catch(error => {
+        console.error(`Independent writing job ${job.id} failed:`, error);
+      });
+      return res.status(202).json({
+        jobId: job.id,
+        requestedWordCount: wordCount,
+        usesLargeScaleCoherence: job.usesLargeScaleCoherence,
+        engine: "independent",
+      });
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message || "Unable to start independent writing job" });
+    }
+  });
+
+  app.get("/api/writing-v2/jobs/:id", async (req: Request, res: Response) => {
+    const { getIndependentWritingJob, countIndependentWords } = await import("./services/independentWriting");
+    const job = await getIndependentWritingJob(Number(req.params.id));
+    if (!job) return res.status(404).json({ message: "Writing job not found" });
+    if (job.userId && req.user?.id !== job.userId) {
+      return res.status(403).json({ message: "This writing job belongs to another user" });
+    }
+    return res.json({
+      id: job.id,
+      status: job.status,
+      requestedWordCount: job.requestedWordCount,
+      actualWordCount: job.output ? countIndependentWords(job.output) : null,
+      usesLargeScaleCoherence: job.usesLargeScaleCoherence,
+      completedSections: job.completedSections,
+      totalSections: job.totalSections,
+      output: job.output,
+      stoppedEarly: job.stoppedEarly,
+      audits: (() => {
+        try {
+          return job.auditReport ? JSON.parse(job.auditReport) : [];
+        } catch {
+          return [];
+        }
+      })(),
+      error: job.error,
+      engine: "independent",
+    });
+  });
+
+  app.post("/api/writing-v2/jobs/:id/stop", async (req: Request, res: Response) => {
+    const { getIndependentWritingJob, requestIndependentWritingStop } = await import("./services/independentWriting");
+    const job = await getIndependentWritingJob(Number(req.params.id));
+    if (!job) return res.status(404).json({ message: "Writing job not found" });
+    if (job.userId && req.user?.id !== job.userId) {
+      return res.status(403).json({ message: "This writing job belongs to another user" });
+    }
+    if (job.status === "complete" || job.status === "failed") {
+      return res.json({ success: true, alreadyFinished: true });
+    }
+    await requestIndependentWritingStop(job.id);
+    return res.json({ success: true });
+  });
+
   app.get("/api/writing/jobs/:id", async (req: Request, res: Response) => {
     const { getWritingJob, countWords } = await import("./services/longFormWriting");
     const job = await getWritingJob(Number(req.params.id));
@@ -1597,6 +1678,46 @@ export async function registerRoutes(app: Express): Promise<Express> {
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Unable to redo the essay" });
+    }
+  });
+
+  app.post("/api/writing-v2/jobs/:id/redo", async (req: Request, res: Response) => {
+    try {
+      const { getWritingJob } = await import("./services/longFormWriting");
+      const { createIndependentWritingJob, processIndependentWritingJob } = await import("./services/independentWriting");
+      const original = await getWritingJob(Number(req.params.id));
+      if (!original) return res.status(404).json({ message: "Writing job not found" });
+      if (original.userId && req.user?.id !== original.userId) {
+        return res.status(403).json({ message: "This writing job belongs to another user" });
+      }
+      let audits: Array<{ section?: string; report?: string }> = [];
+      try {
+        audits = original.auditReport ? JSON.parse(original.auditReport) : [];
+      } catch {
+        audits = [];
+      }
+      if (!audits.length) return res.status(400).json({ message: "This work has no failed audits to address" });
+      const auditGuidance = audits
+        .map(item => `${item.section || "Whole work"}: ${item.report || "Address this finding."}`)
+        .join("\n\n");
+      const redo = await createIndependentWritingJob({
+        userId: original.userId || undefined,
+        instructions: original.instructions,
+        provider: original.provider as any,
+        requestedWordCount: original.requestedWordCount,
+        auditGuidance,
+      });
+      void processIndependentWritingJob(redo.id).catch(error => {
+        console.error(`Independent writing redo ${redo.id} failed:`, error);
+      });
+      return res.status(202).json({
+        jobId: redo.id,
+        requestedWordCount: redo.requestedWordCount,
+        usesLargeScaleCoherence: redo.usesLargeScaleCoherence,
+        engine: "independent",
+      });
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message || "Unable to rewrite the work" });
     }
   });
 

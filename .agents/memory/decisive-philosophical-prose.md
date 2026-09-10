@@ -7,4 +7,4 @@ Philosophical evaluation must prefer a clear, potentially refutable thesis to ac
 
 **Why:** Generic model-based style audits can approve prose that alternates positions and ends by invoking complexity or saying the answer depends on perspective. Such prose avoids making the argument it was asked to make.
 
-**How to apply:** Treat stock false-balance and academic-evasion language as a mandatory repair trigger. Rebuild the argument with a dedicated decisive-writing directive, then evaluate the result against the full argumentative sequence rather than surface tone. Quality gates must not suppress generated text; after best-effort repair, deliver the best available draft and retain any remaining issue as a warning.
+**How to apply:** Put decisive-writing requirements into the drafting instructions. Audits are read-only and may only report defects beneath the delivered work; they must never trigger a hidden rewrite. A user-requested redo may use audit findings only where compatible with the original assignment, which always controls.

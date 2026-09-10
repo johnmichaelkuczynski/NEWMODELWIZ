@@ -43,3 +43,10 @@ mtime_ms = 1789014589834
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:99538b7d-be2e-4ef4-a505-d1b9ecd820e0/0fecdd44-7cb4-403b-85fb-36d96424e0d9/2e0f30ad-8f94-4376-a734-47c4593f6afa"
 storage_version_token = "1789014590766922"
 content_type = "text/plain"
+
+[[outputs]]
+id = "naZJAV0iXO-IlPi-k0xlq"
+uri = "file://attached_assets/independent-writing-engine-verified-output.txt"
+type = "text"
+title = "Verified Independent Writing Output"
+description = "Exact 1,939-word output used to verify continuation handling, chapter structure, a single final theorem, verbatim opening-sentence linkage, and read-only audit immutability."
