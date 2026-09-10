@@ -105,7 +105,24 @@ export function registerPaymentRoutes(app: Express) {
         const currentUser = await storage.getUser(user.id);
         if (!currentUser) throw new Error("Signed-in user no longer exists");
 
-        let customerId = currentUser.stripeCustomerId;
+        const legacySubscription = await storage.getUserSubscription(currentUser.id, currentUser.email);
+        const knownStatus = currentUser.subscriptionStatus || legacySubscription?.status || null;
+        if (
+          knownStatus &&
+          !TERMINAL_SUBSCRIPTION_STATUSES.has(knownStatus as Stripe.Subscription.Status)
+        ) {
+          const error = new Error("This account already has a subscription. Use Manage Billing to update it.");
+          (error as any).statusCode = 409;
+          throw error;
+        }
+        let customerId = currentUser.stripeCustomerId || legacySubscription?.stripeCustomerId || null;
+        if (!currentUser.stripeCustomerId && customerId) {
+          await storage.updateUserSubscription(currentUser.id, {
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: legacySubscription?.stripeSubscriptionId || null,
+            subscriptionStatus: legacySubscription?.status || null,
+          });
+        }
         if (!customerId) {
           const customer = await stripeClient.customers.create({
             email: currentUser.email || undefined,
@@ -169,15 +186,21 @@ export function registerPaymentRoutes(app: Express) {
     const user = getSignedInUser(req, res);
     if (!user) return;
 
+    const currentUser = await storage.getUser(user.id);
+    const legacySubscription = await storage.getUserSubscription(user.id, user.email);
+    const status = currentUser?.subscriptionStatus || legacySubscription?.status || null;
+    const customerId = currentUser?.stripeCustomerId || legacySubscription?.stripeCustomerId || null;
+    const subscriptionId = currentUser?.stripeSubscriptionId || legacySubscription?.stripeSubscriptionId || null;
+
     return res.json({
-      status: user.subscriptionStatus,
-      active: user.subscriptionStatus === "active" || user.subscriptionStatus === "trialing",
-      canManage: Boolean(user.stripeCustomerId && user.stripeSubscriptionId),
+      status,
+      active: status === "active" || status === "trialing",
+      canManage: Boolean(customerId && subscriptionId),
       canSubscribe:
-        !user.stripeSubscriptionId ||
-        user.subscriptionStatus === "canceled" ||
-        user.subscriptionStatus === "incomplete_expired",
-      currentPeriodEnd: user.subscriptionCurrentPeriodEnd,
+        !subscriptionId ||
+        status === "canceled" ||
+        status === "incomplete_expired",
+      currentPeriodEnd: currentUser?.subscriptionCurrentPeriodEnd || null,
     });
   });
 
@@ -186,7 +209,9 @@ export function registerPaymentRoutes(app: Express) {
       return res.json({ subscribed: false, status: "none" });
     }
 
-    const status = req.user.subscriptionStatus || "none";
+    const currentUser = await storage.getUser(req.user.id);
+    const legacySubscription = await storage.getUserSubscription(req.user.id, req.user.email);
+    const status = currentUser?.subscriptionStatus || legacySubscription?.status || "none";
     return res.json({
       subscribed: status === "active" || status === "trialing",
       status,
@@ -200,14 +225,17 @@ export function registerPaymentRoutes(app: Express) {
       }
       const user = getSignedInUser(req, res);
       if (!user) return;
-      if (!user.stripeCustomerId) {
+      const currentUser = await storage.getUser(user.id);
+      const legacySubscription = await storage.getUserSubscription(user.id, user.email);
+      const customerId = currentUser?.stripeCustomerId || legacySubscription?.stripeCustomerId;
+      if (!customerId) {
         return res.status(400).json({ message: "No Stripe billing account is linked to this user" });
       }
 
       const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0];
       const baseUrl = `${forwardedProto || req.protocol}://${req.get("host")}`;
       const session = await stripe.billingPortal.sessions.create({
-        customer: user.stripeCustomerId,
+        customer: customerId,
         return_url: baseUrl,
       });
       return res.json({ url: session.url });

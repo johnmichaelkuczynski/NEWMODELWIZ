@@ -42,3 +42,7 @@ waitForPort = 5000
 integrations = ["javascript_anthropic:1.0.0", "javascript_database:1.0.0", "perplexity_v0:1.0.0", "javascript_object_storage:1.0.0", "javascript_openai:1.0.0", "javascript_log_in_with_replit:1.0.0", "javascript_auth_all_persistance:1.0.0"]
 expertMode = true
 stack = "FULLSTACK_JS"
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 180000
