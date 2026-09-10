@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, CreditCard } from "lucide-react";
+import { CreditCard, Settings } from "lucide-react";
 import { useState } from "react";
 import { BuyCreditsDialog } from "./BuyCreditsDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -13,24 +13,27 @@ interface CreditBalanceData {
   unlimited: boolean;
 }
 
-interface SubscriptionStatusData {
-  subscribed: boolean;
-  status: string;
+interface SubscriptionData {
+  status: string | null;
+  active: boolean;
+  canManage: boolean;
+  canSubscribe: boolean;
+  currentPeriodEnd: string | null;
 }
 
 export function CreditBalance() {
   const [showBuyDialog, setShowBuyDialog] = useState(false);
   const [isStartingSubscription, setIsStartingSubscription] = useState(false);
+  const [isOpeningPortal, setIsOpeningPortal] = useState(false);
   const { toast } = useToast();
   
   const { data: credits } = useQuery<CreditBalanceData>({
     queryKey: ["/api/credits/balance"],
     refetchInterval: 30000, // Refetch every 30 seconds
   });
-
-  const { data: subscription } = useQuery<SubscriptionStatusData>({
-    queryKey: ["/api/payments/subscription-status"],
-    refetchInterval: 10000,
+  const { data: subscription } = useQuery<SubscriptionData>({
+    queryKey: ["/api/payments/subscription"],
+    retry: false,
   });
 
   if (!credits) return null;
@@ -61,6 +64,25 @@ export function CreditBalance() {
         variant: "destructive",
       });
       setIsStartingSubscription(false);
+    }
+  };
+
+  const openBillingPortal = async () => {
+    setIsOpeningPortal(true);
+    try {
+      const response = await fetch("/api/payments/portal", { method: "POST" });
+      const data = await response.json();
+      if (!response.ok || !data.url) {
+        throw new Error(data.message || "Unable to open billing settings");
+      }
+      window.location.href = data.url;
+    } catch (error: any) {
+      toast({
+        title: "Billing unavailable",
+        description: error.message || "Unable to open billing settings",
+        variant: "destructive",
+      });
+      setIsOpeningPortal(false);
     }
   };
 
@@ -96,25 +118,38 @@ export function CreditBalance() {
             Buy Credits
           </Button>
         )}
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={startSubscriptionCheckout}
-          disabled={isStartingSubscription || subscription?.subscribed}
-          className="gap-2 whitespace-nowrap"
-          data-testid="button-subscribe"
-        >
-          {subscription?.subscribed ? (
-            <CheckCircle2 className="h-4 w-4" />
-          ) : (
+        {subscription?.canManage && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={openBillingPortal}
+            disabled={isOpeningPortal}
+            className="gap-2 whitespace-nowrap"
+            data-testid="button-manage-billing"
+          >
+            <Settings className="h-4 w-4" />
+            {isOpeningPortal
+              ? "Opening Billing..."
+              : subscription.status === "past_due"
+                ? "Payment Past Due · Manage Billing"
+                : subscription.active
+                  ? "Subscribed · Manage Billing"
+                  : "Subscription Canceled · Manage Billing"}
+          </Button>
+        )}
+        {(subscription?.canSubscribe ?? true) && (
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={startSubscriptionCheckout}
+            disabled={isStartingSubscription}
+            className="gap-2 whitespace-nowrap"
+            data-testid="button-subscribe"
+          >
             <CreditCard className="h-4 w-4" />
-          )}
-          {subscription?.subscribed
-            ? "Subscribed"
-            : isStartingSubscription
-              ? "Opening Checkout..."
-              : "Subscribe · $29.95/mo"}
-        </Button>
+            {isStartingSubscription ? "Opening Checkout..." : "Subscribe · $29.95/mo"}
+          </Button>
+        )}
       </div>
 
       <BuyCreditsDialog open={showBuyDialog} onOpenChange={setShowBuyDialog} />

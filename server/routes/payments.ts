@@ -2,6 +2,9 @@ import type { Express, Request, Response } from "express";
 import { stripe, CREDIT_PACKAGES, type Provider, type PriceTier, hasUnlimitedCredits } from "../lib/stripe-config";
 import { storage } from "../storage";
 import { z } from "zod";
+import type Stripe from "stripe";
+import { db } from "../db";
+import { sql } from "drizzle-orm";
 
 const checkoutSchema = z.object({
   provider: z.enum(["openai", "anthropic", "perplexity", "deepseek"]),
@@ -20,65 +23,197 @@ async function getPublicUser() {
   });
 }
 
-export function registerPaymentRoutes(app: Express) {
-  app.get("/api/payments/subscription-status", async (req: Request, res: Response) => {
-    if (!req.user) {
-      return res.json({ subscribed: false, status: "none" });
-    }
+function getSignedInUser(req: Request, res: Response) {
+  if (!req.user) {
+    res.status(401).json({ message: "Sign in to manage a subscription" });
+    return null;
+  }
+  return req.user;
+}
 
-    const subscription = await storage.getUserSubscription(req.user.id, req.user.email);
-    const subscribed = subscription?.status === "active" || subscription?.status === "trialing";
-    return res.json({
-      subscribed,
-      status: subscription?.status || "none",
-    });
+function stripeId(value: string | { id: string } | null): string | null {
+  return typeof value === "string" ? value : value?.id || null;
+}
+
+function periodEnd(subscription: Stripe.Subscription): Date | null {
+  const timestamp = subscription.items.data.reduce(
+    (latest, item) => Math.max(latest, item.current_period_end || 0),
+    0,
+  );
+  return timestamp ? new Date(timestamp * 1000) : null;
+}
+
+async function persistSubscription(subscription: Stripe.Subscription) {
+  const customerId = stripeId(subscription.customer);
+  if (!customerId) return;
+
+  const metadataUserId = Number(subscription.metadata?.userId);
+  const user = Number.isInteger(metadataUserId) && metadataUserId > 0
+    ? await storage.getUser(metadataUserId)
+    : await storage.getUserByStripeCustomerId(customerId);
+  if (!user) {
+    console.warn(`No user found for Stripe customer ${customerId}`);
+    return;
+  }
+
+  await storage.updateUserSubscription(user.id, {
+    stripeCustomerId: customerId,
+    stripeSubscriptionId: subscription.id,
+    subscriptionStatus: subscription.status,
+    subscriptionCurrentPeriodEnd: periodEnd(subscription),
   });
+}
 
+const TERMINAL_SUBSCRIPTION_STATUSES = new Set<Stripe.Subscription.Status>([
+  "canceled",
+  "incomplete_expired",
+]);
+
+async function reconcileCustomerSubscription(customerId: string) {
+  if (!stripe) return null;
+  const subscriptions = await stripe.subscriptions.list({
+    customer: customerId,
+    status: "all",
+    limit: 20,
+  });
+  const selected = subscriptions.data
+    .sort((a, b) => {
+      const aTerminal = TERMINAL_SUBSCRIPTION_STATUSES.has(a.status) ? 1 : 0;
+      const bTerminal = TERMINAL_SUBSCRIPTION_STATUSES.has(b.status) ? 1 : 0;
+      return aTerminal - bTerminal || b.created - a.created;
+    })[0];
+  if (selected) await persistSubscription(selected);
+  return selected || null;
+}
+
+export function registerPaymentRoutes(app: Express) {
   app.post("/api/payments/subscribe", async (req: Request, res: Response) => {
     try {
       if (!stripe || !process.env.STRIPE_PRICE_ID) {
         return res.status(503).json({ message: "Stripe subscription is not configured" });
       }
+      const stripeClient = stripe;
 
-      if (!req.user?.email || !req.user.username.startsWith("google_") && process.env.NODE_ENV !== "development") {
-        return res.status(401).json({ message: "Sign in with Google before subscribing" });
-      }
-
-      const user = req.user;
-      const existingSubscription = await storage.getUserSubscription(user.id, user.email);
-      if (existingSubscription?.status === "active" || existingSubscription?.status === "trialing") {
-        return res.status(409).json({ message: "You are already subscribed" });
-      }
+      const user = getSignedInUser(req, res);
+      if (!user) return;
       const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0];
       const protocol = forwardedProto || req.protocol;
       const baseUrl = `${protocol}://${req.get("host")}`;
 
-      const session = await stripe.checkout.sessions.create({
-        mode: "subscription",
-        line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
-        success_url: `${baseUrl}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-        cancel_url: `${baseUrl}/?payment=cancelled`,
-        client_reference_id: String(user.id),
-        customer_email: user.email || undefined,
-        metadata: {
-          userId: String(user.id),
-          purchaseType: "model-wiz-subscription",
-        },
-        subscription_data: {
+      const session = await db.transaction(async (tx) => {
+        await tx.execute(sql`SELECT pg_advisory_xact_lock(${user.id})`);
+        const currentUser = await storage.getUser(user.id);
+        if (!currentUser) throw new Error("Signed-in user no longer exists");
+
+        let customerId = currentUser.stripeCustomerId;
+        if (!customerId) {
+          const customer = await stripeClient.customers.create({
+            email: currentUser.email || undefined,
+            metadata: { userId: String(currentUser.id) },
+          });
+          customerId = customer.id;
+          await storage.updateUserSubscription(currentUser.id, { stripeCustomerId: customerId });
+        }
+
+        const existingSubscription = await reconcileCustomerSubscription(customerId);
+        if (existingSubscription && !TERMINAL_SUBSCRIPTION_STATUSES.has(existingSubscription.status)) {
+          const error = new Error("This account already has a subscription. Use Manage Billing to update it.");
+          (error as any).statusCode = 409;
+          throw error;
+        }
+
+        const openSessions = await stripeClient.checkout.sessions.list({
+          customer: customerId,
+          status: "open",
+          limit: 20,
+        });
+        const existingSession = openSessions.data.find(
+          (candidate) =>
+            candidate.mode === "subscription" &&
+            candidate.metadata?.purchaseType === "model-wiz-subscription" &&
+            Boolean(candidate.url),
+        );
+        if (existingSession) return existingSession;
+
+        return stripeClient.checkout.sessions.create({
+          mode: "subscription",
+          line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
+          success_url: `${baseUrl}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${baseUrl}/?payment=cancelled`,
+          client_reference_id: String(currentUser.id),
+          customer: customerId,
           metadata: {
-            userId: String(user.id),
+            userId: String(currentUser.id),
             purchaseType: "model-wiz-subscription",
           },
-        },
+          subscription_data: {
+            metadata: {
+              userId: String(currentUser.id),
+              purchaseType: "model-wiz-subscription",
+            },
+          },
+        });
       });
 
       return res.json({ url: session.url });
     } catch (error: any) {
       console.error("Subscription checkout error:", error);
-      return res.status(500).json({
+      return res.status(error.statusCode || 500).json({
         message: "Unable to start subscription checkout",
         error: error.message,
       });
+    }
+  });
+
+  app.get("/api/payments/subscription", async (req: Request, res: Response) => {
+    const user = getSignedInUser(req, res);
+    if (!user) return;
+
+    return res.json({
+      status: user.subscriptionStatus,
+      active: user.subscriptionStatus === "active" || user.subscriptionStatus === "trialing",
+      canManage: Boolean(user.stripeCustomerId && user.stripeSubscriptionId),
+      canSubscribe:
+        !user.stripeSubscriptionId ||
+        user.subscriptionStatus === "canceled" ||
+        user.subscriptionStatus === "incomplete_expired",
+      currentPeriodEnd: user.subscriptionCurrentPeriodEnd,
+    });
+  });
+
+  app.get("/api/payments/subscription-status", async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.json({ subscribed: false, status: "none" });
+    }
+
+    const status = req.user.subscriptionStatus || "none";
+    return res.json({
+      subscribed: status === "active" || status === "trialing",
+      status,
+    });
+  });
+
+  app.post("/api/payments/portal", async (req: Request, res: Response) => {
+    try {
+      if (!stripe) {
+        return res.status(503).json({ message: "Stripe billing is not configured" });
+      }
+      const user = getSignedInUser(req, res);
+      if (!user) return;
+      if (!user.stripeCustomerId) {
+        return res.status(400).json({ message: "No Stripe billing account is linked to this user" });
+      }
+
+      const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0];
+      const baseUrl = `${forwardedProto || req.protocol}://${req.get("host")}`;
+      const session = await stripe.billingPortal.sessions.create({
+        customer: user.stripeCustomerId,
+        return_url: baseUrl,
+      });
+      return res.json({ url: session.url });
+    } catch (error: any) {
+      console.error("Billing portal error:", error);
+      return res.status(500).json({ message: "Unable to open billing settings" });
     }
   });
 
@@ -182,50 +317,55 @@ export function registerPaymentRoutes(app: Express) {
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
-    // Handle the checkout.session.completed event
     if (
       event.type === "checkout.session.completed" &&
       event.data.object.metadata?.purchaseType === "model-wiz-subscription"
     ) {
-      const session = event.data.object;
-
       try {
-        const userId = Number(session.metadata?.userId);
-        const user = await storage.getUser(userId);
-        if (!user?.email) {
-          throw new Error(`No Google user found for subscription checkout user ${userId}`);
+        const session = event.data.object as Stripe.Checkout.Session;
+        const userId = Number(session.metadata?.userId || session.client_reference_id);
+        const customerId = stripeId(session.customer);
+        const subscriptionId = stripeId(session.subscription);
+        if (Number.isInteger(userId) && userId > 0 && customerId) {
+          await storage.updateUserSubscription(userId, {
+            stripeCustomerId: customerId,
+            stripeSubscriptionId: subscriptionId,
+          });
         }
-
-        const subscriptionId = typeof session.subscription === "string"
-          ? session.subscription
-          : session.subscription?.id;
-        const customerId = typeof session.customer === "string"
-          ? session.customer
-          : session.customer?.id;
-
-        if (!subscriptionId || !customerId) {
-          throw new Error("Stripe checkout did not include subscription and customer IDs");
-        }
-
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-        await storage.upsertUserSubscription({
-          userId: user.id,
-          googleEmail: user.email,
-          stripeCustomerId: customerId,
-          stripeSubscriptionId: subscription.id,
-          status: subscription.status,
-        });
+        if (customerId) await reconcileCustomerSubscription(customerId);
       } catch (error) {
-        console.error("Error recording paid Google user:", error);
-        return res.status(500).json({ message: "Unable to record paid user" });
+        console.error("Error linking subscription checkout:", error);
+        return res.status(500).json({ message: "Unable to link subscription" });
       }
-    } else if (
-      event.type === "customer.subscription.updated" ||
-      event.type === "customer.subscription.deleted"
+    }
+
+    if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
+      try {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId = stripeId(subscription.customer);
+        if (customerId) await reconcileCustomerSubscription(customerId);
+      } catch (error) {
+        console.error("Error updating subscription:", error);
+        return res.status(500).json({ message: "Unable to update subscription" });
+      }
+    }
+
+    if (event.type === "customer.subscription.deleted") {
+      try {
+        const subscription = event.data.object as Stripe.Subscription;
+        const customerId = stripeId(subscription.customer);
+        if (customerId) await reconcileCustomerSubscription(customerId);
+      } catch (error) {
+        console.error("Error canceling subscription:", error);
+        return res.status(500).json({ message: "Unable to cancel subscription" });
+      }
+    }
+
+    // Handle the checkout.session.completed event
+    if (
+      event.type === "checkout.session.completed" &&
+      event.data.object.metadata?.purchaseType !== "model-wiz-subscription"
     ) {
-      const subscription = event.data.object;
-      await storage.updateUserSubscriptionStatus(subscription.id, subscription.status);
-    } else if (event.type === "checkout.session.completed") {
       const session = event.data.object;
       
       try {

@@ -33,6 +33,8 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getUserByUsername(username: string): Promise<User | undefined>;
+  getUserByStripeCustomerId(customerId: string): Promise<User | undefined>;
+  updateUserSubscription(userId: number, updates: Pick<Partial<User>, "stripeCustomerId" | "stripeSubscriptionId" | "subscriptionStatus" | "subscriptionCurrentPeriodEnd">): Promise<User>;
   sessionStore: any;
   
   // Document operations
@@ -92,6 +94,19 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
+  }
+
+  async getUserByStripeCustomerId(customerId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.stripeCustomerId, customerId));
+    return user || undefined;
+  }
+
+  async updateUserSubscription(
+    userId: number,
+    updates: Pick<Partial<User>, "stripeCustomerId" | "stripeSubscriptionId" | "subscriptionStatus" | "subscriptionCurrentPeriodEnd">,
+  ): Promise<User> {
+    const [user] = await db.update(users).set(updates).where(eq(users.id, userId)).returning();
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {

@@ -123,7 +123,12 @@ export function setupAuth(app: Express) {
 
   app.get("/api/auth/user", (req, res) => {
     if (!req.isAuthenticated()) return res.json(null);
-    const { password: _password, ...safeUser } = req.user;
+    const {
+      password: _password,
+      stripeCustomerId: _stripeCustomerId,
+      stripeSubscriptionId: _stripeSubscriptionId,
+      ...safeUser
+    } = req.user;
     res.json(safeUser);
   });
 

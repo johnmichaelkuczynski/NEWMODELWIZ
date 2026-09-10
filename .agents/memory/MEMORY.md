@@ -1,0 +1,1 @@
+- [Non-interactive Drizzle schema pushes](drizzle-schema-push.md) — drizzle-kit push may still prompt under --force; preserve data with explicit additive SQL.
