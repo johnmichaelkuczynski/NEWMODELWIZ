@@ -30,6 +30,18 @@ async function findOrCreateGoogleUser(profile: Profile) {
   });
 }
 
+async function findOrCreateDevelopmentUser() {
+  const username = "dev_johnmichaelkuczynski";
+  const existingUser = await storage.getUserByUsername(username);
+  if (existingUser) return existingUser;
+
+  return storage.createUser({
+    username,
+    password: randomBytes(32).toString("hex"),
+    email: null,
+  });
+}
+
 export function setupAuth(app: Express) {
   const clientID = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -56,6 +68,17 @@ export function setupAuth(app: Express) {
   );
   app.use(passport.initialize());
   app.use(passport.session());
+
+  if (app.get("env") === "development") {
+    app.use(async (req, _res, next) => {
+      try {
+        req.user = await findOrCreateDevelopmentUser();
+        next();
+      } catch (error) {
+        next(error);
+      }
+    });
+  }
 
   passport.use(
     new GoogleStrategy(

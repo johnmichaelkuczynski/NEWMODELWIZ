@@ -181,6 +181,18 @@ export function registerPaymentRoutes(app: Express) {
       });
     }
     const user = req.user;
+    if (
+      process.env.NODE_ENV === "development"
+      && user.username === "dev_johnmichaelkuczynski"
+    ) {
+      return res.json({
+        status: "development",
+        active: true,
+        canManage: false,
+        canSubscribe: false,
+        currentPeriodEnd: null,
+      });
+    }
 
     const currentUser = await storage.getUser(user.id);
     const legacySubscription = await storage.getUserSubscription(user.id, user.email);
@@ -445,6 +457,8 @@ export function registerPaymentRoutes(app: Express) {
 
       // Check for unlimited credits
       if (
+        (process.env.NODE_ENV === "development" && user.username === "dev_johnmichaelkuczynski")
+        ||
         hasUnlimitedCredits(user.username)
         || user.subscriptionStatus === "active"
         || user.subscriptionStatus === "trialing"

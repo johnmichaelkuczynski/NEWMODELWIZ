@@ -14,3 +14,9 @@ Database-backed megaglobal work additionally requires an authenticated user owne
 **Why:** A server can technically write anonymous rows, but null-owned skeletons, ledgers, checkpoints, and drafts cannot provide per-user continuity or secure ownership.
 
 **How to apply:** Require Google authentication before creating or advancing persisted megaglobal state, store the authenticated user ID on the job, and repeat the ownership check inside the background processor as defense in depth.
+
+The Replit development preview must automatically use its dedicated development user and receive unlimited access. Google OAuth and anonymous production quotas apply only to production visitors.
+
+**Why:** Google OAuth is not reliably usable from the changing development preview domain; removing development auto-login prevents the owner from testing database-backed writing.
+
+**How to apply:** Keep the bypass conditional on the development runtime and exact development username. Never let the development identity or unlimited treatment activate in production.

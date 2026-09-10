@@ -81,6 +81,16 @@ async function accessTier(req: Request): Promise<{ tier: AccessTier; identityKey
     const identityKey = `anonymous:${createHash("sha256").update(session.usageIdentity).digest("hex")}`;
     return { tier: "anonymous", identityKey, subscribed: false };
   }
+  if (
+    process.env.NODE_ENV === "development"
+    && req.user.username === "dev_johnmichaelkuczynski"
+  ) {
+    return {
+      tier: "subscriber",
+      identityKey: `user:${req.user.id}`,
+      subscribed: true,
+    };
+  }
   const user = await storage.getUser(req.user.id);
   const legacy = user ? await storage.getUserSubscription(user.id, user.email) : null;
   const status = user?.subscriptionStatus || legacy?.status || null;

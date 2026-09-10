@@ -578,12 +578,14 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       const data = await safeJson(response);
       if (!response.ok || !data?.jobId) {
         if (data?.code === "SIGN_IN_REQUIRED") {
-          setWritingProgress("Free preview used. Sign in with Google to continue.");
-          throw new Error("Free preview used. Sign in with Google to receive additional free writing.");
+          const message = data?.message || "Sign in with Google to receive additional free writing.";
+          setWritingProgress(message);
+          throw new Error(message);
         }
         if (data?.code === "SUBSCRIPTION_REQUIRED") {
-          setWritingProgress("Signed-in free usage used. Subscribe for unlimited writing.");
-          throw new Error("Signed-in free usage used. Subscribe for unlimited writing and analysis.");
+          const message = data?.message || "Subscribe for unlimited writing and analysis.";
+          setWritingProgress(message);
+          throw new Error(message);
         }
         throw new Error(data?.message || "The requested writing could not be generated.");
       }
