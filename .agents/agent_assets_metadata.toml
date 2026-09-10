@@ -29,3 +29,17 @@ mtime_ms = 1789006142011
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:99538b7d-be2e-4ef4-a505-d1b9ecd820e0/c727cd08-b83e-4c9e-8372-a907ad5f648f/a90f146c-46ea-4014-bd6b-c5c8d97d3b5b"
 storage_version_token = "1789006161735249"
 content_type = "video/mp4"
+
+[[outputs]]
+id = "7vBkUGkUo9_9VurjmP1hy"
+uri = "file://attached_assets/verified-the-mechanics-of-semantic-invariance.txt"
+type = "text"
+title = "Verified: The Mechanics of Semantic Invariance"
+description = "The exact 3,709-word monograph generated and inspected against the original four-chapter prompt."
+logical_id = "0fecdd44-7cb4-403b-85fb-36d96424e0d9"
+content_hash = "sha256:6f977d239d841a2b8237d9a9ec0bef055d5d4703a57e22be5a16855765e774b9"
+size = 28307
+mtime_ms = 1789014589834
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:99538b7d-be2e-4ef4-a505-d1b9ecd820e0/0fecdd44-7cb4-403b-85fb-36d96424e0d9/2e0f30ad-8f94-4376-a734-47c4593f6afa"
+storage_version_token = "1789014590766922"
+content_type = "text/plain"

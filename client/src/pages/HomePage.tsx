@@ -32,6 +32,8 @@ import { MathRenderer } from "@/components/MathRenderer";
 import { trackEvent } from "@/lib/analytics";
 import { Document as WordDocument, Packer, Paragraph as WordParagraph } from "docx";
 import { jsPDF } from "jspdf";
+import unicodePdfFontUrl from "@/assets/DejaVuSans.ttf?url";
+import { normalizeMathNotation } from "@shared/mathNotation";
 
 async function safeJson(response: Response): Promise<any> {
   try {
@@ -373,7 +375,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
   };
 
   const generatedParagraphs = (text: string) =>
-    text.split(/\n\s*\n/).map(paragraph => paragraph.replace(/\s+/g, " ").trim()).filter(Boolean);
+    normalizeMathNotation(text).split(/\n\s*\n/).map(paragraph => paragraph.replace(/\s+/g, " ").trim()).filter(Boolean);
 
   const downloadGeneratedWord = async () => {
     const doc = new WordDocument({
@@ -395,14 +397,24 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     trackEvent("generated_writing_downloaded", { format: "docx" });
   };
 
-  const downloadGeneratedPdf = () => {
+  const downloadGeneratedPdf = async () => {
     const pdf = new jsPDF({ unit: "pt", format: "letter" });
     const margin = 54;
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
     const lineHeight = 16;
     let y = margin;
-    pdf.setFont("times", "normal");
+    const fontBytes = new Uint8Array(await (await fetch(unicodePdfFontUrl)).arrayBuffer());
+    let fontBinary = "";
+    for (let index = 0; index < fontBytes.length; index += 0x8000) {
+      const chunk = fontBytes.subarray(index, index + 0x8000);
+      for (let chunkIndex = 0; chunkIndex < chunk.length; chunkIndex++) {
+        fontBinary += String.fromCharCode(chunk[chunkIndex]);
+      }
+    }
+    pdf.addFileToVFS("DejaVuSans.ttf", btoa(fontBinary));
+    pdf.addFont("DejaVuSans.ttf", "DejaVuSans", "normal");
+    pdf.setFont("DejaVuSans", "normal");
     pdf.setFontSize(11);
 
     for (const paragraph of generatedParagraphs(generatedWriting)) {
@@ -2674,11 +2686,11 @@ Generated on: ${new Date().toLocaleString()}`;
               </div>
               {generatedWriting && (
                 <div className="flex flex-wrap gap-2">
-                  <CopyButton text={generatedWriting} />
+                  <CopyButton text={normalizeMathNotation(generatedWriting)} />
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleDownloadText(generatedWriting, "generated-work.txt")}
+                    onClick={() => handleDownloadText(normalizeMathNotation(generatedWriting), "generated-work.txt")}
                     data-testid="button-download-generated-writing"
                   >
                     <Download className="mr-2 h-4 w-4" />

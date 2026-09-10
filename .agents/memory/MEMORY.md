@@ -1,1 +1,4 @@
 - [Non-interactive Drizzle schema pushes](drizzle-schema-push.md) — drizzle-kit push may still prompt under --force; preserve data with explicit additive SQL.
+- [Long-form section isolation](long-form-section-isolation.md) — generate each explicit chapter from its own directive plus prior continuity, never future-section plans.
+- [Unicode math in PDF exports](unicode-math-pdf.md) — use a full Unicode prose font; standard jsPDF and partial KaTeX fonts silently omit common mathematical glyphs.
+- [Decisive philosophical prose](decisive-philosophical-prose.md) — generic style audits tolerate false balance; enforce explicit verdicts and rebuild evasive arguments.
