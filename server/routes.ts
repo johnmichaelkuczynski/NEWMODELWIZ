@@ -4441,6 +4441,85 @@ ${output}`;
     }
   });
 
+  app.post("/api/text-model-validator/objections/rewrite", async (req: Request, res: Response) => {
+    try {
+      const { originalText, objectionsOutput, customInstructions, llmProvider } = req.body;
+      if (!originalText || typeof originalText !== "string") {
+        return res.status(400).json({ success: false, message: "The original text is required" });
+      }
+      if (!objectionsOutput || typeof objectionsOutput !== "string") {
+        return res.status(400).json({ success: false, message: "Generate the 25 objections first" });
+      }
+
+      const systemPrompt = `You are an expert revisionist and adversarial reasoner. Rewrite a source document so that it anticipates and withstands the supplied objections.
+
+Non-negotiable rules:
+1. Preserve the source's controlling thesis, premises, definitions, stance, facts, and intended conclusion. Do not evade objections by replacing the argument with a different one.
+2. Address every supplied objection in the rewritten document. Strengthen reasoning, add distinctions, evidence, examples, qualifications, definitions, safeguards, or implementation details wherever needed.
+3. Incorporate the defenses organically into one coherent standalone document. Do not produce a numbered response list, audit report, Q&A, or commentary about revising.
+4. The rewritten document must be understandable without seeing the objection list.
+5. Initial or prior word-count limits no longer apply. There is no length ceiling. Use all space genuinely needed to make the document maximally resistant to the objections, but do not add irrelevant filler.
+6. Follow any additional user instructions unless they conflict with preserving the source's assigned position.
+7. Return only the complete rewritten document.`;
+
+      const userPrompt = `SOURCE DOCUMENT:
+${originalText}
+
+TWENTY-FIVE OBJECTIONS AND RESPONSES:
+${objectionsOutput}
+
+${customInstructions?.trim() ? `ADDITIONAL USER INSTRUCTIONS:\n${customInstructions.trim()}\n\n` : ""}Rewrite the source now as one complete, objection-resistant document.`;
+
+      let output = "";
+      if ((llmProvider === "zhi2" || !llmProvider) && process.env.ANTHROPIC_API_KEY) {
+        const Anthropic = (await import("@anthropic-ai/sdk")).default;
+        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        const response = await anthropic.messages.create({
+          model: "claude-sonnet-4-5",
+          max_tokens: 16000,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userPrompt }],
+        });
+        output = response.content[0]?.type === "text" ? response.content[0].text : "";
+      } else if (process.env.OPENAI_API_KEY) {
+        const OpenAI = (await import("openai")).default;
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o",
+          max_tokens: 16000,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ],
+        });
+        output = response.choices[0]?.message?.content || "";
+      } else if (process.env.ANTHROPIC_API_KEY) {
+        const Anthropic = (await import("@anthropic-ai/sdk")).default;
+        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+        const response = await anthropic.messages.create({
+          model: "claude-sonnet-4-5",
+          max_tokens: 16000,
+          system: systemPrompt,
+          messages: [{ role: "user", content: userPrompt }],
+        });
+        output = response.content[0]?.type === "text" ? response.content[0].text : "";
+      } else {
+        return res.status(500).json({ success: false, message: "No AI provider is configured" });
+      }
+
+      if (!output.trim()) {
+        return res.status(502).json({ success: false, message: "The provider returned an empty rewrite" });
+      }
+      return res.json({ success: true, output: output.trim() });
+    } catch (error: any) {
+      console.error("Objection-resistant rewrite error:", error);
+      return res.status(500).json({
+        success: false,
+        message: error.message || "Objection-resistant rewrite failed",
+      });
+    }
+  });
+
   // Coherence Meter endpoint - Analyze and improve text coherence  
   app.post("/api/coherence-meter", async (req: Request, res: Response) => {
     try {

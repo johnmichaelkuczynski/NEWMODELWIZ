@@ -215,6 +215,10 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
   const [objectionsInputText, setObjectionsInputText] = useState(""); // Standalone input
   const [objectionsAudience, setObjectionsAudience] = useState(""); // Standalone audience
   const [objectionsObjective, setObjectionsObjective] = useState(""); // Standalone objective
+  const [objectionsSourceText, setObjectionsSourceText] = useState("");
+  const [objectionRewriteInstructions, setObjectionRewriteInstructions] = useState("");
+  const [objectionResistantOutput, setObjectionResistantOutput] = useState("");
+  const [objectionRewriteLoading, setObjectionRewriteLoading] = useState(false);
 
   // FULL SUITE Pipeline State - runs Batch → BOTTOMLINE → Objections in sequence
   const [fullSuiteLoading, setFullSuiteLoading] = useState(false);
@@ -1098,6 +1102,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
 
     setObjectionsLoading(true);
     setObjectionsOutput("");
+    setObjectionResistantOutput("");
+    setObjectionsSourceText(inputText);
 
     try {
       const response = await fetch('/api/text-model-validator/objections', {
@@ -1133,6 +1139,47 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       });
     } finally {
       setObjectionsLoading(false);
+    }
+  };
+
+  const handleObjectionResistantRewrite = async () => {
+    if (!objectionsSourceText.trim() || !objectionsOutput.trim()) return;
+    setObjectionRewriteLoading(true);
+    setObjectionResistantOutput("");
+    try {
+      const response = await fetch("/api/text-model-validator/objections/rewrite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          originalText: objectionsSourceText,
+          objectionsOutput,
+          customInstructions: objectionRewriteInstructions,
+          llmProvider: validatorLLMProvider,
+        }),
+      });
+      const data = await safeJson(response);
+      if (!response.ok || !data?.success || !data?.output) {
+        throw new Error(data?.message || "Unable to rewrite the document");
+      }
+      setObjectionResistantOutput(data.output);
+      trackEvent("objection_resistant_rewrite_generated", {
+        source_character_count: objectionsSourceText.length,
+        objections_character_count: objectionsOutput.length,
+        output_character_count: data.output.length,
+        has_custom_instructions: Boolean(objectionRewriteInstructions.trim()),
+      });
+      toast({
+        title: "Objection-Resistant Rewrite Complete",
+        description: "The expanded rewrite appears beneath the objections.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Rewrite Failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setObjectionRewriteLoading(false);
     }
   };
 
@@ -1272,6 +1319,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       }
 
       setObjectionsOutput(objectionsData.output);
+      setObjectionsSourceText(bottomlineData.output);
+      setObjectionResistantOutput("");
       console.log("[FULL SUITE] Stage 3 complete: Objections generated");
 
       // ============ STAGE 4: REFINED REWRITE (in light of objections) ============
@@ -5065,6 +5114,72 @@ Generated on: ${new Date().toLocaleString()}`;
                 <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[700px] overflow-y-auto">
                   <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">
                     {objectionsOutput}
+                  </pre>
+                </div>
+                <div className="mt-5 rounded-lg border border-emerald-300 bg-emerald-50 p-4 dark:border-emerald-700 dark:bg-emerald-950/20">
+                  <Label className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
+                    Optional instructions for the objection-resistant rewrite
+                  </Label>
+                  <Textarea
+                    value={objectionRewriteInstructions}
+                    onChange={(event) => setObjectionRewriteInstructions(event.target.value)}
+                    placeholder="Optional: Specify tone, structure, evidence standards, audience, material that must remain unchanged, or other requirements."
+                    className="mt-2 min-h-[90px] bg-white dark:bg-gray-950"
+                    data-testid="textarea-objection-resistant-instructions"
+                  />
+                  <p className="mt-2 text-sm text-emerald-800 dark:text-emerald-200">
+                    The original length limit will not apply. The rewrite may expand as much as necessary to address all 25 objections.
+                  </p>
+                  <Button
+                    onClick={handleObjectionResistantRewrite}
+                    disabled={objectionRewriteLoading || !objectionsSourceText.trim()}
+                    className="mt-3 bg-emerald-700 hover:bg-emerald-800"
+                    data-testid="button-objection-resistant-rewrite"
+                  >
+                    {objectionRewriteLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Rewriting Against All Objections...
+                      </>
+                    ) : (
+                      <>
+                        <Shield className="mr-2 h-4 w-4" />
+                        Rewrite to Withstand All 25 Objections
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {objectionResistantOutput && (
+              <div className="mt-6 rounded-lg border-2 border-emerald-400 bg-white p-6 dark:border-emerald-700 dark:bg-gray-800">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <h4 className="flex items-center gap-2 text-lg font-semibold text-emerald-900 dark:text-emerald-100">
+                    <Shield className="h-5 w-5 text-emerald-600" />
+                    Objection-Resistant Rewrite
+                  </h4>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDownloadText(objectionResistantOutput, "objection-resistant-rewrite.txt")}
+                      data-testid="button-download-objection-resistant-rewrite"
+                    >
+                      <Download className="h-4 w-4" />
+                    </Button>
+                    <CopyButton text={objectionResistantOutput} />
+                    <SendToButton
+                      text={objectionResistantOutput}
+                      onSendToIntelligence={(text) => setDocumentA({ content: text })}
+                      onSendToHumanizer={(text) => setBoxA(text)}
+                      onSendToChat={() => {}}
+                    />
+                  </div>
+                </div>
+                <div className="max-h-[900px] overflow-y-auto rounded border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
+                  <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">
+                    {objectionResistantOutput}
                   </pre>
                 </div>
               </div>
