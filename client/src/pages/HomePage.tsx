@@ -21,12 +21,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Brain, Trash2, FileEdit, Loader2, Zap, Clock, Sparkles, Download, Shield, RefreshCw, Upload, FileText, BookOpen, BarChart3, AlertCircle, FileCode, Search, Copy, CheckCircle, Target, ChevronUp, ChevronDown, MessageSquareWarning, Circle, ArrowRight, Settings } from "lucide-react";
+import { Brain, Trash2, FileEdit, Loader2, Zap, Clock, Sparkles, Download, Shield, RefreshCw, Upload, FileText, BookOpen, BarChart3, AlertCircle, FileCode, Search, Copy, CheckCircle, Target, ChevronUp, ChevronDown, MessageSquareWarning, Circle, ArrowRight, Settings, Play } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { analyzeDocument, compareDocuments, checkForAI } from "@/lib/analysis";
 import { AnalysisMode, DocumentInput as DocumentInputType, AIDetectionResult, DocumentAnalysis, DocumentComparison } from "@/lib/types";
 import { useToast } from "@/hooks/use-toast";
 import CopyButton from "@/components/CopyButton";
+import ProgressiveOutput from "@/components/ProgressiveOutput";
 import SendToButton from "@/components/SendToButton";
 import { MathRenderer } from "@/components/MathRenderer";
 import { trackEvent } from "@/lib/analytics";
@@ -62,12 +63,14 @@ const HomePage: React.FC = () => {
   const [documentA, setDocumentA] = useState<DocumentInputType>({ content: "" });
   const [documentB, setDocumentB] = useState<DocumentInputType>({ content: "" });
   const [writingInstructions, setWritingInstructions] = useState("");
+  const [writingDesiredWordCount, setWritingDesiredWordCount] = useState("");
   const [generatedWriting, setGeneratedWriting] = useState("");
   const [isWriting, setIsWriting] = useState(false);
   const [isStoppingWriting, setIsStoppingWriting] = useState(false);
   const [isRedoingWritingAudits, setIsRedoingWritingAudits] = useState(false);
   const [writingProgress, setWritingProgress] = useState("");
   const [writingJobId, setWritingJobId] = useState<number | null>(null);
+  const [writingResumable, setWritingResumable] = useState(false);
   const [writingAudits, setWritingAudits] = useState<Array<{ section: string; report: string }>>([]);
   const [writingEngine, setWritingEngine] = useState<"current" | "independent">("current");
 
@@ -219,6 +222,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
   const [objectionRewriteInstructions, setObjectionRewriteInstructions] = useState("");
   const [objectionResistantOutput, setObjectionResistantOutput] = useState("");
   const [objectionRewriteLoading, setObjectionRewriteLoading] = useState(false);
+  const [showFortifiedText, setShowFortifiedText] = useState(true);
 
   // FULL SUITE Pipeline State - runs Batch → BOTTOMLINE → Objections in sequence
   const [fullSuiteLoading, setFullSuiteLoading] = useState(false);
@@ -265,7 +269,52 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
   const [selectedCoherenceChunks, setSelectedCoherenceChunks] = useState<string[]>([]);
   const [showCoherenceChunkSelector, setShowCoherenceChunkSelector] = useState(false);
   const [coherenceStageProgress, setCoherenceStageProgress] = useState<string>("");
+  const [coherenceResumeFrom, setCoherenceResumeFrom] = useState<number | null>(null);
   const [detectedCoherenceType, setDetectedCoherenceType] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const savedJobId = localStorage.getItem("activeCoherenceAnalysisJob");
+    if (!savedJobId) return;
+    let cancelled = false;
+
+    const reconnect = async () => {
+      setCoherenceLoading(true);
+      setCoherenceMode("analyze");
+      while (!cancelled) {
+        try {
+          const response = await fetch(`/api/coherence-analysis-jobs/${savedJobId}`);
+          if (!response.ok) throw new Error("Saved coherence job is temporarily unavailable");
+          const job = await response.json();
+          if (job.status === "complete") {
+            setCoherenceAnalysis(job.analysis);
+            setCoherenceScore(job.score);
+            setCoherenceAssessment(job.assessment);
+            localStorage.removeItem("activeCoherenceAnalysisJob");
+            setCoherenceLoading(false);
+            return;
+          }
+          if (job.status === "failed") {
+            setCoherenceAnalysis(`Saved whole-document analysis failed: ${job.error}`);
+            localStorage.removeItem("activeCoherenceAnalysisJob");
+            setCoherenceLoading(false);
+            return;
+          }
+          setCoherenceAnalysis(
+            `Resumed saved whole-document analysis\n\n` +
+            `Stage: ${job.stage}\n` +
+            `Structural maps saved: ${job.completedMaps}/${job.totalChunks}\n` +
+            `Cross-chunk checks saved: ${job.completedChecks}/${job.totalChunks}\n` +
+            `Global skeleton saved: ${job.skeletonReady ? "Yes" : "Not yet"}`
+          );
+        } catch {
+          setCoherenceAnalysis("Reconnecting to the saved whole-document analysis…");
+        }
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+    };
+    void reconnect();
+    return () => { cancelled = true; };
+  }, []);
   
   
   // Load writing samples and style presets on component mount
@@ -457,6 +506,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       if (!statusResponse.ok) throw new Error(status?.message || "Unable to read writing progress");
       if (status.status === "failed") throw new Error(status.error || "Writing failed");
       if (status.output) setGeneratedWriting(status.output);
+      setWritingResumable(Boolean(status.resumable));
       setWritingProgress(
         status.status === "auditing"
           ? "Writing complete. Running optional read-only audits..."
@@ -464,9 +514,10 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
             ? `Large-scale coherence active: ${status.completedSections} of ${status.totalSections} sections completed`
             : "Writing within 10% of the requested word count...",
       );
-      if (status.status === "complete") completed = status;
+      if (status.status === "complete" || status.status === "paused") completed = status;
     }
     setWritingJobId(completed.id);
+    setWritingResumable(Boolean(completed.resumable));
     setGeneratedWriting(completed.output);
     setWritingAudits(Array.isArray(completed.audits) ? completed.audits : []);
     setIsStoppingWriting(false);
@@ -487,11 +538,26 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       });
       return;
     }
+    const explicitWordCount = writingDesiredWordCount.trim()
+      ? Number(writingDesiredWordCount)
+      : undefined;
+    if (
+      explicitWordCount !== undefined &&
+      (!Number.isInteger(explicitWordCount) || explicitWordCount < 50 || explicitWordCount > 100_000)
+    ) {
+      toast({
+        title: "Invalid Word Count",
+        description: "Enter a whole number between 50 and 100,000, or leave the field blank.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setIsWriting(true);
     setGeneratedWriting("");
     setWritingAudits([]);
     setWritingJobId(null);
+    setWritingResumable(false);
     setWritingProgress("Planning the requested work...");
 
     try {
@@ -501,6 +567,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         body: JSON.stringify({
           instructions: writingInstructions,
           provider: selectedProvider,
+          ...(explicitWordCount !== undefined ? { requestedWordCount: explicitWordCount } : {}),
         }),
       });
       const data = await safeJson(response);
@@ -600,6 +667,39 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         description: error.message || "Please try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleResumeWriting = async () => {
+    if (!writingJobId || !writingResumable) return;
+    setIsWriting(true);
+    setWritingResumable(false);
+    setWritingProgress("Resuming from the exact saved checkpoint...");
+    try {
+      const response = await fetch(
+        writingEngine === "independent"
+          ? `/api/writing-v2/jobs/${writingJobId}/resume`
+          : `/api/writing/jobs/${writingJobId}/resume`,
+        { method: "POST" },
+      );
+      const data = await safeJson(response);
+      if (!response.ok) throw new Error(data?.message || "Unable to resume writing");
+      const completed = await waitForWritingJob(writingJobId);
+      toast({
+        title: completed.stoppedEarly ? "Writing Paused and Saved" : "Writing Complete",
+        description: completed.stoppedEarly
+          ? "Resume remains available from the new saved checkpoint."
+          : "The document continued from the saved text and is complete.",
+      });
+    } catch (error: any) {
+      setWritingResumable(true);
+      toast({
+        title: "Could Not Resume Writing",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsWriting(false);
     }
   };
 
@@ -1162,6 +1262,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         throw new Error(data?.message || "Unable to rewrite the document");
       }
       setObjectionResistantOutput(data.output);
+      setShowFortifiedText(true);
       trackEvent("objection_resistant_rewrite_generated", {
         source_character_count: objectionsSourceText.length,
         objections_character_count: objectionsOutput.length,
@@ -1421,16 +1522,82 @@ ${objectionsData.output}`;
       return;
     }
     
-    // If text is longer than 500 words, create chunks and show selector
+    // Long analyses automatically use a persisted whole-document protocol.
     if (wordCount > 500) {
-      const chunks = createCoherenceChunks(coherenceInputText);
-      setCoherenceChunks(chunks);
-      setSelectedCoherenceChunks(chunks.map(c => c.id)); // Select all by default
-      setShowCoherenceChunkSelector(true);
-      toast({
-        title: "Text Too Long for Single Analysis",
-        description: `Your text has ${wordCount} words. It has been divided into ${chunks.length} sections. Select which sections to analyze.`,
-      });
+      setCoherenceLoading(true);
+      setCoherenceMode("analyze");
+      setCoherenceAnalysis("Starting whole-document coherence analysis…\n");
+      setCoherenceScore(null);
+      setCoherenceAssessment(null);
+      setDetectedCoherenceType(null);
+      setShowCoherenceChunkSelector(false);
+
+      try {
+        const response = await fetch("/api/coherence-analysis-jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text: coherenceInputText, coherenceType }),
+        });
+        if (!response.ok) {
+          const errorData = await safeJson(response);
+          throw new Error(errorData.message || "Whole-document analysis failed");
+        }
+        const created = await response.json();
+        localStorage.setItem("activeCoherenceAnalysisJob", String(created.jobId));
+
+        let consecutiveNetworkFailures = 0;
+        for (let poll = 0; poll < 1800; poll++) {
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          try {
+            const statusResponse = await fetch(`/api/coherence-analysis-jobs/${created.jobId}`);
+            if (!statusResponse.ok) throw new Error("Analysis status is temporarily unavailable");
+            const job = await statusResponse.json();
+            consecutiveNetworkFailures = 0;
+            if (job.status === "complete") {
+              setCoherenceAnalysis(job.analysis);
+              setCoherenceScore(job.score);
+              setCoherenceAssessment(job.assessment);
+              localStorage.removeItem("activeCoherenceAnalysisJob");
+              toast({
+                title: "Whole-Paper Analysis Complete",
+                description: `Evaluated all ${wordCount.toLocaleString()} words as one document.`,
+              });
+              return;
+            }
+            if (job.status === "failed") throw new Error(job.error || "Whole-document analysis failed");
+            const stageLabel: Record<string, string> = {
+              pending: "Preparing document",
+              mapping: "Building structural maps",
+              skeleton: "Fusing the global Tractatus skeleton",
+              "cross-check": "Checking every chunk against the whole paper",
+              synthesis: "Producing the final global verdict",
+              paused: "Resuming from the last saved checkpoint",
+            };
+            setCoherenceAnalysis(
+              `Whole-document analysis in progress\n\n` +
+              `Stage: ${stageLabel[job.stage] || job.stage}\n` +
+              `Structural maps saved: ${job.completedMaps}/${job.totalChunks}\n` +
+              `Cross-chunk checks saved: ${job.completedChecks}/${job.totalChunks}\n` +
+              `Global skeleton saved: ${job.skeletonReady ? "Yes" : "Not yet"}\n\n` +
+              `Every completed stage is stored. Closing the page or restarting the server will not erase it.`
+            );
+          } catch (pollError: any) {
+            consecutiveNetworkFailures++;
+            if (consecutiveNetworkFailures >= 20) throw pollError;
+            setCoherenceAnalysis(previous => `${previous.split("\n\nConnection interrupted")[0]}\n\nConnection interrupted. The saved job will resume automatically…`);
+          }
+        }
+        throw new Error("Whole-document analysis did not finish within one hour.");
+      } catch (error: any) {
+        setCoherenceAnalysis(previous => `${previous}\nAnalysis stopped: ${error.message}`);
+        toast({
+          title: "Whole-Document Analysis Stopped",
+          description: error.message,
+          variant: "destructive",
+        });
+      } finally {
+        setCoherenceLoading(false);
+      }
       return;
     }
 
@@ -1813,7 +1980,7 @@ ${objectionsData.output}`;
     }
   };
 
-  const handleProcessSelectedChunks = async (mode: "analyze" | "rewrite") => {
+  const handleProcessSelectedChunks = async (mode: "analyze" | "rewrite", resume: boolean = false) => {
     if (selectedCoherenceChunks.length === 0) {
       toast({
         title: "No Sections Selected",
@@ -1829,14 +1996,15 @@ ${objectionsData.output}`;
     setCoherenceMode(mode);
     setShowCoherenceChunkSelector(false);
     
-    if (mode === "analyze") {
+    if (!resume && mode === "analyze") {
       setCoherenceAnalysis("");
       setCoherenceScore(null);
       setCoherenceAssessment(null);
-    } else {
+    } else if (!resume) {
       setCoherenceRewrite("");
       setCoherenceChanges("");
     }
+    if (!resume) setCoherenceResumeFrom(null);
 
     // Check if outline-guided mode is selected
     if (coherenceProcessingMode === "outline-guided") {
@@ -1889,13 +2057,18 @@ ${objectionsData.output}`;
       }
     } else {
       // Use simple chunking mode - process each chunk independently
-      let combinedAnalysis = "";
-      let combinedRewrite = "";
-      let combinedChanges = "";
+      let combinedAnalysis = resume ? coherenceAnalysis : "";
+      let combinedRewrite = resume ? coherenceRewrite : "";
+      let combinedChanges = resume ? coherenceChanges : "";
+      const startIndex = resume ? (coherenceResumeFrom || 0) : 0;
+      let nextUnfinishedIndex = startIndex;
 
       try {
-        for (let i = 0; i < selectedChunkObjects.length; i++) {
+        for (let i = startIndex; i < selectedChunkObjects.length; i++) {
           const chunk = selectedChunkObjects[i];
+          setCoherenceStageProgress(
+            `${mode === "analyze" ? "Analyzing" : "Rewriting"} section ${i + 1} of ${selectedChunkObjects.length}. Completed sections are saved below as they finish.`,
+          );
           
           toast({
             title: `Processing Section ${i + 1}/${selectedChunkObjects.length}`,
@@ -1914,20 +2087,27 @@ ${objectionsData.output}`;
           });
 
           if (!response.ok) {
-            const errorData = await response.json();
+            const errorData = await safeJson(response);
             throw new Error(errorData.message || `${mode} failed for section ${i + 1}`);
           }
 
-          const data = await response.json();
+          const data = await safeJson(response);
           if (data.success) {
             if (mode === "analyze") {
               combinedAnalysis += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSECTION ${i + 1} of ${selectedChunkObjects.length}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.analysis}`;
+              setCoherenceAnalysis(combinedAnalysis.trim());
             } else {
               combinedRewrite += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSECTION ${i + 1} of ${selectedChunkObjects.length}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.rewrite}`;
               combinedChanges += `\n\n━━━━ SECTION ${i + 1} ━━━━\n${data.changes}`;
+              setCoherenceRewrite(combinedRewrite.trim());
+              setCoherenceChanges(combinedChanges.trim());
             }
+          } else {
+            throw new Error(data?.message || `${mode} failed for section ${i + 1}`);
           }
+          nextUnfinishedIndex = i + 1;
         }
+        setCoherenceResumeFrom(null);
 
         if (mode === "analyze") {
           setCoherenceAnalysis(combinedAnalysis.trim());
@@ -1945,13 +2125,22 @@ ${objectionsData.output}`;
         }
       } catch (error: any) {
         console.error(`Coherence ${mode} error:`, error);
+        const completedCount = mode === "analyze"
+          ? (combinedAnalysis.match(/SECTION \d+ of \d+/g) || []).length
+          : (combinedRewrite.match(/SECTION \d+ of \d+/g) || []).length;
+        setCoherenceResumeFrom(nextUnfinishedIndex < selectedChunkObjects.length ? nextUnfinishedIndex : null);
         toast({
-          title: `${mode.charAt(0).toUpperCase() + mode.slice(1)} Failed`,
-          description: error.message || `An error occurred during coherence ${mode}.`,
+          title: completedCount > 0
+            ? `${completedCount} Section${completedCount === 1 ? "" : "s"} Saved`
+            : `${mode.charAt(0).toUpperCase() + mode.slice(1)} Failed`,
+          description: completedCount > 0
+            ? `${error.message || "A later section failed."} Everything completed before that failure remains visible below and can be copied or downloaded.`
+            : error.message || `An error occurred during coherence ${mode}.`,
           variant: "destructive",
         });
       } finally {
         setCoherenceLoading(false);
+        setCoherenceStageProgress("");
       }
     }
   };
@@ -1967,6 +2156,7 @@ ${objectionsData.output}`;
     setCoherenceChunks([]);
     setSelectedCoherenceChunks([]);
     setShowCoherenceChunkSelector(false);
+    setCoherenceResumeFrom(null);
     setCoherenceIsScientific(false);
     setCoherenceLogicalScore(null);
     setCoherenceScientificScore(null);
@@ -2800,8 +2990,8 @@ Generated on: ${new Date().toLocaleString()}`;
           data-testid="textarea-writing-instructions"
         />
 
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="w-full sm:max-w-xs">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_0.8fr_auto] lg:items-end">
+          <div className="w-full">
             <Label className="mb-2 block">Writing Engine</Label>
             <Select
               value={writingEngine}
@@ -2822,8 +3012,26 @@ Generated on: ${new Date().toLocaleString()}`;
             onProviderChange={setSelectedProvider}
             label="Writing Model"
             apiStatus={apiStatus}
-            className="w-full sm:max-w-xs"
+            className="w-full"
           />
+          <div className="w-full">
+            <Label htmlFor="writing-desired-word-count" className="mb-2 block">
+              Desired Word Count <span className="font-normal text-gray-500">(optional)</span>
+            </Label>
+            <Input
+              id="writing-desired-word-count"
+              type="number"
+              inputMode="numeric"
+              min={50}
+              max={100000}
+              step={1}
+              value={writingDesiredWordCount}
+              onChange={(event) => setWritingDesiredWordCount(event.target.value)}
+              placeholder="e.g., 5,000"
+              disabled={isWriting || isRedoingWritingAudits}
+              data-testid="input-writing-desired-word-count"
+            />
+          </div>
           <Button
             onClick={handleWriteFromInstructions}
             disabled={isWriting || isRedoingWritingAudits || !writingInstructions.trim()}
@@ -2871,6 +3079,17 @@ Generated on: ${new Date().toLocaleString()}`;
                         <Shield className="mr-2 h-4 w-4" />
                       )}
                       {isStoppingWriting ? "Stopping..." : "Stop and Save"}
+                    </Button>
+                  )}
+                  {writingResumable && !isWriting && !isRedoingWritingAudits && (
+                    <Button
+                      size="sm"
+                      onClick={handleResumeWriting}
+                      className="bg-indigo-700 text-white hover:bg-indigo-800"
+                      data-testid="button-resume-writing"
+                    >
+                      <Play className="mr-2 h-4 w-4" />
+                      Resume
                     </Button>
                   )}
                   {!isWriting && !isRedoingWritingAudits && (
@@ -2957,7 +3176,11 @@ Generated on: ${new Date().toLocaleString()}`;
                     {writingAudits.map((audit, index) => (
                       <div key={`${audit.section}-${index}`} className="rounded border border-amber-200 bg-white p-3 dark:border-amber-900 dark:bg-gray-950">
                         <div className="text-sm font-semibold text-amber-950 dark:text-amber-100">{audit.section}</div>
-                        <div className="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-800 dark:text-gray-200">{audit.report}</div>
+                        <ProgressiveOutput
+                          text={audit.report}
+                          filename={`writing-audit-${index + 1}.txt`}
+                          className="mt-1 text-sm leading-6"
+                        />
                       </div>
                     ))}
                   </div>
@@ -3343,7 +3566,9 @@ Generated on: ${new Date().toLocaleString()}`;
             </div>
             <div className="bg-white rounded-md p-4 border border-blue-100 min-h-[200px]">
               <div className="prose prose-sm max-w-none text-gray-800 whitespace-pre-wrap font-mono text-sm leading-relaxed">
-                {streamingContent}
+                {!isStreaming ? (
+                  <ProgressiveOutput text={streamingContent} filename="intelligence-analysis.txt" />
+                ) : streamingContent}
                 {isStreaming && <span className="inline-block w-2 h-4 bg-blue-500 animate-pulse ml-1">|</span>}
               </div>
             </div>
@@ -3495,7 +3720,10 @@ Generated on: ${new Date().toLocaleString()}`;
                   />
                 </div>
                 <div className="border rounded-lg p-4 bg-gray-50 dark:bg-gray-800 max-h-60 overflow-y-auto">
-                  <p className="whitespace-pre-wrap">{rewriteResultData.rewrittenText}</p>
+                  <ProgressiveOutput
+                    text={rewriteResultData.rewrittenText}
+                    filename="rewritten-text.txt"
+                  />
                 </div>
               </div>
 
@@ -3954,14 +4182,12 @@ Generated on: ${new Date().toLocaleString()}`;
                             >
                               <Download className="w-4 h-4" />
                             </Button>
-                            <CopyButton text={fullSuiteRefinedOutput} />
+                           <CopyButton text={fullSuiteRefinedOutput} />
                           </div>
                         </div>
-                        <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[500px] overflow-y-auto">
-                          <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">
-                            {fullSuiteRefinedOutput}
-                          </pre>
-                        </div>
+                         <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[500px] overflow-y-auto">
+                           <ProgressiveOutput text={fullSuiteRefinedOutput} filename="refined-rewrite.txt" />
+                         </div>
                       </div>
                     )}
                   </div>
@@ -4659,18 +4885,17 @@ Generated on: ${new Date().toLocaleString()}`;
                   </Button>
                 </div>
               </div>
-              <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[600px] overflow-y-auto">
-                {validatorMode === "mathmodel" ? (
-                  <MathRenderer 
-                    content={validatorOutput} 
-                    className="text-gray-800 dark:text-gray-200"
-                  />
-                ) : (
-                  <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">
-                    {validatorOutput}
-                  </pre>
-                )}
-              </div>
+               <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[600px] overflow-y-auto">
+                 <ProgressiveOutput
+                   text={validatorOutput}
+                   filename={`validator-output-${validatorMode}.txt`}
+                   render={(visibleText) => validatorMode === "mathmodel" ? (
+                     <MathRenderer content={visibleText} className="text-gray-800 dark:text-gray-200" />
+                   ) : (
+                     <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">{visibleText}</pre>
+                   )}
+                 />
+               </div>
             </div>
           )}
 
@@ -4795,19 +5020,18 @@ Generated on: ${new Date().toLocaleString()}`;
                       )}
                     </div>
                     
-                    {result.success ? (
-                      <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[400px] overflow-y-auto">
-                        {result.mode === "mathmodel" ? (
-                          <MathRenderer 
-                            content={result.output || ''} 
-                            className="text-gray-800 dark:text-gray-200"
-                          />
-                        ) : (
-                          <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">
-                            {result.output}
-                          </pre>
-                        )}
-                      </div>
+                     {result.success ? (
+                       <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[400px] overflow-y-auto">
+                         <ProgressiveOutput
+                           text={result.output || ""}
+                           filename={`validator-${result.mode}.txt`}
+                           render={(visibleText) => result.mode === "mathmodel" ? (
+                             <MathRenderer content={visibleText} className="text-gray-800 dark:text-gray-200" />
+                           ) : (
+                             <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">{visibleText}</pre>
+                           )}
+                         />
+                       </div>
                     ) : (
                       <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded border border-red-200 dark:border-red-700">
                         <p className="text-red-700 dark:text-red-300">
@@ -5005,11 +5229,9 @@ Generated on: ${new Date().toLocaleString()}`;
                     <CopyButton text={bottomlineOutput} />
                   </div>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[600px] overflow-y-auto">
-                  <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">
-                    {bottomlineOutput}
-                  </pre>
-                </div>
+                 <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[600px] overflow-y-auto">
+                   <ProgressiveOutput text={bottomlineOutput} filename="bottomline-output.txt" />
+                 </div>
 
                 {/* Objections Panel - appears after BOTTOMLINE output */}
                 <div className="mt-6 border-t border-purple-200 dark:border-purple-800 pt-6">
@@ -5111,14 +5333,12 @@ Generated on: ${new Date().toLocaleString()}`;
                     <CopyButton text={objectionsOutput} />
                   </div>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[700px] overflow-y-auto">
-                  <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">
-                    {objectionsOutput}
-                  </pre>
-                </div>
+                 <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[700px] overflow-y-auto">
+                   <ProgressiveOutput text={objectionsOutput} filename="objections-responses.txt" />
+                 </div>
                 <div className="mt-5 rounded-lg border border-emerald-300 bg-emerald-50 p-4 dark:border-emerald-700 dark:bg-emerald-950/20">
                   <Label className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">
-                    Optional instructions for the objection-resistant rewrite
+                    Optional instructions for the fortified rewrite
                   </Label>
                   <Textarea
                     value={objectionRewriteInstructions}
@@ -5144,7 +5364,7 @@ Generated on: ${new Date().toLocaleString()}`;
                     ) : (
                       <>
                         <Shield className="mr-2 h-4 w-4" />
-                        Rewrite to Withstand All 25 Objections
+                        Rewrite Incorporating Defenses
                       </>
                     )}
                   </Button>
@@ -5155,18 +5375,30 @@ Generated on: ${new Date().toLocaleString()}`;
             {objectionResistantOutput && (
               <div className="mt-6 rounded-lg border-2 border-emerald-400 bg-white p-6 dark:border-emerald-700 dark:bg-gray-800">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-                  <h4 className="flex items-center gap-2 text-lg font-semibold text-emerald-900 dark:text-emerald-100">
+                  <button
+                    type="button"
+                    onClick={() => setShowFortifiedText((visible) => !visible)}
+                    className="flex items-center gap-2 text-left text-lg font-semibold text-emerald-900 dark:text-emerald-100"
+                    aria-expanded={showFortifiedText}
+                    data-testid="button-toggle-fortified-text"
+                  >
                     <Shield className="h-5 w-5 text-emerald-600" />
-                    Objection-Resistant Rewrite
-                  </h4>
+                    Fortified / Refined Text
+                    {showFortifiedText ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </button>
                   <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDownloadText(objectionResistantOutput, "objection-resistant-rewrite.txt")}
+                      onClick={() => handleDownloadText(objectionResistantOutput, "fortified-refined-text.txt")}
                       data-testid="button-download-objection-resistant-rewrite"
                     >
-                      <Download className="h-4 w-4" />
+                      <Download className="mr-2 h-4 w-4" />
+                      Download
                     </Button>
                     <CopyButton text={objectionResistantOutput} />
                     <SendToButton
@@ -5177,11 +5409,11 @@ Generated on: ${new Date().toLocaleString()}`;
                     />
                   </div>
                 </div>
-                <div className="max-h-[900px] overflow-y-auto rounded border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
-                  <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">
-                    {objectionResistantOutput}
-                  </pre>
-                </div>
+                {showFortifiedText && (
+                  <div className="max-h-[900px] overflow-y-auto rounded border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
+                     <ProgressiveOutput text={objectionResistantOutput} filename="fortified-refined-text.txt" />
+                  </div>
+                )}
               </div>
             )}
 
@@ -5482,7 +5714,7 @@ Generated on: ${new Date().toLocaleString()}`;
             <Textarea
               value={coherenceInputText}
               onChange={(e) => setCoherenceInputText(e.target.value)}
-              placeholder="Paste your text here to analyze coherence... (under 500 words)"
+              placeholder="Paste a document of any length. Long papers automatically use whole-document analysis."
               className="min-h-[200px] font-mono text-sm"
               data-testid="textarea-coherence-input"
             />
@@ -5745,7 +5977,7 @@ Generated on: ${new Date().toLocaleString()}`;
           {/* Processing Mode Selection */}
           <div className="mb-6 bg-white dark:bg-gray-800 p-6 rounded-lg border border-indigo-200 dark:border-indigo-700">
             <label className="block text-sm font-semibold text-indigo-800 dark:text-indigo-200 mb-4">
-              Processing Mode for Long Texts (&gt;500 words):
+              Rewrite Processing for Long Texts (&gt;500 words):
             </label>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label 
@@ -5765,8 +5997,8 @@ Generated on: ${new Date().toLocaleString()}`;
                   data-testid="radio-mode-simple"
                 />
                 <div className="flex-1">
-                  <span className="font-semibold text-gray-900 dark:text-gray-100 block mb-2 text-lg">⚡ Simple Chunking</span>
-                  <span className="text-sm text-gray-700 dark:text-gray-300 block mb-2">Process sections independently for speed</span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100 block mb-2 text-lg">⚡ Independent Section Rewrite</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 block mb-2">Rewrite selected sections independently</span>
                   <span className="text-xs text-gray-600 dark:text-gray-400">• Faster processing<br/>• Good for quick analysis<br/>• Each section processed separately</span>
                 </div>
               </label>
@@ -5788,8 +6020,8 @@ Generated on: ${new Date().toLocaleString()}`;
                   data-testid="radio-mode-outline"
                 />
                 <div className="flex-1">
-                  <span className="font-semibold text-gray-900 dark:text-gray-100 block mb-2 text-lg">🎯 Outline-Guided (Recommended)</span>
-                  <span className="text-sm text-gray-700 dark:text-gray-300 block mb-2">Two-stage process for maximum global coherence</span>
+                  <span className="font-semibold text-gray-900 dark:text-gray-100 block mb-2 text-lg">🎯 Outline-Guided Rewrite (Recommended)</span>
+                  <span className="text-sm text-gray-700 dark:text-gray-300 block mb-2">Rewrite sections against a shared document outline</span>
                   <span className="text-xs text-gray-600 dark:text-gray-400">• Creates coherent outline first<br/>• Rewrites sections to align with outline<br/>• Better consistency across entire document</span>
                 </div>
               </label>
@@ -6015,6 +6247,22 @@ Generated on: ${new Date().toLocaleString()}`;
             </div>
           )}
 
+          {coherenceResumeFrom !== null && !coherenceLoading && (coherenceMode === "analyze" || coherenceMode === "rewrite") && (
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border-2 border-amber-400 bg-amber-50 p-4 dark:border-amber-700 dark:bg-amber-950/30">
+              <p className="text-sm font-medium text-amber-950 dark:text-amber-100">
+                Completed sections are saved. Resume with section {coherenceResumeFrom + 1}; earlier results will not be regenerated.
+              </p>
+              <Button
+                onClick={() => handleProcessSelectedChunks(coherenceMode, true)}
+                className="bg-amber-700 text-white hover:bg-amber-800"
+                data-testid="button-resume-coherence-chunks"
+              >
+                <Play className="mr-2 h-4 w-4" />
+                Resume Coherence Processing
+              </Button>
+            </div>
+          )}
+
           {/* Analysis Output - show for coherenceAnalysis OR mathValidityAnalysis (cogency mode) */}
           {coherenceMode === "analyze" && (coherenceAnalysis || mathValidityAnalysis) && (
             <div className="mt-8 space-y-4">
@@ -6165,11 +6413,9 @@ Generated on: ${new Date().toLocaleString()}`;
               </div>
               {/* Show coherence analysis text only if there is coherence analysis */}
               {coherenceAnalysis && (
-                <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-indigo-200 dark:border-indigo-700">
-                  <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 dark:text-gray-200">
-                    {coherenceAnalysis}
-                  </pre>
-                </div>
+                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-indigo-200 dark:border-indigo-700">
+                   <ProgressiveOutput text={coherenceAnalysis} filename={`coherence-analysis-${coherenceType}.txt`} />
+                 </div>
               )}
               
               {/* Scientific Inaccuracies Section */}
@@ -6343,9 +6589,11 @@ Generated on: ${new Date().toLocaleString()}`;
                   {/* Full Validity Analysis */}
                   <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-emerald-200 dark:border-emerald-700">
                     <h4 className="text-md font-bold text-emerald-900 dark:text-emerald-100 mb-3">Detailed Veridicality Analysis:</h4>
-                    <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 dark:text-gray-200 max-h-96 overflow-y-auto">
-                      {mathValidityAnalysis}
-                    </pre>
+                    <ProgressiveOutput
+                      text={mathValidityAnalysis}
+                      filename="mathematical-validity-analysis.txt"
+                      className="max-h-96 overflow-y-auto"
+                    />
                   </div>
                 </div>
               )}
@@ -6413,11 +6661,9 @@ Generated on: ${new Date().toLocaleString()}`;
                   />
                 </div>
               </div>
-              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-indigo-200 dark:border-indigo-700 max-h-96 overflow-y-auto">
-                <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 dark:text-gray-200">
-                  {coherenceRewrite}
-                </pre>
-              </div>
+               <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-indigo-200 dark:border-indigo-700 max-h-96 overflow-y-auto">
+                 <ProgressiveOutput text={coherenceRewrite} filename={`coherence-rewrite-${coherenceType}.txt`} />
+               </div>
 
               {/* Scientific Corrections Applied */}
               {coherenceIsScientific && coherenceCorrectionsApplied.length > 0 && (
@@ -6443,11 +6689,9 @@ Generated on: ${new Date().toLocaleString()}`;
                   <h4 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100 mb-3">
                     {coherenceIsScientific ? "Scientific Accuracy Changes" : "Changes Made"}
                   </h4>
-                  <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-lg border border-indigo-200 dark:border-indigo-700">
-                    <pre className="whitespace-pre-wrap font-sans text-sm text-gray-800 dark:text-gray-200">
-                      {coherenceChanges}
-                    </pre>
-                  </div>
+                   <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-lg border border-indigo-200 dark:border-indigo-700">
+                     <ProgressiveOutput text={coherenceChanges} filename={`coherence-changes-${coherenceType}.txt`} />
+                   </div>
                 </div>
               )}
             </div>
@@ -6531,9 +6775,11 @@ Generated on: ${new Date().toLocaleString()}`;
                   <CheckCircle className="w-5 h-5 text-emerald-600" />
                   Rigorous Proof
                 </h4>
-                <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200 overflow-x-auto">
-                  {mathProofCorrectedProof}
-                </pre>
+                <ProgressiveOutput
+                  text={mathProofCorrectedProof}
+                  filename="corrected-mathematical-proof.txt"
+                  className="overflow-x-auto"
+                />
               </div>
 
               {/* Key Corrections */}

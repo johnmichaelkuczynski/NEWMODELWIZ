@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { cleanAIResponse } from "@/lib/textUtils";
 import IntelligenceReportModal from './IntelligenceReportModal';
+import ProgressiveOutput from './ProgressiveOutput';
 
 interface MultiProviderResultsProps {
   results: any[];
@@ -159,7 +160,11 @@ export function MultiProviderResults({ results, documentId }: MultiProviderResul
                   </div>
                   <Separator className="my-2" />
                   <div className="prose prose-sm dark:prose-invert max-w-none">
-                    {formatReport(result.formattedReport)}
+                     <ProgressiveOutput
+                       text={result.formattedReport || ""}
+                       filename={`multi-provider-${index + 1}.txt`}
+                       render={(visibleText) => formatReport(visibleText)}
+                     />
                   </div>
                 </div>
               </TabsContent>

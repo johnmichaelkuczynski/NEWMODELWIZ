@@ -1,0 +1,191 @@
+INSTRUCTIONS FOR REPLIT AGENT — TRACTATUS-SKELETON FUSION (UNIVERSAL)
+Purpose
+This document specifies a memory architecture for large-scale coherent document generation. It is application-agnostic. It applies wherever an LLM is being asked to produce, transform, or evaluate a document long enough that it must be processed in pieces. The architecture combines two mechanisms — a Skeleton (prospective constraint, extracted once, frozen) and a Tractatus Tree (retrospective accumulator, live, tiered, recursively compressible). Each alone is insufficient. Their fusion is what makes large-scale coherence possible.
+If your application currently chunks a document, processes each chunk with some kind of "prior summary" injected, and stitches results at the end — and the output is incoherent, drifts in terminology, contradicts itself, or loses commitments across chunks — this is what you implement to fix it.
+Architectural Principle
+A document of any nontrivial length cannot be held in a single LLM call. The model must process it in pieces. The piece currently being processed must be constrained by (a) what the document is supposed to be and do, and (b) what has already been committed to in earlier pieces. These are two different kinds of constraint:
+
+Prospective constraint = Skeleton. Extracted from the source (or from the user's instructions, if generating from scratch) at the start of the job. Frozen. Defines thesis, outline, key terms, commitment ledger, entities. Every chunk must honor it.
+Retrospective constraint = Tractatus Tree. Grows live as chunks complete. Tiered: Tier 1 is the active accumulator, Tier 2+ are compressed summaries of older tiers. Compression is recursive and lossy-but-controlled.
+
+The Skeleton is Tier 0 of the Tractatus Tree. It is immutable for the lifetime of the job. It is inherited as a constraint by every other tier. Compression operations are forbidden from contradicting it.
+Part 1 — Database Schema
+Add the following tables to your database, regardless of ORM. Adapt syntax to your stack (Drizzle, Prisma, raw SQL, etc.). The shape must match.
+TABLE: tractatus_tiers
+  id                  UUID PRIMARY KEY
+  job_id              UUID NOT NULL          — FK to whatever your job table is
+  job_type            TEXT NOT NULL          — discriminator: 'reader' | 'meter' | 'dictation' | etc.
+  tier                INTEGER NOT NULL       — 0 = skeleton, 1 = live, 2+ = compressed
+  tree                JSONB NOT NULL         — { "1.0": "ASSERTS: ...", "1.1": "REJECTS: ...", ... }
+  node_count          INTEGER NOT NULL DEFAULT 0
+  parent_tier_id      UUID                   — self-FK; tier N+1 points at the tier N it was compressed from
+  compression_count   INTEGER NOT NULL DEFAULT 0
+  last_update         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+
+  INDEX: (job_id, job_type, tier)
+
+TABLE: tractatus_archive
+  id                       UUID PRIMARY KEY
+  job_id                   UUID NOT NULL
+  job_type                 TEXT NOT NULL
+  tier                     INTEGER NOT NULL
+  tree_snapshot            JSONB NOT NULL    — full pre-operation tree
+  node_count_at_snapshot   INTEGER NOT NULL
+  reason                   TEXT NOT NULL     — 'pre_compression' | 'pre_repair' | 'manual_audit'
+  created_at               TIMESTAMPTZ NOT NULL DEFAULT NOW()
+
+  INDEX: (job_id, job_type, created_at)
+job_type is the discriminator that lets a single Tractatus subsystem serve every application in your portfolio. Each app passes its own string. Use whatever names make sense, but make them consistent.
+Part 2 — The Tractatus Memory Module
+Create a single module that is the only owner of all Tractatus operations. No other code in the application is permitted to read or write tractatus_tiers or tractatus_archive directly. Everything goes through this module. This is what lets you maintain the invariants below across many different applications.
+Name it tractatusMemory (or equivalent). Required functions:
+skeletonToTier0(skeleton, jobId, jobType)
+  — Called once at job start. Converts the skeleton object into Tier 0 nodes.
+
+updateLiveTier(jobId, jobType, delta)
+  — Called after every chunk completes. Appends delta entries to Tier 1.
+  — Returns { nodeCount, compressed: boolean }.
+  — Triggers compression automatically when nodeCount crosses threshold.
+
+compressTier(jobId, jobType, sourceTier)
+  — Snapshots sourceTier to tractatus_archive, then calls LLM to compress.
+  — Either creates new tier (sourceTier + 1) or merges into existing one.
+  — Trims sourceTier to its 30 most recent nodes.
+  — Recurses if the merged higher tier itself crosses threshold.
+
+buildTieredPromptContext(jobId, jobType)
+  — Renders all tiers as a single prompt-injectable string.
+  — Respects per-tier character budgets (see below).
+  — Returns the string. This replaces whatever "prior chunk summary"
+    mechanism currently exists.
+
+loadAllTiers(jobId, jobType)
+  — Returns all tiers for use by stitch and audit operations.
+
+auditChunkAgainstMemory(chunkText, jobId, jobType)
+  — Cross-references claims in chunkText against Skeleton + all tiers.
+  — Returns per-claim status: VERIFIED | UNVERIFIABLE | CONTRADICTED.
+Part 3 — Tree Format
+The tree is rendered for LLM consumption as flat key: value lines, NOT as nested JSON. This is non-negotiable. JSON serialization roughly doubles token cost relative to the flat format, and that cost is paid on every chunk of every job. Format:
+1.0: ASSERTS: <claim>
+1.1: REJECTS: <counter-claim that the document does NOT make>
+1.2: ASSUMES: <load-bearing assumption>
+1.3: OPEN: <unresolved question that later chunks must address or explicitly leave open>
+2.0: KEY_TERM: "<term>" = <definition as used in this document>
+3.0: ENTITY: <name> — <role/relevance>
+4.0: CROSS_REF: §<location_A> ↔ §<location_B> — <nature of dependency>
+5.0: CONFLICT_FLAG: <quoted claim A> vs <quoted claim B> — unresolved
+Tag vocabulary: ASSERTS, REJECTS, ASSUMES, OPEN, KEY_TERM, ENTITY, CROSS_REF, CONFLICT_FLAG. Do not invent new tags without updating the audit logic to handle them.
+The numbering is Wittgensteinian: 1.0, 1.1, 1.1.1, 1.1.2, 1.2. Sub-numbers indicate elaboration of the parent. This is how the model navigates the tree when asked to compress it.
+Part 4 — Per-Tier Character Budgets
+buildTieredPromptContext must produce a string that fits within a total budget of 15,000 characters, allocated as follows:
+TierBudgetContentsTier 0 (Skeleton)6,000 charsFull skeleton; never truncatedTier 1 (Live)5,000 charsMost recent nodes first; truncate oldest if neededTier 2 (Compressed)2,500 charsMid-range memoryTier 3+ (Deep)1,500 chars totalLong-tail memory across all deeper tiers
+Truncation rule: when a tier overflows its budget, evict from the oldest end. Exception: REJECTS and CONFLICT_FLAG entries are load-bearing and are never evicted. If preserving them forces a tier to exceed its budget, exceed the budget and emit a warning to your logging or streaming layer. Do not silently drop them. This is the single most important rule in the entire architecture.
+Part 5 — The Anti-Sycophancy Block
+Compression is the highest-risk operation in the system. The LLM doing the compression is the same kind of system that produced the content being compressed, and it has a strong default bias toward smoothing, harmonizing, softening contradictions, and converting hard negative claims into soft neutral ones. Left unchecked, recursive compression turns a document with sharp commitments into a document with vague ones, and the user has no way to detect this from the output.
+Defense: a fixed block of clauses must appear, identically worded, in three places:
+
+The chunk-processing prompt (wherever your app calls the LLM to generate output).
+The Tier 1 update prompt (where the LLM extracts a delta report from a completed chunk).
+The compression prompt (in compressTier).
+
+Store it as a single shared constant. Do not paraphrase it in any of the three locations. Verbatim duplication is the mechanism.
+ANTI_SYCOPHANCY_CLAUSES:
+
+- Preserve every REJECTS entry verbatim. Do not soften, qualify, or
+  convert a REJECTS into an OPEN.
+- Preserve every numerical value, date, proper name, citation, and
+  quoted phrase exactly as it appears.
+- If two entries contradict, do not silently merge them. Emit a
+  CONFLICT_FLAG entry that quotes both.
+- Defeats, negative results, and counterexamples are load-bearing.
+  They cost more to preserve than positive claims. Preserve them
+  anyway.
+- You are not being graded on smoothness, harmony, or readability.
+  You are being graded on whether the tier you emit can be used to
+  detect a hallucination two chunks from now.
+Part 6 — Compression Mechanics
+compressTier(jobId, jobType, sourceTier) executes in this order, transactionally:
+
+Snapshot first. Write the current tier to tractatus_archive with reason='pre_compression'. If this write fails, abort. No compression without an archive entry.
+Render the tier in flat key: value format.
+Call the LLM with: the rendered tier, the ANTI_SYCOPHANCY_CLAUSES block, and a strict instruction to emit at most 80 nodes in valid JSON only (no markdown fences, no preamble, no postamble). max_tokens: 8192.
+Parse defensively. Tolerant JSON parser that strips fence markers and trailing commentary. On parse failure, retry once with a simplified prompt. On second failure, abort the compression — the snapshot in archive is now the canonical version of that tier and the live tier is left untouched. Log the failure.
+Merge or insert. If a row for tier = sourceTier + 1 already exists for this job, merge the new nodes into it. Otherwise insert a new row.
+Trim the source tier to its 30 most recent nodes. Increment compression_count.
+Recurse if the merged higher tier now exceeds its own threshold.
+
+Threshold: trigger compression when nodeCount >= 150 for Tier 1, scaling proportionally for deeper tiers (Tier 2: 200, Tier 3: 250). Deeper tiers are harder to compress further without information loss, so they get more headroom.
+Part 7 — Skeleton Extraction (Tier 0)
+Every job that uses this architecture must produce a skeleton at the start. The skeleton's shape is fixed:
+{
+  thesis:           string       — the document's central commitment, 1-3 sentences
+  outline:          string[]     — 8 to 20 numbered argument-arc steps or section purposes
+  keyTerms:         { term, definition }[]   — terminology with intended meanings
+  commitmentLedger: {
+    asserts: string[],
+    rejects: string[],
+    assumes: string[]
+  }
+  entities:         string[]     — names that must remain consistent
+  audienceParams:   string       — optional, for generation tasks
+  rigorLevel:       string       — optional, for generation tasks
+}
+For generation tasks (turning a source document into an output document, or composing from instructions), extract the skeleton from the source/instructions before any chunk processing begins. Token budget for the skeleton extraction call: ~2,000 tokens output max. The skeleton is structure-only; it does not contain prose.
+For evaluation tasks (rating, scoring, analyzing a document), extract the skeleton from the document being evaluated before any chunk-level scoring begins. The skeleton is then used to ensure that per-chunk scores are calibrated against the same understanding of what the document is doing.
+skeletonToTier0 converts the skeleton into Tier 0 nodes by mapping each field to numbered entries with the appropriate tags. The skeleton object itself can also be stored verbatim in a separate column or field on the job row, for human inspection.
+Part 8 — Integration Pattern
+This architecture is wired into an existing application by replacing exactly three things:
+
+Wherever the application currently extracts an outline, summary, or structural pass over the source, call skeletonToTier0(skeleton, jobId, jobType) immediately after, so Tier 0 is populated before any chunk runs.
+Wherever the application currently injects "prior chunk summaries," "running context," or any equivalent into a chunk prompt, replace that injection with await buildTieredPromptContext(jobId, jobType). The returned string goes into the prompt in place of whatever was there before.
+Wherever the application currently extracts a per-chunk delta, summary, or progress report after a chunk completes, call await updateLiveTier(jobId, jobType, delta) with the result. This is what causes the tree to grow.
+
+If the application has a stitch pass at the end, that pass should now receive loadAllTiers(jobId, jobType) instead of a flat array of chunk summaries.
+If the application has a multi-stage pipeline (e.g., reconstruction → objections → rewrite), the Tractatus Tree persists across stages. Stage N's final tree becomes Stage N+1's starting context. The skeleton of Stage N+1 can be derived from Stage N's final tree, or extracted fresh from Stage N's output — the latter is safer but more expensive.
+Part 9 — Audit Endpoint
+Expose an HTTP endpoint or callable function: auditJob(jobId, jobType, optionalText). It runs auditChunkAgainstMemory against either the most recent output for the job or the passed-in text. It returns a per-claim report:
+{
+  claims: [
+    { text: string, status: 'VERIFIED' | 'UNVERIFIABLE' | 'CONTRADICTED', evidence: string[] }
+  ],
+  summary: { verified: int, unverifiable: int, contradicted: int }
+}
+evidence for VERIFIED is the tier entry that supports the claim. For CONTRADICTED, it is the tier entry that refutes it. For UNVERIFIABLE, it is empty — the claim is neither supported nor refuted by anything in the Skeleton or any tier, which is a softer warning.
+Dates, numbers, proper names, and quoted material are audited with stricter matching than general claims (exact-match for numbers and dates; fuzzy-match acceptable for paraphrased claims). Audit is the loop-closer: it is what catches drift that anti-sycophancy clauses failed to prevent.
+Part 10 — Drift Detection
+After every compression, run a diff between the snapshot in tractatus_archive and the new merged tier:
+
+Count of REJECTS entries before vs after. Survival rate should be 100%. Below 95% is a critical alert.
+Count of CONFLICT_FLAG entries before vs after. Should be ≥ before (conflicts can be added but not silently resolved).
+Set difference on KEY_TERM definitions. Any change is a yellow flag (definitions can legitimately evolve, but the user should know).
+Count of ASSERTS and ASSUMES entries. These can drop substantially during compression — that's the point of compression — but a drop of >50% in a single compression is a yellow flag.
+
+Surface these diffs through whatever logging or streaming channel the application uses. Do not just write them to a server log; the user running a long job needs to see drift warnings in real time.
+Part 11 — Critical Rules (Non-Negotiable)
+
+Tree is rendered as flat key: value lines for prompt injection. Never nested JSON in prompts.
+Compression is preceded by an archive write, every time. No compression without snapshot. Compression must be reversible.
+Anti-sycophancy clauses appear in three places, verbatim, from a single shared constant. Not paraphrased.
+Tier 0 (Skeleton) is immutable. Changing it means a new job.
+REJECTS and CONFLICT_FLAG entries are preserved across compressions and budget evictions. They are load-bearing. They cannot be dropped. If preserving them busts a budget, bust the budget and warn.
+Audit must be runnable on demand at any point in a job, not just at the end. The audit endpoint takes a jobId and works whether the job is running, paused, complete, or failed.
+The Tractatus module is the only writer of tractatus_tiers and tractatus_archive. No other code touches these tables.
+job_type discriminator is required on every operation. This is what lets one Tractatus subsystem serve every application in the portfolio without collision.
+
+Part 12 — Testing
+Before declaring this implemented for any application, the following tests must pass:
+
+Skeleton-to-Tier-0 conversion preserves every commitment-ledger entry. Round-trip equality on asserts, rejects, assumes.
+Tier 1 update appends new entries without mutating prior ones.
+Compression triggers at exactly the threshold node count, not before, not after.
+After compression, 100% of REJECTS entries from the snapshot are present in the merged higher tier.
+After compression, 100% of CONFLICT_FLAG entries from the snapshot are present in the merged higher tier.
+buildTieredPromptContext respects the 15,000-character budget under normal conditions and exceeds it only when load-bearing entries require it (and emits a warning when it does).
+Plant a known contradiction in a test chunk — a claim that directly negates a Tier 0 ASSERTS entry. Audit must flag it as CONTRADICTED with the specific Tier 0 entry as evidence.
+Plant a known fabrication — a date or proper name that appears nowhere in any tier. Audit must flag it as UNVERIFIABLE.
+Recursive compression: force three sequential compressions on the same job and verify that the surviving deep tier still contains every original REJECTS entry.
+
+Part 13 — Rollout
+Deploy behind a feature flag (TRACTATUS_MEMORY_ENABLED or per-application equivalent). When false, the application falls back to its current memory mechanism. When true, the new module is used. Run both side-by-side on representative documents at three size scales — small (~5K words), medium (~25K words), large (~100K+ words) — and compare audit pass rates and user-reported coherence. The Tractatus path should match the legacy path on small inputs and pull ahead progressively as input size grows. If it does not pull ahead on the large case, something is wrong with the implementation and the rollout should pause until the divergence is understood.

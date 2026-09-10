@@ -9,10 +9,13 @@ import { fileProcessorService } from "./services/fileProcessor";
 import { textChunkerService } from "./services/textChunker";
 import { gptZeroService } from "./services/gptZero";
 import { aiProviderService } from "./services/aiProviders";
-import { type RewriteRequest, type RewriteResponse } from "@shared/schema";
+import { type RewriteRequest, type RewriteResponse, writingJobs, writingJobSections } from "@shared/schema";
+import { db } from "./db";
+import { asc, eq } from "drizzle-orm";
 import { extractTextFromFile } from "./api/documentParser";
 import { sendSimpleEmail } from "./api/simpleEmailService";
 import { upload as speechUpload, processSpeechToText } from "./api/simpleSpeechToText";
+import { createCoherenceAnalysisJob, getCoherenceAnalysisJob, runCoherenceAnalysisJob } from "./services/coherenceAnalysisJobs";
 
 
 // Configure multer for file uploads
@@ -1587,6 +1590,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       totalSections: job.totalSections,
       output: job.output,
       stoppedEarly: job.stoppedEarly,
+       resumable: Boolean(job.stoppedEarly && job.status === "paused"),
       audits: (() => {
         try {
           return job.auditReport ? JSON.parse(job.auditReport) : [];
@@ -1613,6 +1617,17 @@ export async function registerRoutes(app: Express): Promise<Express> {
     return res.json({ success: true });
   });
 
+  app.post("/api/writing-v2/jobs/:id/resume", async (req: Request, res: Response) => {
+    const { getIndependentWritingJob, resumeIndependentWritingJob, processIndependentWritingJob } = await import("./services/independentWriting");
+    const job = await getIndependentWritingJob(Number(req.params.id));
+    if (!job) return res.status(404).json({ message: "Writing job not found" });
+    if (job.userId && req.user?.id !== job.userId) return res.status(403).json({ message: "This writing job belongs to another user" });
+    if (!job.stoppedEarly || job.status !== "paused") return res.status(409).json({ message: "This writing job is not resumable" });
+    await resumeIndependentWritingJob(job.id);
+    void processIndependentWritingJob(job.id).catch(error => console.error(`Independent writing resume ${job.id} failed:`, error));
+    return res.status(202).json({ jobId: job.id, resumed: true, resumable: false, engine: "independent" });
+  });
+
   app.get("/api/writing/jobs/:id", async (req: Request, res: Response) => {
     const { getWritingJob, countWords } = await import("./services/longFormWriting");
     const job = await getWritingJob(Number(req.params.id));
@@ -1630,6 +1645,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       totalSections: job.totalSections,
       output: job.output,
       stoppedEarly: job.stoppedEarly,
+       resumable: Boolean(job.stoppedEarly && job.status === "paused"),
       audits: (() => {
         try {
           return job.auditReport ? JSON.parse(job.auditReport) : [];
@@ -1733,6 +1749,17 @@ export async function registerRoutes(app: Express): Promise<Express> {
     }
     await requestWritingStop(job.id);
     return res.json({ success: true });
+  });
+
+  app.post("/api/writing/jobs/:id/resume", async (req: Request, res: Response) => {
+    const { getWritingJob, resumeWritingJob, processWritingJob } = await import("./services/longFormWriting");
+    const job = await getWritingJob(Number(req.params.id));
+    if (!job) return res.status(404).json({ message: "Writing job not found" });
+    if (job.userId && req.user?.id !== job.userId) return res.status(403).json({ message: "This writing job belongs to another user" });
+    if (!job.stoppedEarly || job.status !== "paused") return res.status(409).json({ message: "This writing job is not resumable" });
+    await resumeWritingJob(job.id);
+    void processWritingJob(job.id).catch(error => console.error(`Writing resume ${job.id} failed:`, error));
+    return res.status(202).json({ jobId: job.id, resumed: true, resumable: false });
   });
 
   app.post("/api/chat-with-memory", async (req: Request, res: Response) => {
@@ -4451,7 +4478,7 @@ ${output}`;
         return res.status(400).json({ success: false, message: "Generate the 25 objections first" });
       }
 
-      const systemPrompt = `You are an expert revisionist and adversarial reasoner. Rewrite a source document so that it anticipates and withstands the supplied objections.
+      const systemPrompt = `You are an expert revisionist and adversarial reasoner. Completely rewrite the original text so that its thesis proactively incorporates the defenses, clarifies the boundaries, and is immune to all 25 objections without altering the core conclusion.
 
 Non-negotiable rules:
 1. Preserve the source's controlling thesis, premises, definitions, stance, facts, and intended conclusion. Do not evade objections by replacing the argument with a different one.
@@ -4756,6 +4783,211 @@ Respond with ONLY the coherence type (e.g., "logical-consistency" or "scientific
     }
   });
 
+  app.post("/api/coherence-analysis-jobs", async (req: Request, res: Response) => {
+    const { text, coherenceType = "auto-detect" } = req.body;
+    if (!text || typeof text !== "string") {
+      return res.status(400).json({ success: false, message: "Text is required" });
+    }
+    try {
+      const job = await createCoherenceAnalysisJob(text, coherenceType);
+      res.status(202).json({ success: true, jobId: job.id, totalChunks: job.totalSections });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message || "Could not create coherence analysis job" });
+    }
+  });
+
+  app.get("/api/coherence-analysis-jobs/:id", async (req: Request, res: Response) => {
+    const jobId = Number(req.params.id);
+    const job = await getCoherenceAnalysisJob(jobId);
+    if (!job) return res.status(404).json({ success: false, message: "Coherence analysis job not found" });
+    if (!["complete", "failed"].includes(job.status)) void runCoherenceAnalysisJob(jobId);
+    res.json({ success: true, ...job });
+  });
+
+  app.post("/api/coherence-global-stream", async (req: Request, res: Response) => {
+    const { text, coherenceType = "auto-detect" } = req.body;
+    if (!text || typeof text !== "string") {
+      return res.status(400).json({ success: false, message: "Text is required" });
+    }
+
+    res.status(200);
+    res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache, no-transform");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders();
+
+    const send = (event: Record<string, unknown>) => {
+      if (!res.writableEnded) res.write(`${JSON.stringify(event)}\n`);
+    };
+    const heartbeat = setInterval(() => send({ type: "heartbeat" }), 8000);
+    const pause = () => new Promise(resolve => setTimeout(resolve, 2000));
+
+    try {
+      const Anthropic = (await import("@anthropic-ai/sdk")).default;
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      const callClaude = async (system: string, prompt: string, maxTokens: number) => {
+        const message = await anthropic.messages.create({
+          model: "claude-sonnet-4-5",
+          max_tokens: maxTokens,
+          temperature: 0,
+          system,
+          messages: [{ role: "user", content: prompt }],
+        });
+        return message.content[0]?.type === "text" ? message.content[0].text : "";
+      };
+
+      const sections = splitIntoSections(text, 700);
+      send({
+        type: "start",
+        wordCount: text.trim().split(/\s+/).length,
+        totalChunks: sections.length,
+        message: `Building a whole-document map from ${sections.length} sequential chunks.`,
+      });
+
+      const localMaps: string[] = [];
+      for (let index = 0; index < sections.length; index++) {
+        send({ type: "progress", stage: "mapping", completed: index, total: sections.length, message: `Mapping chunk ${index + 1} of ${sections.length}` });
+        const localMap = await callClaude(
+          "Extract structural evidence from one part of a larger document. Do not judge the chunk as a standalone essay. Plain text only.",
+          `Map chunk ${index + 1} of ${sections.length} for later whole-document coherence analysis. Record:
+CLAIMS INTRODUCED OR USED
+DEFINITIONS AND TERMINOLOGY
+ASSERTS, REJECTS, AND ASSUMES COMMITMENTS
+INFERENTIAL DEPENDENCIES
+FORWARD OR BACKWARD REFERENCES
+LOCAL CONTRADICTIONS OR AMBIGUITIES
+EXPECTED HANDOFF
+
+Distinguish a claim newly established here from a claim merely repeated here. Keep the map under 450 words.
+
+CHUNK:
+${sections[index].text}`,
+          900,
+        );
+        localMaps.push(localMap);
+        send({ type: "partial", stage: "mapping", completed: index + 1, total: sections.length, message: `Saved structural map ${index + 1} of ${sections.length}.` });
+        if (index < sections.length - 1) await pause();
+      }
+
+      const fuseMaps = async (maps: string[], label: string): Promise<string> => callClaude(
+        "Fuse structural maps into one Tractatus-style argument skeleton. Preserve conflicts and negative commitments. Do not invent content. Plain text only.",
+        `Fuse these ${label} maps into one cumulative skeleton with:
+CONTROLLING THESIS OR PURPOSE
+ORDERED ARGUMENT TREE
+FIXED DEFINITIONS
+ASSERTS
+REJECTS
+ASSUMES
+DEPENDENCY EDGES
+TERMINOLOGY DRIFT
+REPEATED CLAIMS
+CONTRADICTIONS
+UNRESOLVED OBLIGATIONS
+EXPECTED GLOBAL CONCLUSION
+
+MAPS:
+${maps.map((map, index) => `MAP ${index + 1}:\n${map}`).join("\n\n")}`,
+        2600,
+      );
+
+      send({ type: "progress", stage: "skeleton", completed: 0, total: 1, message: "Fusing chunk maps into the global Tractatus skeleton." });
+      let fusionInputs = localMaps;
+      let tier = 1;
+      while (fusionInputs.join("\n\n").length > 55_000) {
+        const nextTier: string[] = [];
+        for (let index = 0; index < fusionInputs.length; index += 8) {
+          nextTier.push(await fuseMaps(fusionInputs.slice(index, index + 8), `Tier ${tier}`));
+          await pause();
+        }
+        fusionInputs = nextTier;
+        tier++;
+      }
+      const skeleton = await fuseMaps(fusionInputs, `Tier ${tier}`);
+      send({ type: "partial", stage: "skeleton", completed: 1, total: 1, message: "Global skeleton saved." });
+      await pause();
+
+      let ledger = "No chunks have yet been evaluated against the global skeleton.";
+      const deltas: string[] = [];
+      for (let index = 0; index < sections.length; index++) {
+        send({ type: "progress", stage: "cross-check", completed: index, total: sections.length, message: `Cross-checking chunk ${index + 1} of ${sections.length} against the whole paper.` });
+        const delta = await callClaude(
+          "Evaluate one chunk only as a component of the complete document. Track cross-chunk coherence, not standalone writing quality. Plain text only.",
+          `Evaluate chunk ${index + 1} of ${sections.length} against the same global skeleton and cumulative ledger. Record:
+ROLE ACTUALLY PERFORMED
+DEPENDENCIES HONORED OR BROKEN
+CONTRADICTIONS WITH GLOBAL COMMITMENTS
+TERMINOLOGY DRIFT
+SEMANTIC REPETITION OF EARLIER WORK
+MISSING OR FALSE HANDOFFS
+NEW GLOBAL FINDINGS
+
+GLOBAL SKELETON:
+${skeleton}
+
+CUMULATIVE LEDGER:
+${ledger}
+
+CURRENT CHUNK:
+${sections[index].text}`,
+          1100,
+        );
+        deltas.push(delta);
+        ledger = await callClaude(
+          "Maintain a compact cumulative cross-chunk coherence ledger. Preserve every contradiction, terminology drift, repeated claim, broken dependency, and unresolved obligation. Plain text only.",
+          `Update the ledger from the new delta. Keep it under 1,200 words. Never erase a prior problem merely because a later chunk is acceptable.
+
+PRIOR LEDGER:
+${ledger}
+
+NEW DELTA FOR CHUNK ${index + 1}:
+${delta}`,
+          1600,
+        );
+        send({ type: "partial", stage: "cross-check", completed: index + 1, total: sections.length, message: `Saved whole-document findings through chunk ${index + 1}.` });
+        if (index < sections.length - 1) await pause();
+      }
+
+      send({ type: "progress", stage: "synthesis", completed: 0, total: 1, message: "Synthesizing one global coherence verdict." });
+      const finalAnalysis = await callClaude(
+        "Produce one rigorous whole-document coherence report. Do not concatenate local reports. Judge the complete argument as a single object. Plain text only.",
+        `Evaluate the complete document's ${coherenceType} coherence from its global skeleton, cumulative ledger, and chunk deltas. Begin exactly:
+GLOBAL COHERENCE SCORE: X/10
+OVERALL ASSESSMENT: one decisive sentence
+
+Then provide:
+GLOBAL ARGUMENT RECONSTRUCTION
+CROSS-CHUNK CONTRADICTIONS
+TERMINOLOGY DRIFT
+SEMANTIC REPETITION
+BROKEN DEPENDENCIES AND HANDOFFS
+MISSING ARGUMENT STEPS
+STRONGEST COHERENT FEATURES
+PRIORITIZED REPAIR PLAN
+
+Name chunk numbers and quote short identifying phrases where useful. Distinguish intentional recurrence from redundant re-argument.
+
+GLOBAL SKELETON:
+${skeleton}
+
+FINAL CUMULATIVE LEDGER:
+${ledger}
+
+CHUNK DELTAS:
+${deltas.map((delta, index) => `CHUNK ${index + 1}:\n${delta}`).join("\n\n")}`,
+        4000,
+      );
+      const score = Number(finalAnalysis.match(/GLOBAL COHERENCE SCORE:\s*(\d+)/i)?.[1] || 0);
+      const assessment = finalAnalysis.match(/OVERALL ASSESSMENT:\s*([^\n]+)/i)?.[1]?.trim() || "Whole-document analysis complete.";
+      send({ type: "complete", success: true, analysis: finalAnalysis, score, assessment, outline: skeleton });
+    } catch (error: any) {
+      console.error("Global coherence stream error:", error);
+      send({ type: "error", success: false, message: error.message || "Whole-document coherence analysis failed. Completed stages remain shown." });
+    } finally {
+      clearInterval(heartbeat);
+      if (!res.writableEnded) res.end();
+    }
+  });
+
   // Outline-Guided Coherence Processing - Two-Stage approach for long texts
   app.post("/api/coherence-outline-guided", async (req: Request, res: Response) => {
     try {
@@ -5013,25 +5245,33 @@ Provide ONLY the rewritten section. Do not include any explanations, description
 
   // Helper function to split text into sections
   function splitIntoSections(text: string, targetWords: number = 400): Array<{text: string, wordCount: number}> {
-    const paragraphs = text.split(/\n\n+/);
+    const paragraphs = text.split(/\n+/).map(paragraph => paragraph.trim()).filter(Boolean);
     const sections: Array<{text: string, wordCount: number}> = [];
     let currentSection: string[] = [];
     let currentWordCount = 0;
 
     for (const paragraph of paragraphs) {
-      const paraWords = paragraph.trim().split(/\s+/).length;
-      
-      if (currentWordCount + paraWords > targetWords && currentSection.length > 0) {
-        sections.push({
-          text: currentSection.join('\n\n'),
-          wordCount: currentWordCount
-        });
-        currentSection = [];
-        currentWordCount = 0;
+      const words = paragraph.split(/\s+/);
+      const paragraphParts: string[] = [];
+      for (let start = 0; start < words.length; start += targetWords) {
+        paragraphParts.push(words.slice(start, start + targetWords).join(" "));
       }
+
+      for (const paragraphPart of paragraphParts) {
+        const paraWords = paragraphPart.split(/\s+/).length;
       
-      currentSection.push(paragraph);
-      currentWordCount += paraWords;
+        if (currentWordCount + paraWords > targetWords && currentSection.length > 0) {
+          sections.push({
+            text: currentSection.join('\n\n'),
+            wordCount: currentWordCount
+          });
+          currentSection = [];
+          currentWordCount = 0;
+        }
+      
+        currentSection.push(paragraphPart);
+        currentWordCount += paraWords;
+      }
     }
 
     if (currentSection.length > 0) {

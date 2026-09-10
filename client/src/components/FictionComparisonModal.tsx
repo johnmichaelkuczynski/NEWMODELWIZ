@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Download, Loader2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import ProgressiveOutput from "./ProgressiveOutput";
 
 interface FictionComparisonResult {
   winnerDocument: 'A' | 'B';
@@ -184,7 +185,8 @@ ${result.detailedBreakdown}`;
                 <CardContent>
                   <div className="prose prose-sm max-w-none">
                     <pre className="whitespace-pre-wrap text-sm">
-                      {result.comparisonAnalysis}
+                       <ProgressiveOutput text={result.comparisonAnalysis} filename="fiction-comparison-analysis.txt"
+                         render={(text) => <span>{text}</span>} />
                     </pre>
                   </div>
                 </CardContent>
@@ -198,7 +200,8 @@ ${result.detailedBreakdown}`;
                   <CardContent>
                     <div className="prose prose-sm max-w-none">
                       <pre className="whitespace-pre-wrap text-sm">
-                        {result.detailedBreakdown}
+                         <ProgressiveOutput text={result.detailedBreakdown} filename="fiction-comparison-breakdown.txt"
+                           render={(text) => <span>{text}</span>} />
                       </pre>
                     </div>
                   </CardContent>

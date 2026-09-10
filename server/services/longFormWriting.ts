@@ -10,6 +10,7 @@ const MATH_NOTATION_STYLE = `Preserve mathematical notation exactly. Do not flat
 const ILLUSTRATIVE_STYLE = `Illustrate every substantive statement whose meaning is not genuinely self-evident. Place a concrete example, counterexample, named case, or brief application immediately after or within the same paragraph as the claim it explains. The example must instantiate the exact claim rather than merely restate it. Never leave vague umbrella phrases such as "modes of expression," "various contexts," "different forms," or "multiple situations" unexplained; name representative instances and show how the claim applies to them. Do not add examples to headings, elementary connective statements, or conclusions that have already been demonstrated.`;
 const PHILOSOPHICAL_STYLE = `For philosophical or theoretical prose, always prefer a stark, precise, potentially refutable proposition to language that is vague, academic, flowery, or insulated from criticism. When asked to evaluate a claim, state the writer's own verdict in the first sentence; do not begin with the claim's origin, importance, or surrounding debate. Define disputed terms through explicit contrasts, necessary or sufficient conditions where appropriate, and ordinary cases. Reconstruct the opponent's actual inference before criticizing it; identify the exact premise, ambiguity, contradiction, or invalid step rather than gesturing at complexity. Use thought experiments, analogies, counterexamples, and reductio arguments when they expose logical structure. Answer the strongest natural objection directly. Do not organize the essay as alternating neutral summaries of what supporters and critics say. Do not use prestige phrases such as "offers a nuanced lens," "underscores the complex interplay," "invites us to reflect," "can be seen as," "it can be argued," or "arguably" in place of a claim. Do not end with "both sides," "the tension between these views," "highlights the complexity," "whether this is true may depend," or another refusal to decide. The conclusion must state the verdict and its decisive reason. If uncertainty is warranted, state exactly what evidence or inference is missing and what would settle it. Clarity takes priority even when it makes the claim easier to refute.`;
 const ASSIGNMENT_FIDELITY = `Execute the work the user requested. Treat the requested thesis, premises, definitions, stance, narrative facts, mathematical assumptions, and structural commitments as assignment constraints rather than invitations to substitute your own preferred argument. Criticize, reject, modify, or reverse them only when the user explicitly assigns that operation in the current section. Distinguish an opponent's assigned objection from the work's controlling position, and return to the controlling position when the requested structure requires a rebuttal.`;
+const MEGAGLOBAL_COHERENCE = `Treat the work as one continuously developing argument, never as a collection of independently adequate essays. The global skeleton and commitment ledger are authoritative. Every section has one unique argumentative function: inherit established premises, perform only its assigned new work, discharge specified obligations, and create the exact handoff needed by the next section. Except in the opening section, do not reintroduce the subject, restate the thesis as if newly proposed, recap the whole work, or supply a standalone introduction. Except in the final section, do not give a global conclusion. Never repeat an established claim merely to fill space; refer to it briefly and derive a new consequence. Preserve fixed definitions, entities, numerical facts, ASSERTS, REJECTS, and ASSUMES commitments. If a directive conflicts with an established commitment, flag the conflict rather than silently changing the work's position.`;
 
 export function countWords(text: string): number {
   const trimmed = text.trim();
@@ -110,6 +111,50 @@ function trimToNaturalWordCount(text: string, minimumWords: number, maximumWords
   return formatIntoParagraphs(formatted.slice(0, naturalEnd || end).trim());
 }
 
+function paragraphTerms(paragraph: string): Set<string> {
+  return new Set(
+    paragraph
+      .toLowerCase()
+      .replace(/chapter\s+\d+\s*:/g, "")
+      .match(/[a-z][a-z'-]{3,}/g)
+      ?.filter(term => !["that", "this", "with", "from", "have", "their", "which", "these", "those", "into", "also", "than", "when", "where", "such", "through"].includes(term))
+      || [],
+  );
+}
+
+function paragraphSimilarity(left: string, right: string): number {
+  const leftTerms = paragraphTerms(left);
+  const rightTerms = paragraphTerms(right);
+  if (leftTerms.size < 8 || rightTerms.size < 8) return 0;
+  let intersection = 0;
+  for (const term of leftTerms) if (rightTerms.has(term)) intersection++;
+  return intersection / Math.min(leftTerms.size, rightTerms.size);
+}
+
+export function appendNovelContinuation(existing: string, continuation: string): string {
+  const accepted = existing.split(/\n\s*\n/).map(paragraph => paragraph.trim()).filter(Boolean);
+  const candidates = removeMarkdown(continuation)
+    .split(/\n\s*\n/)
+    .map(paragraph => paragraph.trim())
+    .filter(Boolean);
+  for (const candidate of candidates) {
+    if (/^(?:chapter|section)\s+\d+\s*:/i.test(candidate)) continue;
+    const duplicatesExisting = accepted.some(prior =>
+      prior.toLowerCase().replace(/\s+/g, " ") === candidate.toLowerCase().replace(/\s+/g, " ")
+      || paragraphSimilarity(prior, candidate) >= 0.72,
+    );
+    if (!duplicatesExisting) accepted.push(candidate);
+  }
+  return accepted.join("\n\n");
+}
+
+function boundedPriorManuscriptEvidence(sections: string[]): string {
+  const joined = sections.filter(Boolean).join("\n\n");
+  const maximumCharacters = 60_000;
+  if (joined.length <= maximumCharacters) return joined;
+  return `${joined.slice(0, 24_000)}\n\n[OLDER MIDDLE MATERIAL OMITTED FOR CONTEXT BUDGET]\n\n${joined.slice(-36_000)}`;
+}
+
 export function extractRequestedWordCount(instructions: string): number | null {
   const patterns = [
     /(?:exactly|approximately|about|around|roughly|at least|minimum of|word count(?:\s+of)?|length(?:\s+of)?)?\s*(\d[\d,]*)\s*[- ]?words?\b/i,
@@ -154,7 +199,7 @@ export function extractChapterDirective(instructions: string, chapterNumber: num
 }
 
 export function extractWorkTitle(instructions: string): string | null {
-  const match = instructions.match(/\btitled\s*:\s*(.+?)(?=\.\s*(?:rules?|chapter)\b|\n|$)/i);
+  const match = instructions.match(/\btitled\s*:\s*(.+?)(?=\.\s*(?:rules?|chapter|controlling thesis|standard|audience)\b|\n|$)/i);
   return match?.[1]?.trim() || null;
 }
 
@@ -186,14 +231,14 @@ function calculateSectionTargets(instructions: string, totalWords: number, secti
   return targets;
 }
 
-async function callProvider(provider: WritingProvider, system: string, prompt: string, maxTokens = 5000): Promise<string> {
+async function callProvider(provider: WritingProvider, system: string, prompt: string, maxTokens = 5000, temperature = 0.65): Promise<string> {
   if (provider === "zhi2") {
     const Anthropic = (await import("@anthropic-ai/sdk")).default;
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
     const response = await client.messages.create({
       model: "claude-sonnet-4-5",
       max_tokens: maxTokens,
-      temperature: 0.65,
+      temperature,
       system,
       messages: [{ role: "user", content: prompt }],
     });
@@ -236,7 +281,7 @@ async function callProvider(provider: WritingProvider, system: string, prompt: s
         { role: "system", content: system },
         { role: "user", content: prompt },
       ],
-      temperature: 0.65,
+      temperature,
       max_tokens: maxTokens,
     }),
   });
@@ -253,17 +298,20 @@ async function fillToTarget(
   hardMinimum = false,
   liveProgress?: (content: string) => Promise<boolean>,
   pauseBetweenChunksMs = 0,
+  acceptNovelShortfall = false,
 ): Promise<string> {
   let text = removeMarkdown(initial);
   const minimumWords = hardMinimum ? targetWords : Math.ceil(targetWords * 0.9);
   const maximumWords = Math.floor(targetWords * 1.1);
   const maximumContinuationAttempts = Math.ceil(targetWords / 350) + 4;
+  let nextContinuationPauseAt = (Math.floor(countWords(text) / 1000) + 1) * 1000;
   for (let attempt = 0; countWords(text) < minimumWords && attempt < maximumContinuationAttempts; attempt++) {
     if (liveProgress && await liveProgress(text)) {
       throw new Error("WRITING_STOPPED_BY_USER");
     }
-    if (pauseBetweenChunksMs > 0) {
+    if (pauseBetweenChunksMs > 0 && countWords(text) >= nextContinuationPauseAt) {
       await new Promise(resolve => setTimeout(resolve, pauseBetweenChunksMs));
+      nextContinuationPauseAt += 1000;
       if (liveProgress && await liveProgress(text)) {
         throw new Error("WRITING_STOPPED_BY_USER");
       }
@@ -276,12 +324,15 @@ async function fillToTarget(
       `Continue the passage naturally by approximately ${continuationWords} words. ${deficit <= 500 ? "Bring it to a complete stopping point." : "Do not conclude the section yet."} Do not repeat prior material. Preserve the argument, terminology, voice, and continuity described below.\n\nCONTEXT:\n${context}\n\nPASSAGE END:\n${text.split(/\s+/).slice(-500).join(" ")}`,
       Math.min(1800, Math.ceil((continuationWords + 200) * 1.8)),
     );
-    text = removeMarkdown(`${text}\n\n${continuation}`);
+    text = appendNovelContinuation(text, continuation);
   }
   if (liveProgress && await liveProgress(text)) {
     throw new Error("WRITING_STOPPED_BY_USER");
   }
   if (countWords(text) < minimumWords) {
+    if (acceptNovelShortfall && countWords(text) >= Math.ceil(targetWords * 0.72)) {
+      return formatIntoParagraphs(text);
+    }
     throw new Error(`Provider stopped at ${countWords(text)} words; minimum acceptable length is ${minimumWords}`);
   }
   return countWords(text) > maximumWords
@@ -390,7 +441,9 @@ async function auditSection(
   chapterNumber: number | null,
   auditGuidance?: string | null,
 ): Promise<string> {
-  const originalDirective = chapterNumber ? extractChapterDirective(instructions, chapterNumber) : instructions;
+  const originalDirective = chapterNumber
+    ? (extractChapterDirective(instructions, chapterNumber) || instructions)
+    : instructions;
   const assignedDirective = auditGuidance
     ? `${originalDirective}\n\nPRIOR AUDIT FINDINGS. APPLY ONLY CORRECTIONS COMPATIBLE WITH THE ORIGINAL ASSIGNMENT; THE ORIGINAL ASSIGNMENT ALWAYS CONTROLS:\n${auditGuidance}`
     : originalDirective;
@@ -413,7 +466,9 @@ async function repairSection(
   targetWords: number,
   auditGuidance?: string | null,
 ): Promise<string> {
-  const originalDirective = chapterNumber ? extractChapterDirective(instructions, chapterNumber) : instructions;
+  const originalDirective = chapterNumber
+    ? (extractChapterDirective(instructions, chapterNumber) || instructions)
+    : instructions;
   const assignedDirective = auditGuidance
     ? `${originalDirective}\n\nPRIOR AUDIT FINDINGS. APPLY ONLY CORRECTIONS COMPATIBLE WITH THE ORIGINAL ASSIGNMENT; THE ORIGINAL ASSIGNMENT ALWAYS CONTROLS:\n${auditGuidance}`
     : originalDirective;
@@ -421,8 +476,20 @@ async function repairSection(
   const standard = extractGlobalStandard(instructions);
   return callProvider(
     provider,
-    `Rewrite prose to satisfy every explicit requirement. Use readable paragraphs and plain text only. Do not use Markdown. Return only the complete replacement section. ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
-    `Rewrite the section at approximately ${targetWords} words. Correct every audit finding without weakening, changing, or omitting its assigned directive. ${chapterNumber ? `This replacement must contain exactly one Chapter ${chapterNumber} heading and must not contain any other chapter heading. ${title ? `Put the exact title "${title}" before the Chapter 1 heading.` : "Begin with the chapter heading."} Do not preview, summarize, name, or perform material assigned to another chapter.` : ""}${standard ? ` Apply this global standard: ${standard}` : ""}\n\nASSIGNED DIRECTIVE:\n${assignedDirective}\n\nAUDIT FINDINGS:\n${audit}\n\nSECTION TO REPLACE:\n${content}`,
+    `Rewrite prose to satisfy every explicit requirement. Use readable paragraphs and plain text only. Do not use Markdown. Return only the complete replacement section. ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
+    `Rewrite the section at approximately ${targetWords} words. Correct every audit finding without weakening, changing, or omitting its assigned directive. Preserve the section's unique argumentative function and do not turn it into a standalone essay. ${chapterNumber ? `This replacement must contain exactly one Chapter ${chapterNumber} heading and must not contain any other chapter heading. ${title ? `Put the exact title "${title}" before the Chapter 1 heading.` : "Begin with the chapter heading."} Do not preview, summarize, name, or perform material assigned to another chapter.` : ""}${standard ? ` Apply this global standard: ${standard}` : ""}
+
+IMMUTABLE GLOBAL SKELETON:
+${blueprint}
+
+ASSIGNED DIRECTIVE:
+${assignedDirective}
+
+AUDIT FINDINGS:
+${audit}
+
+SECTION TO REPLACE:
+${content}`,
     Math.min(6000, Math.ceil((targetWords + 300) * 1.8)),
   );
 }
@@ -464,8 +531,228 @@ async function createBlueprint(provider: WritingProvider, instructions: string, 
   return removeMarkdown(await callProvider(
     provider,
     `You design globally coherent long-form works. Plain text only. No Markdown symbols. ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
-    `Create a precise global coherence blueprint for the requested work. Define its controlling thesis or purpose, section sequence, recurring concepts, terminology rules, dependencies between early and late sections, facts and commitments that must remain stable, and the intended ending. Plan exactly ${sectionCount} sequential sections. Return only the blueprint in plain text.\n\nINSTRUCTIONS:\n${instructions}`,
-    2500,
+    `Create the immutable global skeleton for one continuously developing work, not ${sectionCount} separate essays. Use these exact labeled fields in plain text:
+
+CONTROLLING THESIS:
+AUDIENCE AND RIGOR:
+FIXED DEFINITIONS:
+ENTITIES AND NUMERICAL FACTS:
+ASSERTS:
+REJECTS:
+ASSUMES:
+GLOBAL ARGUMENT ARC:
+INTENDED FINAL RESULT:
+
+Then specify exactly ${sectionCount} sections. For every section provide:
+SECTION N UNIQUE FUNCTION:
+INHERITED PREMISES:
+NEW CLAIMS OR DEDUCTIONS:
+OBLIGATIONS DISCHARGED:
+FORBIDDEN REPETITIONS:
+HANDOFF TO NEXT SECTION:
+
+Give each substantive claim to one primary section. Later sections may invoke an established claim in one short clause but must not explain, demonstrate, or conclude it again. Only Section 1 may introduce the complete work. Only Section ${sectionCount} may conclude the complete work. Preserve every explicit assignment commitment. ${MEGAGLOBAL_COHERENCE}
+
+INSTRUCTIONS:
+${instructions}`,
+    3500,
+  ));
+}
+
+async function extractSectionDelta(
+  provider: WritingProvider,
+  blueprint: string,
+  priorLedger: string,
+  sectionIndex: number,
+  sectionCount: number,
+  content: string,
+): Promise<string> {
+  return removeMarkdown(await callProvider(
+    provider,
+    "Extract argument-state changes from a completed section. Return compact plain text only; do not rewrite or evaluate its prose.",
+    `Produce a delta report for Section ${sectionIndex + 1} of ${sectionCount}. Record only what this section newly changed in the global argument state. Use these labels:
+NEW CLAIMS:
+PREVIOUS OBLIGATIONS DISCHARGED:
+FIXED TERMS OR FACTS ADDED:
+OBJECTIONS ANSWERED:
+OPEN OBLIGATIONS:
+HANDOFF ACTUALLY ACHIEVED:
+POSSIBLE REDUNDANCY OR CONFLICT:
+
+Do not repeat the global skeleton or prior ledger. Do not list a claim as new if it was already established.
+
+GLOBAL SKELETON:
+${blueprint}
+
+PRIOR CUMULATIVE LEDGER:
+${priorLedger}
+
+COMPLETED SECTION:
+${content}`,
+    700,
+  ));
+}
+
+async function createSectionExecutionContract(
+  provider: WritingProvider,
+  blueprint: string,
+  ledger: string,
+  directive: string,
+  sectionIndex: number,
+  sectionCount: number,
+): Promise<string> {
+  return removeMarkdown(await callProvider(
+    provider,
+    "Allocate claims and examples to one section of a continuous long-form argument. Be literal and restrictive. Plain text only.",
+    `Create the binding execution contract for Section ${sectionIndex + 1} of ${sectionCount}. Use exactly these labels:
+STARTING PROPOSITION INHERITED:
+SPENT CLAIMS NOT TO EXPLAIN AGAIN:
+SPENT EXAMPLES NOT TO REUSE:
+ALLOWED ONE-CLAUSE DEPENDENCY REFERENCES:
+REQUIRED NEW ARGUMENT STEPS:
+REQUIRED NEW EXAMPLES OR APPLICATIONS:
+ENDING HANDOFF:
+BANNED MINI-ESSAY MOVES:
+
+Assign at least four ordered new argument steps. A later section may mention an earlier definition or conclusion only in one subordinate clause before deriving something new. Ban paragraphs whose main point is an already established definition, criterion, thesis, example, objection, or conclusion. Ban generic recap and fresh introductions.
+
+IMMUTABLE GLOBAL SKELETON:
+${blueprint}
+
+CUMULATIVE LEDGER:
+${ledger}
+
+CURRENT DIRECTIVE:
+${directive}`,
+    1100,
+    0,
+  ));
+}
+
+async function updateCumulativeLedger(
+  provider: WritingProvider,
+  blueprint: string,
+  priorLedger: string,
+  delta: string,
+): Promise<string> {
+  return removeMarkdown(await callProvider(
+    provider,
+    "Maintain the cumulative argument-state ledger for one long work. Plain text only.",
+    `Update the cumulative ledger using the new delta. Preserve every still-valid prior entry. Never delete or weaken ASSERTS, REJECTS, ASSUMES, fixed definitions, fixed entities, numerical facts, or unresolved obligations. Mark discharged obligations as DISCHARGED rather than erasing them. Merge duplicates compactly. Keep the complete ledger under 900 words and use these labels:
+ASSERTS:
+REJECTS:
+ASSUMES:
+FIXED DEFINITIONS AND FACTS:
+CLAIMS ESTABLISHED:
+OBLIGATIONS DISCHARGED:
+OPEN OBLIGATIONS:
+CURRENT ARGUMENT POSITION:
+REQUIRED NEXT HANDOFF:
+CONFLICT FLAGS:
+
+The immutable skeleton controls if the prior ledger or delta drifts.
+
+IMMUTABLE GLOBAL SKELETON:
+${blueprint}
+
+PRIOR CUMULATIVE LEDGER:
+${priorLedger}
+
+NEW SECTION DELTA:
+${delta}`,
+    1300,
+  ));
+}
+
+async function inspectCrossSectionRedundancy(
+  provider: WritingProvider,
+  blueprint: string,
+  priorDeltas: string,
+  executionContract: string,
+  sectionIndex: number,
+  sectionCount: number,
+  content: string,
+): Promise<string> {
+  return removeMarkdown(await callProvider(
+    provider,
+    "Detect semantic repetition in a developing long-form argument. Be strict and concise. Return PASS or REVISE followed by exact duplicated ideas and the unique work that should replace them.",
+    `Inspect Section ${sectionIndex + 1} of ${sectionCount}. Repetition means re-explaining, re-demonstrating, reapplying with a parallel example, or re-concluding an idea already discharged earlier, even when the wording differs. A short dependency reference is allowed only when its paragraph immediately derives a genuinely new result. Return REVISE if the section could stand alone as a general essay because it supplies its own introduction, redefines the work's central terms, rebuilds the thesis, and gives its own broad conclusion. Require every substantive paragraph to execute an unspent item in REQUIRED NEW ARGUMENT STEPS or REQUIRED NEW EXAMPLES OR APPLICATIONS. Also require the exact ending handoff. Do not criticize unrelated style or the assignment itself.
+
+GLOBAL SKELETON:
+${blueprint}
+
+ACTUAL EARLIER MANUSCRIPT EVIDENCE:
+${priorDeltas || "None; this is the opening section."}
+
+BINDING SECTION EXECUTION CONTRACT:
+${executionContract}
+
+CURRENT SECTION:
+${content}`,
+    650,
+    0,
+  ));
+}
+
+async function repairCrossSectionRedundancy(
+  provider: WritingProvider,
+  blueprint: string,
+  ledger: string,
+  directive: string,
+  executionContract: string,
+  content: string,
+  finding: string,
+  sectionIndex: number,
+  sectionCount: number,
+  targetWords: number,
+): Promise<string> {
+  return callProvider(
+    provider,
+    `Revise one section of a globally coherent long work. Return only the complete replacement section in plain text. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE}`,
+    `Replace semantic repetition with deeper deductions, distinctions, evidence, objections, implications, or connective reasoning assigned uniquely to Section ${sectionIndex + 1}. Preserve the section's required heading and all genuinely new material. Write approximately ${targetWords} words. Do not alter the controlling thesis or any fixed commitment.
+
+GLOBAL SKELETON:
+${blueprint}
+
+CUMULATIVE LEDGER BEFORE THIS SECTION:
+${ledger}
+
+CURRENT DIRECTIVE:
+${directive}
+
+SECTION EXECUTION CONTRACT:
+${executionContract}
+
+REDUNDANCY FINDING:
+${finding}
+
+SECTION TO REVISE:
+${content}`,
+    Math.min(6000, Math.ceil((targetWords + 350) * 1.8)),
+  );
+}
+
+async function createGlobalConsistencyPlan(
+  provider: WritingProvider,
+  blueprint: string,
+  deltas: string[],
+  sectionCount: number,
+): Promise<string> {
+  return removeMarkdown(await callProvider(
+    provider,
+    "Perform a delta-only global consistency stitch for one long work. Do not rewrite the manuscript. Return PASS or exact repair directives.",
+    `Compare the global skeleton with every section delta. Identify cross-section contradiction, terminology drift, duplicated argumentative work, missing handoffs, and obligations that were repeatedly discharged instead of advanced. Do not request broad stylistic rewrites. If no repair is needed, return exactly PASS. Otherwise return one or more lines in this exact form:
+REPAIR SECTION N: concise repair instruction
+
+Request micro-repairs only for sections that caused a specific problem. Never change the controlling thesis or immutable commitments.
+
+GLOBAL SKELETON:
+${blueprint}
+
+SECTION DELTAS:
+${deltas.map((delta, index) => `SECTION ${index + 1} DELTA:\n${delta}`).join("\n\n")}`,
+    Math.min(1800, 500 + sectionCount * 120),
+    0,
   ));
 }
 
@@ -503,6 +790,12 @@ export async function requestWritingStop(jobId: number): Promise<void> {
     .where(eq(writingJobs.id, jobId));
 }
 
+export async function resumeWritingJob(jobId: number): Promise<void> {
+  await db.update(writingJobs).set({
+    status: "pending", stopRequested: false, stoppedEarly: true, error: null, updatedAt: new Date(),
+  }).where(eq(writingJobs.id, jobId));
+}
+
 export async function processWritingJob(jobId: number): Promise<void> {
   const [job] = await db.select().from(writingJobs).where(eq(writingJobs.id, jobId));
   if (!job) throw new Error("Writing job not found");
@@ -510,22 +803,29 @@ export async function processWritingJob(jobId: number): Promise<void> {
   let inProgressContent = "";
   const completedOutputParts: string[] = [];
   const auditFailures = new Map<number, { section: string; report: string }>();
+  const existingSections = await db.select().from(writingJobSections)
+    .where(eq(writingJobSections.jobId, jobId))
+    .orderBy(asc(writingJobSections.sectionIndex));
+  const isResume = job.stoppedEarly || existingSections.length > 0;
 
   try {
-    await db.update(writingJobs).set({
-      status: "planning",
-      error: null,
-      output: null,
-      stopRequested: false,
-      stoppedEarly: false,
-      completedSections: 0,
-      updatedAt: new Date(),
-    }).where(eq(writingJobs.id, jobId));
-    const blueprint = job.usesLargeScaleCoherence
+    const savedSections = isResume ? existingSections : [];
+    const completedCount = savedSections.filter(section => section.sectionIndex < job.completedSections).length;
+    completedOutputParts.push(...savedSections.filter(section => section.sectionIndex < job.completedSections).map(section => section.content));
+    const completedDeltas = savedSections
+      .filter(section => section.sectionIndex < job.completedSections && section.continuitySummary)
+      .map(section => section.continuitySummary as string);
+    const blueprint = job.blueprint || (job.usesLargeScaleCoherence
       ? await createBlueprint(provider, job.instructions, job.totalSections)
-      : removeMarkdown(job.instructions);
-    let ledger = `Global requirements: ${job.instructions}\n\nBlueprint: ${blueprint}`;
-    await db.update(writingJobs).set({ blueprint, coherenceLedger: ledger, status: "writing", updatedAt: new Date() }).where(eq(writingJobs.id, jobId));
+      : removeMarkdown(job.instructions));
+    let ledger = job.coherenceLedger || blueprint;
+    if (!isResume) {
+      await db.update(writingJobs).set({
+        status: "planning", error: null, output: null, stopRequested: false,
+        stoppedEarly: false, completedSections: 0, updatedAt: new Date(),
+      }).where(eq(writingJobs.id, jobId));
+    }
+    await db.update(writingJobs).set({ blueprint, coherenceLedger: ledger, status: "writing", stopRequested: false, updatedAt: new Date() }).where(eq(writingJobs.id, jobId));
 
     const explicitChapterCount = detectExplicitChapterCount(job.instructions);
     const hardMinimum = getWordCountRange(job.instructions, job.requestedWordCount).minimum === job.requestedWordCount;
@@ -536,13 +836,25 @@ export async function processWritingJob(jobId: number): Promise<void> {
       explicitChapterCount,
     );
 
-    for (let index = 0; index < job.totalSections; index++) {
+    for (let index = completedCount; index < job.totalSections; index++) {
       const targetWords = sectionTargets[index];
       const chapterNumber = explicitChapterCount ? index + 1 : null;
-      const assignedDirective = chapterNumber ? extractChapterDirective(job.instructions, chapterNumber) : job.instructions;
+      const assignedDirective = chapterNumber
+        ? (extractChapterDirective(job.instructions, chapterNumber) || job.instructions)
+        : job.instructions;
       const guidedDirective = job.auditGuidance
         ? `${assignedDirective}\n\nPRIOR AUDIT FINDINGS. IMPROVE THE NEW DRAFT WHERE COMPATIBLE, BUT NEVER CHANGE OR OVERRIDE THE USER'S ORIGINAL THESIS, PREMISES, DEFINITIONS, STANCE, STRUCTURE, OR OTHER EXPLICIT REQUIREMENTS:\n${job.auditGuidance}`
         : assignedDirective;
+      const executionContract = job.usesLargeScaleCoherence
+        ? await createSectionExecutionContract(
+            provider,
+            blueprint,
+            `${ledger}\n\nACTUAL PRIOR MANUSCRIPT EVIDENCE:\n${boundedPriorManuscriptEvidence(completedOutputParts) || "None."}`,
+            guidedDirective,
+            index,
+            job.totalSections,
+          )
+        : guidedDirective;
       const workTitle = chapterNumber === 1 ? extractWorkTitle(job.instructions) : null;
       const globalStandard = extractGlobalStandard(job.instructions);
       const sectionMinimum = hardMinimum ? targetWords : Math.ceil(targetWords * 0.9);
@@ -550,7 +862,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
       const initialChunkWords = streamsInChunks ? Math.min(500, targetWords) : targetWords;
       const structuralInstruction = chapterNumber
         ? `This section corresponds exclusively to Chapter ${chapterNumber} of ${explicitChapterCount}. ${workTitle ? `Place the exact title "${workTitle}" on the first line, then use ` : "Begin with "}exactly one plain-text heading starting "Chapter ${chapterNumber}:" and write only that chapter. Do not repeat, preview, name, begin, or defend material assigned to another chapter.`
-        : `Write section ${index + 1} of ${job.totalSections}.`;
+        : `Write Section ${index + 1} of ${job.totalSections} as the next movement of one continuous work. It must perform only SECTION ${index + 1} UNIQUE FUNCTION from the global skeleton.`;
       const theoremInstruction = /final paragraph[\s\S]{0,180}\btheorem\b/i.test(assignedDirective)
         ? ` The final paragraph must begin "Concluding Theorem:" and present the deductive derivation requested by the user from the controlling premises and definitions specified in the assignment. It must quote the opening prose sentence of Chapter 1 verbatim from the continuity record and state exactly how the theorem entails that sentence. Do not state or derive the theorem anywhere before the final paragraph.`
         : "";
@@ -558,17 +870,44 @@ export async function processWritingJob(jobId: number): Promise<void> {
         ? "There is no earlier chapter. Do not discuss any later chapter or later technical concept."
         : ledger;
       const fillContext = chapterNumber
-        ? `CURRENT CHAPTER DIRECTIVE:\n${guidedDirective}\n\nCOMPLETED EARLIER CHAPTER CONTINUITY:\n${priorContext}\n\nRemain inside the current chapter. Do not announce transitions or mention any chapter unless the current directive explicitly requires that reference.`
-        : priorContext;
-      const draft = await callProvider(
+        ? `IMMUTABLE GLOBAL SKELETON:\n${blueprint}\n\nCURRENT CHAPTER DIRECTIVE:\n${guidedDirective}\n\nBINDING SECTION EXECUTION CONTRACT:\n${executionContract}\n\nCUMULATIVE ARGUMENT LEDGER:\n${priorContext}\n\nRemain inside the current chapter. Continue from CURRENT ARGUMENT POSITION and satisfy REQUIRED NEXT HANDOFF. Do not announce transitions or mention any chapter unless the current directive explicitly requires that reference. ${MEGAGLOBAL_COHERENCE}`
+        : `IMMUTABLE GLOBAL SKELETON:\n${blueprint}\n\nCUMULATIVE ARGUMENT LEDGER:\n${priorContext}\n\nCURRENT SECTION DIRECTIVE:\n${guidedDirective}\n\nBINDING SECTION EXECUTION CONTRACT:\n${executionContract}\n\n${MEGAGLOBAL_COHERENCE}`;
+       const partial = savedSections.find(section => section.sectionIndex === index && index >= job.completedSections);
+       const draft = partial?.content || await callProvider(
         provider,
-        `Write polished prose in plain text only. Use readable paragraphs separated by blank lines. Do not use Markdown: no hashes, asterisks, code fences, blockquotes, link syntax, or bullet markers. LaTeX underscores inside mathematical expressions are allowed. Return only the requested prose section. ${ASSIGNMENT_FIDELITY} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
-        `${structuralInstruction} Write the first approximately ${initialChunkWords} words of this ${targetWords}-word section.${streamsInChunks && initialChunkWords < targetWords ? " Stop at a natural paragraph boundary without concluding; later calls will continue the section." : " End naturally."} Use readable paragraphs of roughly 80 to 160 words each, separated by blank lines. Execute every requirement in the assigned directive. Maintain explicit logical and terminological continuity with every earlier section. Do not add conversational summaries, promises about later content, or meta-commentary. Do not preview, summarize, name, or perform material assigned to another chapter.${theoremInstruction}${globalStandard ? ` Apply this global standard: ${globalStandard}` : ""}\n\nASSIGNED DIRECTIVE:\n${guidedDirective}\n\nCONTINUITY FROM COMPLETED EARLIER CHAPTERS ONLY:\n${priorContext}`,
+        `Write polished prose in plain text only. Use readable paragraphs separated by blank lines. Do not use Markdown: no hashes, asterisks, code fences, blockquotes, link syntax, or bullet markers. LaTeX underscores inside mathematical expressions are allowed. Return only the requested prose section. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
+        `${structuralInstruction} Write the first approximately ${initialChunkWords} words of this ${targetWords}-word section.${streamsInChunks && initialChunkWords < targetWords ? " Stop at a natural paragraph boundary without concluding; later calls will continue the section." : index === job.totalSections - 1 ? " Complete the whole work's assigned ending naturally." : " End with a forward handoff, not a global conclusion."} Use readable paragraphs of roughly 80 to 160 words each, separated by blank lines. Execute every requirement in the assigned directive. Every paragraph must add a new inference, distinction, example, objection, answer, implication, or connective step. Do not add conversational summaries, promises about later content, or meta-commentary.${index > 0 ? " Do not introduce the paper or explain its overall thesis again." : ""} Do not preview, summarize, name, or perform material assigned to another chapter.${theoremInstruction}${globalStandard ? ` Apply this global standard: ${globalStandard}` : ""}
+
+IMMUTABLE GLOBAL SKELETON:
+${blueprint}
+
+ASSIGNED DIRECTIVE:
+${guidedDirective}
+
+CUMULATIVE ARGUMENT LEDGER:
+${priorContext}
+
+BINDING SECTION EXECUTION CONTRACT:
+${executionContract}`,
         Math.min(1800, Math.ceil((initialChunkWords + 250) * 1.8)),
       );
-      const preparedDraft = removeRepetitiveSummaryParagraphs(draft, globalStandard);
+       const preparedDraft = removeRepetitiveSummaryParagraphs(draft, globalStandard);
+       if (partial) inProgressContent = partial.content;
       const publishLiveProgress = async (currentSection: string): Promise<boolean> => {
         inProgressContent = currentSection;
+         const existingPartial = await db.select({ id: writingJobSections.id, sectionIndex: writingJobSections.sectionIndex })
+           .from(writingJobSections)
+           .where(eq(writingJobSections.jobId, jobId));
+         const sectionRow = existingPartial.find(row => row.sectionIndex === index);
+         if (sectionRow) {
+           await db.update(writingJobSections).set({ content: currentSection })
+             .where(eq(writingJobSections.id, sectionRow.id));
+         } else {
+           await db.insert(writingJobSections).values({
+             jobId, sectionIndex: index, targetWordCount: targetWords, content: currentSection,
+             continuitySummary: null,
+           });
+         }
         const liveOutput = preserveRequestedMathNotation(
           normalizeMathNotation(removeMarkdown([...completedOutputParts, currentSection].filter(Boolean).join("\n\n"))),
           job.instructions,
@@ -582,26 +921,91 @@ export async function processWritingJob(jobId: number): Promise<void> {
         }).from(writingJobs).where(eq(writingJobs.id, jobId));
         return Boolean(currentJob?.stopRequested);
       };
-      let content = await fillToTarget(
+       let content = await fillToTarget(
         provider,
         preparedDraft,
         targetWords,
         fillContext,
         hardMinimum,
         publishLiveProgress,
-        streamsInChunks ? 5000 : 0,
+         streamsInChunks ? 10000 : 0,
+          job.usesLargeScaleCoherence,
       );
       if (chapterNumber) {
         content = enforceChapterPresentation(content, chapterNumber, workTitle);
         content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
         content = removeRepetitiveSummaryParagraphs(content, globalStandard);
         if (countWords(content) < sectionMinimum) {
-          content = await fillToTarget(provider, content, targetWords, fillContext, hardMinimum);
+          content = await fillToTarget(provider, content, targetWords, fillContext, hardMinimum, undefined, 0, job.usesLargeScaleCoherence);
           content = enforceChapterPresentation(content, chapterNumber, workTitle);
           content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
           content = removeRepetitiveSummaryParagraphs(content, globalStandard);
         }
         content = enforceSingleFinalTheorem(content, assignedDirective);
+      }
+      if (job.usesLargeScaleCoherence && index > 0) {
+        for (let coherenceAttempt = 0; coherenceAttempt < 2; coherenceAttempt++) {
+          const repetitionFinding = await inspectCrossSectionRedundancy(
+            provider,
+            blueprint,
+            boundedPriorManuscriptEvidence(completedOutputParts),
+            executionContract,
+            index,
+            job.totalSections,
+            content,
+          );
+          if (!/^REVISE\b/i.test(repetitionFinding)) break;
+          content = await repairCrossSectionRedundancy(
+            provider,
+            blueprint,
+            `${ledger}\n\nACTUAL PRIOR MANUSCRIPT EVIDENCE:\n${boundedPriorManuscriptEvidence(completedOutputParts)}`,
+            guidedDirective,
+            executionContract,
+            content,
+            repetitionFinding,
+            index,
+            job.totalSections,
+            targetWords,
+          );
+          if (chapterNumber) {
+            content = enforceChapterPresentation(content, chapterNumber, workTitle);
+            content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
+            content = enforceSingleFinalTheorem(content, assignedDirective);
+          }
+          content = removeMarkdown(removeRepetitiveSummaryParagraphs(content, globalStandard));
+          if (countWords(content) < sectionMinimum) {
+            content = await fillToTarget(
+              provider,
+              content,
+              targetWords,
+              `${fillContext}\n\nA coherence repair removed redundant prose. Add only genuinely new work assigned to this section; do not restore any removed claim, example, explanation, or conclusion.`,
+              hardMinimum,
+              undefined,
+              0,
+              true,
+            );
+            if (chapterNumber) {
+              content = enforceChapterPresentation(content, chapterNumber, workTitle);
+              content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
+              content = enforceSingleFinalTheorem(content, assignedDirective);
+            }
+          }
+        }
+        const finalSectionCoherence = await inspectCrossSectionRedundancy(
+          provider,
+          blueprint,
+          boundedPriorManuscriptEvidence(completedOutputParts),
+          executionContract,
+          index,
+          job.totalSections,
+          content,
+        );
+        if (/^REVISE\b/i.test(finalSectionCoherence)) {
+          auditFailures.set(index, {
+            section: chapterNumber ? `Chapter ${chapterNumber}` : `Section ${index + 1}`,
+            report: `Pre-delivery global coherence gate remained unsatisfied after bounded repair: ${finalSectionCoherence}`,
+          });
+        }
       }
       content = preserveRequestedMathNotation(normalizeMathNotation(content), assignedDirective);
       if (chapterNumber) {
@@ -629,22 +1033,24 @@ export async function processWritingJob(jobId: number): Promise<void> {
       inProgressContent = content;
 
       const continuitySummary = job.usesLargeScaleCoherence
-        ? removeMarkdown(await callProvider(
-            provider,
-            "Maintain a compact continuity ledger in plain text only.",
-            `Update the continuity ledger after section ${index + 1}. Record claims established, definitions fixed, promises for later sections, unresolved questions, transitions, and any facts or terminology that later prose must preserve. After the first section, record its opening sentence verbatim so a required concluding callback can reproduce it accurately. Keep it under 350 words.\n\nPRIOR LEDGER:\n${ledger}\n\nNEW SECTION:\n${content}`,
-            700,
-          ))
+        ? await extractSectionDelta(provider, blueprint, ledger, index, job.totalSections, content)
         : "";
-      ledger = job.usesLargeScaleCoherence ? continuitySummary : ledger;
+      if (job.usesLargeScaleCoherence) {
+        ledger = await updateCumulativeLedger(provider, blueprint, ledger, continuitySummary);
+        completedDeltas.push(continuitySummary);
+      }
 
-      await db.insert(writingJobSections).values({
-        jobId,
-        sectionIndex: index,
-        targetWordCount: targetWords,
-        content,
-        continuitySummary,
-      });
+       const sectionRow = (await db.select({ id: writingJobSections.id, sectionIndex: writingJobSections.sectionIndex })
+         .from(writingJobSections).where(eq(writingJobSections.jobId, jobId)))
+         .find(section => section.sectionIndex === index);
+       if (sectionRow) {
+         await db.update(writingJobSections).set({ content, continuitySummary })
+           .where(eq(writingJobSections.id, sectionRow.id));
+       } else {
+         await db.insert(writingJobSections).values({
+           jobId, sectionIndex: index, targetWordCount: targetWords, content, continuitySummary,
+         });
+       }
       completedOutputParts.push(content);
       inProgressContent = "";
       await db.update(writingJobs).set({
@@ -654,9 +1060,168 @@ export async function processWritingJob(jobId: number): Promise<void> {
       }).where(eq(writingJobs.id, jobId));
     }
 
-    const sections = await db.select().from(writingJobSections)
+    let sections = await db.select().from(writingJobSections)
       .where(eq(writingJobSections.jobId, jobId))
       .orderBy(asc(writingJobSections.sectionIndex));
+
+    if (job.usesLargeScaleCoherence && sections.length > 1) {
+      const [currentJob] = await db.select({ stopRequested: writingJobs.stopRequested })
+        .from(writingJobs).where(eq(writingJobs.id, jobId));
+      if (currentJob?.stopRequested) throw new Error("WRITING_STOPPED_BY_USER");
+
+      const consistencyPlan = await createGlobalConsistencyPlan(
+        provider,
+        blueprint,
+        completedDeltas,
+        job.totalSections,
+      );
+      const repairs = [...consistencyPlan.matchAll(/^REPAIR SECTION\s+(\d+)\s*:\s*(.+)$/gim)];
+      const repairedIndexes = new Set<number>();
+      for (const repair of repairs) {
+        const sectionIndex = Number(repair[1]) - 1;
+        if (
+          repairedIndexes.has(sectionIndex)
+          || sectionIndex < 0
+          || sectionIndex >= sections.length
+        ) continue;
+        const [stopState] = await db.select({ stopRequested: writingJobs.stopRequested })
+          .from(writingJobs).where(eq(writingJobs.id, jobId));
+        if (stopState?.stopRequested) throw new Error("WRITING_STOPPED_BY_USER");
+
+        const section = sections.find(item => item.sectionIndex === sectionIndex);
+        if (!section) continue;
+        const chapterNumber = explicitChapterCount ? sectionIndex + 1 : null;
+        const directive = chapterNumber
+          ? (extractChapterDirective(job.instructions, chapterNumber) || job.instructions)
+          : job.instructions;
+        const repairExecutionContract = await createSectionExecutionContract(
+          provider,
+          blueprint,
+          `EARLIER DELTAS:\n${completedDeltas.slice(0, sectionIndex).join("\n\n")}\n\nACTUAL EARLIER MANUSCRIPT:\n${boundedPriorManuscriptEvidence(sections.filter(item => item.sectionIndex < sectionIndex).map(item => item.content))}`,
+          directive,
+          sectionIndex,
+          job.totalSections,
+        );
+        const title = chapterNumber === 1 ? extractWorkTitle(job.instructions) : null;
+        let repaired = await repairCrossSectionRedundancy(
+          provider,
+          blueprint,
+          boundedPriorManuscriptEvidence(sections.filter(item => item.sectionIndex < sectionIndex).map(item => item.content)),
+          directive,
+          repairExecutionContract,
+          section.content,
+          repair[2].trim(),
+          sectionIndex,
+          job.totalSections,
+          section.targetWordCount,
+        );
+        if (chapterNumber) {
+          repaired = enforceChapterPresentation(repaired, chapterNumber, title);
+          repaired = removeUnassignedChapterReferences(repaired, chapterNumber, directive);
+          repaired = enforceSingleFinalTheorem(repaired, directive);
+        }
+        repaired = preserveRequestedMathNotation(
+          normalizeMathNotation(removeMarkdown(repaired)),
+          directive,
+        );
+        const repairedMinimum = hardMinimum
+          ? section.targetWordCount
+          : Math.ceil(section.targetWordCount * 0.9);
+        if (countWords(repaired) < repairedMinimum) {
+          repaired = await fillToTarget(
+            provider,
+            repaired,
+            section.targetWordCount,
+            `IMMUTABLE GLOBAL SKELETON:\n${blueprint}\n\nEARLIER SECTION DELTAS:\n${completedDeltas.slice(0, sectionIndex).join("\n\n")}\n\nAdd only new work unique to this section. Do not restore the redundancy removed by the consistency stitch. ${MEGAGLOBAL_COHERENCE}`,
+            hardMinimum,
+            undefined,
+            0,
+            true,
+          );
+          if (chapterNumber) {
+            repaired = enforceChapterPresentation(repaired, chapterNumber, title);
+            repaired = removeUnassignedChapterReferences(repaired, chapterNumber, directive);
+            repaired = enforceSingleFinalTheorem(repaired, directive);
+          }
+        }
+        const postRepairFinding = await inspectCrossSectionRedundancy(
+          provider,
+          blueprint,
+          boundedPriorManuscriptEvidence(sections.filter(item => item.sectionIndex < sectionIndex).map(item => item.content)),
+          repairExecutionContract,
+          sectionIndex,
+          job.totalSections,
+          repaired,
+        );
+        if (/^REVISE\b/i.test(postRepairFinding)) {
+          repaired = await repairCrossSectionRedundancy(
+            provider,
+            blueprint,
+            completedDeltas.slice(0, sectionIndex).join("\n\n"),
+            directive,
+            repairExecutionContract,
+            repaired,
+            postRepairFinding,
+            sectionIndex,
+            job.totalSections,
+            section.targetWordCount,
+          );
+          if (countWords(repaired) < repairedMinimum) {
+            repaired = await fillToTarget(
+              provider,
+              repaired,
+              section.targetWordCount,
+              `IMMUTABLE GLOBAL SKELETON:\n${blueprint}\n\nEARLIER SECTION DELTAS:\n${completedDeltas.slice(0, sectionIndex).join("\n\n")}\n\nSupply only the section's still-missing unique deductions or applications. ${MEGAGLOBAL_COHERENCE}`,
+              hardMinimum,
+              undefined,
+              0,
+              true,
+            );
+          }
+          if (chapterNumber) {
+            repaired = enforceChapterPresentation(repaired, chapterNumber, title);
+            repaired = removeUnassignedChapterReferences(repaired, chapterNumber, directive);
+            repaired = enforceSingleFinalTheorem(repaired, directive);
+          }
+          repaired = preserveRequestedMathNotation(
+            normalizeMathNotation(removeMarkdown(repaired)),
+            directive,
+          );
+        }
+        const repairedDelta = await extractSectionDelta(
+          provider,
+          blueprint,
+          completedDeltas.slice(0, sectionIndex).join("\n\n"),
+          sectionIndex,
+          job.totalSections,
+          repaired,
+        );
+        completedDeltas[sectionIndex] = repairedDelta;
+        await db.update(writingJobSections).set({
+          content: repaired,
+          continuitySummary: repairedDelta,
+        }).where(eq(writingJobSections.id, section.id));
+        repairedIndexes.add(sectionIndex);
+      }
+      if (repairedIndexes.size > 0) {
+        sections = await db.select().from(writingJobSections)
+          .where(eq(writingJobSections.jobId, jobId))
+          .orderBy(asc(writingJobSections.sectionIndex));
+        const verificationPlan = await createGlobalConsistencyPlan(
+          provider,
+          blueprint,
+          completedDeltas,
+          job.totalSections,
+        );
+        if (!/^PASS\s*$/i.test(verificationPlan.trim())) {
+          auditFailures.set(-1, {
+            section: "Global coherence",
+            report: `The bounded consistency repair completed, but the final delta verification still found: ${verificationPlan}`,
+          });
+        }
+      }
+    }
+
     const output = preserveRequestedMathNotation(
       normalizeMathNotation(removeMarkdown(sections.map(section => section.content).join("\n\n"))),
       job.instructions,
@@ -711,7 +1276,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
     }
 
     await db.update(writingJobs).set({
-      status: "complete",
+       status: "complete",
       output,
       completedSections: job.totalSections,
       auditReport: JSON.stringify(Array.from(auditFailures.values())),
@@ -725,22 +1290,26 @@ export async function processWritingJob(jobId: number): Promise<void> {
       .where(eq(writingJobSections.jobId, jobId))
       .orderBy(asc(writingJobSections.sectionIndex));
     const deliverableParts = savedSections.map(section => section.content);
-    if (inProgressContent.trim()) deliverableParts.push(inProgressContent);
+    if (inProgressContent.trim() && !savedSections.some(section => section.content === inProgressContent)) {
+      deliverableParts.push(inProgressContent);
+    }
     if (deliverableParts.length > 0) {
       const recoverableOutput = preserveRequestedMathNotation(
         normalizeMathNotation(removeMarkdown(deliverableParts.join("\n\n"))),
         job.instructions,
       );
       console.error(`Writing job ${jobId} encountered an error after producing text; delivering the best available document instead:`, error);
+      const [freshJobState] = await db.select({ completedSections: writingJobs.completedSections })
+        .from(writingJobs).where(eq(writingJobs.id, jobId));
       await db.update(writingJobs).set({
-        status: "complete",
+         status: error.message === "WRITING_STOPPED_BY_USER" ? "paused" : "complete",
         output: recoverableOutput,
-        completedSections: deliverableParts.length,
+         completedSections: freshJobState?.completedSections || 0,
         auditReport: JSON.stringify([
           ...Array.from(auditFailures.values()),
           { section: "Generation", report: error.message || "A later generation step failed after usable text had been produced." },
         ]),
-        stoppedEarly: error.message === "WRITING_STOPPED_BY_USER",
+         stoppedEarly: error.message === "WRITING_STOPPED_BY_USER",
         stopRequested: false,
         error: null,
         updatedAt: new Date(),

@@ -8,6 +8,7 @@ import { Download, Loader2, FileText } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { apiRequest } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
+import ProgressiveOutput from "./ProgressiveOutput";
 
 interface FictionAssessmentResult {
   worldCoherence: number;
@@ -268,7 +269,8 @@ ${result.detailedAssessment}`;
                 <CardContent>
                   <div className="prose max-w-none">
                     <pre className="whitespace-pre-wrap text-base text-gray-900 dark:text-gray-100 font-medium leading-relaxed">
-                      {result.detailedAssessment}
+                       <ProgressiveOutput text={result.detailedAssessment} filename="fiction-assessment.txt"
+                         render={(text) => <span>{text}</span>} />
                     </pre>
                   </div>
                 </CardContent>

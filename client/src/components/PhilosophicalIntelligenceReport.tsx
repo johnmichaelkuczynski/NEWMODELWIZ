@@ -7,6 +7,7 @@ import { DocumentAnalysis } from '@/lib/types';
 import { MultiProviderResults } from './MultiProviderResults';
 import { cleanAIResponse, formatForDisplay } from '@/lib/textUtils';
 import { Brain, TrendingUp, Target, Zap, Eye, Lightbulb, Maximize2, Scale } from 'lucide-react';
+import ProgressiveOutput from "./ProgressiveOutput";
 
 // Provider name mapping - ZHI branding only, never expose actual LLM names
 const getProviderDisplayName = (provider: string): string => {
@@ -250,10 +251,12 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
           <div className="space-y-6">
             <div className="prose prose-lg dark:prose-invert max-w-none">
               {formattedReport ? (
-                <div>
-                  {/* DIRECT RAW DISPLAY - NO FORMATTING FUNCTION */}
-                  <div className="space-y-4">
-                    {formattedReport.split('\n').map((line: string, index: number) => {
+                <ProgressiveOutput
+                  text={formattedReport}
+                  filename="intelligence-analysis.txt"
+                  render={(visibleText) => (
+                    <div className="space-y-4">
+                    {visibleText.split('\n').map((line: string, index: number) => {
                       if (!line.trim()) return null;
                       
                       // Questions ending with ?
@@ -283,8 +286,9 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
                         </p>
                       );
                     })}
-                  </div>
-                </div>
+                    </div>
+                  )}
+                />
               ) : (
                 <div className="text-center py-8">
                   <p className="text-gray-500">No analysis content available</p>
@@ -342,9 +346,11 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
               <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border">
                 <h4 className="font-semibold mb-3 text-orange-700 dark:text-orange-300">Detailed Case Assessment</h4>
                 <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300">
-                  <div className="whitespace-pre-line text-sm leading-relaxed">
-                    {formatForDisplay(caseAssessment.detailedAssessment)}
-                  </div>
+                   <ProgressiveOutput
+                     text={formatForDisplay(caseAssessment.detailedAssessment)}
+                     filename="case-assessment-detail.txt"
+                     render={(text) => <div className="whitespace-pre-line text-sm leading-relaxed">{text}</div>}
+                   />
                 </div>
               </div>
             )}
@@ -398,9 +404,11 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
               <div className="bg-white dark:bg-slate-800 p-4 rounded-lg border">
                 <h4 className="font-semibold mb-3 text-pink-700 dark:text-pink-300">Detailed Fiction Assessment</h4>
                 <div className="prose prose-sm max-w-none text-gray-700 dark:text-gray-300">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {analysis.fictionAssessment.detailedAssessment}
-                  </div>
+                   <ProgressiveOutput
+                     text={analysis.fictionAssessment.detailedAssessment}
+                     filename="fiction-assessment-detail.txt"
+                     render={(text) => <div className="whitespace-pre-wrap text-sm leading-relaxed">{text}</div>}
+                   />
                 </div>
               </div>
             )}
@@ -427,7 +435,10 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
               </CardHeader>
               <CardContent>
                 <div className="prose prose-sm dark:prose-invert max-w-none">
-                  {dim.analysis.split('\n').map((paragraph, pIndex) => {
+                  <ProgressiveOutput
+                    text={dim.analysis}
+                    filename={`cognitive-${index + 1}.txt`}
+                    render={(visibleText) => visibleText.split('\n').map((paragraph, pIndex) => {
                     if (!paragraph.trim()) return null;
                     
                     // Handle quotes specially
@@ -455,7 +466,8 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
                         {paragraph}
                       </p>
                     );
-                  })}
+                    })}
+                  />
                 </div>
               </CardContent>
             </Card>
@@ -474,7 +486,8 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
               {highlights.map((highlight, index) => (
                 <div key={index} className="flex items-start gap-3">
                   <div className="w-2 h-2 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
-                  <p className="text-gray-700 dark:text-gray-300">{highlight}</p>
+                   <ProgressiveOutput text={highlight} filename={`highlight-${index + 1}.txt`}
+                     render={(text) => <p className="text-gray-700 dark:text-gray-300">{text}</p>} />
                 </div>
               ))}
             </div>
@@ -490,7 +503,10 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
           </CardHeader>
           <CardContent>
             <div className="prose prose-sm dark:prose-invert max-w-none">
-              {comparativePlacement.split('\n').map((paragraph, index) => {
+              <ProgressiveOutput
+                text={comparativePlacement}
+                filename="comparative-placement.txt"
+                render={(visibleText) => visibleText.split('\n').map((paragraph, index) => {
                 if (!paragraph.trim()) return null;
                 
                 // Handle quotes specially
@@ -517,7 +533,8 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
                     {paragraph}
                   </p>
                 );
-              })}
+                })}
+              />
             </div>
           </CardContent>
         </Card>
@@ -531,7 +548,10 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
           </CardHeader>
           <CardContent>
             <div className="prose prose-lg dark:prose-invert max-w-none">
-              {finalVerdict.split('\n').map((paragraph, index) => {
+              <ProgressiveOutput
+                text={finalVerdict}
+                filename="final-verdict.txt"
+                render={(visibleText) => visibleText.split('\n').map((paragraph, index) => {
                 if (!paragraph.trim()) return null;
                 
                 // Handle quotes specially
@@ -548,7 +568,8 @@ const PhilosophicalIntelligenceReport: React.FC<PhilosophicalIntelligenceReportP
                     {paragraph}
                   </p>
                 );
-              })}
+                })}
+              />
             </div>
           </CardContent>
         </Card>

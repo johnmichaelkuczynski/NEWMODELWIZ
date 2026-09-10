@@ -9,6 +9,7 @@ import { Download, Mail, X, FileText } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import jsPDF from 'jspdf';
 import { cleanAIResponse } from "@/lib/textUtils";
+import ProgressiveOutput from "./ProgressiveOutput";
 
 // Provider name mapping - ZHI branding only, never expose actual LLM names
 const getProviderDisplayName = (provider: string): string => {
@@ -247,9 +248,13 @@ ${result.detailedAssessment}
               </CardHeader>
               <CardContent>
                 <div className="prose max-w-none">
-                  <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                    {cleanAIResponse(result.detailedAssessment)}
-                  </div>
+                   <ProgressiveOutput
+                     text={cleanAIResponse(result.detailedAssessment)}
+                     filename="case-assessment.txt"
+                     render={(visibleText) => (
+                       <div className="whitespace-pre-wrap text-sm leading-relaxed">{visibleText}</div>
+                     )}
+                   />
                 </div>
               </CardContent>
             </Card>

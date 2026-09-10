@@ -193,6 +193,12 @@ export async function requestIndependentWritingStop(jobId: number): Promise<void
   }).where(eq(writingJobs.id, jobId));
 }
 
+export async function resumeIndependentWritingJob(jobId: number): Promise<void> {
+  await db.update(writingJobs).set({
+    status: "pending", stopRequested: false, stoppedEarly: true, error: null, updatedAt: new Date(),
+  }).where(eq(writingJobs.id, jobId));
+}
+
 export const countIndependentWords = words;
 
 export async function processIndependentWritingJob(jobId: number): Promise<void> {
@@ -203,22 +209,30 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
   const targets = sectionTargets(job.requestedWordCount, job.totalSections);
   const completed: string[] = [];
   let current = "";
-    let firstSentence: string | null = null;
+  let firstSentence: string | null = null;
+  const existingSections = await db.select().from(writingJobSections)
+    .where(eq(writingJobSections.jobId, jobId))
+    .orderBy(asc(writingJobSections.sectionIndex));
+  const isResume = job.stoppedEarly || existingSections.length > 0;
   try {
-    await db.delete(writingJobSections).where(eq(writingJobSections.jobId, jobId));
-    await db.update(writingJobs).set({
-      status: "planning", output: null, auditReport: null, completedSections: 0,
-      stopRequested: false, stoppedEarly: false, error: null, updatedAt: new Date(),
-    }).where(eq(writingJobs.id, jobId));
+    const completedCount = existingSections.filter(section => section.sectionIndex < job.completedSections).length;
+    completed.push(...existingSections.filter(section => section.sectionIndex < job.completedSections).map(section => section.content));
+    if (!isResume) {
+      await db.delete(writingJobSections).where(eq(writingJobSections.jobId, jobId));
+      await db.update(writingJobs).set({
+        status: "planning", output: null, auditReport: null, completedSections: 0,
+        stopRequested: false, stoppedEarly: false, error: null, updatedAt: new Date(),
+      }).where(eq(writingJobs.id, jobId));
+    }
 
     const plan = job.totalSections > 1
-      ? plain(await model(provider, CORE_RULES, `Plan exactly ${job.totalSections} sequential sections for this assignment. Preserve all commitments and show dependencies. Do not evaluate or rewrite the assignment.\n\n${job.instructions}`, 1800))
+      ? (job.blueprint || plain(await model(provider, CORE_RULES, `Plan exactly ${job.totalSections} sequential sections for this assignment. Preserve all commitments and show dependencies. Do not evaluate or rewrite the assignment.\n\n${job.instructions}`, 1800)))
       : "";
     let ledger = "";
     await db.update(writingJobs).set({ status: "writing", blueprint: plan, updatedAt: new Date() })
       .where(eq(writingJobs.id, jobId));
 
-    for (let index = 0; index < job.totalSections; index++) {
+    for (let index = completedCount; index < job.totalSections; index++) {
       if (await stopRequested(jobId)) throw new Error("INDEPENDENT_WRITING_STOPPED");
       const number = chapters ? index + 1 : null;
       const directive = number ? chapterDirective(job.instructions, number) : job.instructions;
@@ -236,7 +250,8 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
       const initialTarget = job.requestedWordCount > 1500
         ? Math.min(500, target)
         : Math.max(50, Math.floor(target * 0.84));
-      current = plain(await model(
+      const partial = existingSections.find(section => section.sectionIndex === index && index >= job.completedSections);
+      current = partial?.content || plain(await model(
         provider,
         CORE_RULES,
         `${identity}\nWrite ${initialTarget} to ${Math.ceil(initialTarget * 1.08)} words${initialTarget < target ? " and stop at a natural paragraph boundary without concluding the section" : ""}. Respect that range. Follow the current directive exactly. Do not import another chapter's task.\n\nCOMPLETE ASSIGNMENT:\n${job.instructions}\n\nCURRENT DIRECTIVE:\n${directive}${correction}\n\nPRIOR ESTABLISHED CONTINUITY:\n${ledger || "None."}\n\nINDEPENDENT PLAN:\n${plan}`,
@@ -246,12 +261,28 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
       current = removeExactDuplicateParagraphs(current);
       current = normalizeSingleFinalTheorem(current, requiresFinalTheorem);
       await publish(jobId, completed, current);
+      const savePartial = async () => {
+        const rows = await db.select({ id: writingJobSections.id, sectionIndex: writingJobSections.sectionIndex })
+          .from(writingJobSections).where(eq(writingJobSections.jobId, jobId));
+        const row = rows.find(item => item.sectionIndex === index);
+        if (row) {
+          await db.update(writingJobSections).set({ content: current }).where(eq(writingJobSections.id, row.id));
+        } else {
+          await db.insert(writingJobSections).values({
+            jobId, sectionIndex: index, targetWordCount: target, content: current, continuitySummary: null,
+          });
+        }
+      };
 
       const minimum = /(?:minimum of|at least|no fewer than)\s*\d/i.test(job.instructions)
         ? target : Math.ceil(target * 0.9);
+      let nextPauseAt = (Math.floor(words(current) / 1000) + 1) * 1000;
       while (words(current) < minimum) {
         if (job.requestedWordCount > 1500) {
-          await new Promise(resolve => setTimeout(resolve, 5000));
+          if (words(current) >= nextPauseAt) {
+            await new Promise(resolve => setTimeout(resolve, 10000));
+            nextPauseAt += 1000;
+          }
           if (await stopRequested(jobId)) throw new Error("INDEPENDENT_WRITING_STOPPED");
         }
         const amount = Math.min(500, minimum - words(current) + 30);
@@ -266,12 +297,10 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
         current = removeExactDuplicateParagraphs(current);
         current = normalizeSingleFinalTheorem(current, requiresFinalTheorem);
         await publish(jobId, completed, current);
+         await savePartial();
       }
 
-      await db.insert(writingJobSections).values({
-        jobId, sectionIndex: index, targetWordCount: target, content: current,
-        continuitySummary: null,
-      });
+       await savePartial();
       completed.push(current);
       if (number === 1) firstSentence = openingProseSentence(current);
       ledger = plain(await model(
@@ -357,7 +386,7 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
     );
     if (output) {
       await db.update(writingJobs).set({
-        status: "complete", output, auditReport: JSON.stringify([]),
+       status: error.message === "INDEPENDENT_WRITING_STOPPED" ? "paused" : "complete", output, auditReport: JSON.stringify([]),
         completedSections: completed.length, stoppedEarly: error.message === "INDEPENDENT_WRITING_STOPPED",
         stopRequested: false, error: null, updatedAt: new Date(),
       }).where(eq(writingJobs.id, jobId));

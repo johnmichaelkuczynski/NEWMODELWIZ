@@ -1,0 +1,178 @@
+Measurement vs. enumeration
+  Given any two lengths, there are intermediate lengths. There are therefore no minimal units of length. Consequently, given an object L, there is no class C of objects such that by counting C s members, one thereby determines L s length.
+  Even if L is known to be length identical with some object L* that consists of indivisible particles p1 pn arranged in a single file, it must be known that each such particle is length- identical with each other such particle if it can be legitimately said that either L* or L is n-units long. And given any such particle, there is no class C* such that the length of that particle can be determined by counting C* s members, since, by hypothesis, each such particle is non- composite.
+  Also, even if each such particle is length-identical with each other such particle, it must be known that length is strictly additive if it is to be known that the length of a p1 pn is n-units long. In other words, it must be known that, if a straight object consists of one segment that is x units long and another that is y units long, that object is x+y units long.
+  As it turns out, length is not additive. Length is approximately additive, when the lengths in question are small. It is not approximately additive when they are big.
+  The very fact that length is non-additive shows that, even if it were additive,  L is n units long  is not equivalent with  L consists of n unit-length segments : those statements have different meanings.
+  Also, supposing that length were additive, no act of enumeration would disclose that fact: enumeration results in principled length-determinations only if it s already known that length is additive.
+
+Relativization to a standard the essence of measurement
+  When it is said that L is longer than L*, L s relative length is being given---its length relative to L*.
+  When it is said that L is two meters long, it is still L s relative length that is being given---L s length relative to some standard.
+
+1.  Joe is as tall as Bill 
+
+tells you nothing about Joe s height, or Bill s height, unless you happen to have context-specific information.
+
+2.  Joe is 6 ft tall 
+
+tells you how tall Joe is, even if you lack context-specific information. Nonetheless, (1) is a comparative statement, just (1) and just like:
+(3)  Joe is taller than Mary. 
+
+ The difference between (2), on the one hand, and (1) and (3), on the other, is that (2) relativizes Joe s height to a universal standard, whereas the others relativize it to a context-specific standard.
+  The essence of measurement is comparison with respect to a standard. This is true of every kind of measurement.
+
+Relative vs. absolute length
+  There is no way to determine an object s length except in terms of the length of some other object. When an absolute length is assigned to some object L, it is being said that there is some object LS such that
+
+(a) LS is stipulated to have a length of one unit
+
+and such that
+
+(b) L s length compared to LS is n units.
+
+  Let LS be some object---e.g. a platinum bar in a temperature-controlled room---that is stipulated to be one meter long. If, when juxtaposed with L, in the way previously described, each of L s endpoints is contiguous with each of LS s endpoints, then L and LS are the same length. Otherwise, one of them is longer than the other.
+Let s suppose that L is longer than LS. In that case, there are two possible scenarios:
+
+(1) There are whole numbers p and q such that the ratio of L s length to LS s length is p/q, i.e. the ratio of L s length to LS s length is given by a rational number.
+(2) There are no such numbers, i.e. the ratio of L s length with respect to LS s length is not given by a rational number.
+
+  In case (1), there is some number n such that, if L is divided into n segments of equal length, L* being an arbitrary one of those segments, LS s exact length can be established by the method earlier described. That length will be an improper fraction n/m, such that L is m times the length of L*.
+  In case (2), if L is divided into n length-identical segments, L* being an arbitrary such segment, there is some integer m such that, the larger n is, the smaller the difference between LS s exact length, on the one hand, and the measurement yielded by the method just-described.
+
+Three axioms of measurement-theory
+(i) If L1 is longer than L2, and L2 is longer than L3, then L1 is longer than L3.
+(ii) If L1 and L2 are length-different, one is longer than the other.
+(iii) If L1 is the same length as L2, and L2 is the same length as L3, then L1 is the same length as L3.
+
+No viable system of length-determination is inconsistent with (i)-(iii).
+  Given any measurable magnitude m, what is true of length-determination is true of m- determination. In (i)-(iii), replace the references to length with references to temperature or mass or any other measurable magnitude: the resulting statement-set is true.
+  Measuring an object s length involves assigning a real number to its length: same length, same number; different lengths, different numbers. If any one of (i)-(iii) is violated, length- identical objects will be assigned different numbers and length-distinct objects will be assigned the same number. Number-assignments are therefore meaningless unless they are consistent with (i)-(iii).
+
+Scalar quantities vs. vector quantities
+  Length is a scalar quantity. A scalar quantity is one that is given by a single number, as opposed to an ordered n-tuple.
+  A vector quantity is one that is given by an ordered pair or, more generally, an ordered n- tuple. Velocity is a vector quantity; an object s velocity is given an ordered pair of numbers, one corresponding to speed, the other to direction.
+  In this context, we will focus only on scalar quantities. The principles underlying the determinations of vectors are obvious extensions of those involved determinations of scalar quantities.
+  Mass, temperature, density, viscosity, pressure, speed, conductivity, and malleability are all scalar quantities. Speed=distance/time. But speed is a scalar quantity. (Quotients are single numbers, not ordered n-tuples.) Density=mass/volume. But an object s density is a scalar quantity.
+
+Scalar magnitudes identical with one-dimensional manifolds
+  Even though a piece of paper is a four-dimensional object, it is a one-dimensional object qua thing that has a length. Any given length-determinate entity is, to that extent, a one-dimensional entity, even though any given occupant of space-time is four-dimensional.
+  Given a scalar magnitude m and any object x, qua m-determinate entity, x is one-dimensional, even though x per se cannot possibly be one-dimensional.
+
+Congruence
+  If length-determinations are to be made, it must be said what it is for two objects to have the same length. Two objects have the same length if they are length-congruent. Two objects are length-congruent if (but, given that there are many ways to establish length-congruence, not only if) two conditions are met, namely:
+
+(i) When juxtaposed, each endpoint of the one is contiguous one of the endpoints of the other,
+
+and
+
+(ii) The distance between those two objects is constant---it doesn t wax and wane.
+
+L is longer than L* if L* is congruent with a proper segment of L.
+  Absent a definition of congruence,  L is longer than L*  and  L and L* are length-identical  are devoid of meaning. It isn t that their truth-values cannot be known. It s that there are no truth-values to know.
+  Given any magnitude m,  x and y are m-identical  and  x m-exceeds y  are devoid of meaning. But for now, we will focus on length.
+  Absent a definition of length-congruence, no object L can be a length-standard. For L to be a length-standard, it must be said what it is for L* to be length-identical with L.
+  But given a definition of congruence, there is no object L such that  L* is one unit long  means  L* is length-identical with L  and thus no object L such that  L* is n units long  means  L* is n-times longer than L. 
+  Explanation: Let L be some specific meter-rod that is taken as a standard. Given some L- congruent object L*, L* is capable of serving as a length-standard. It may even be a better length standard than L. It may turn out that, if L* is assumed to be length-constant, conditions (i)-(iii) are satisfied, but that those same conditions are violated if L is assumed to be length-constant.
+
+n-dimensional congruence
+
+  Length-congruence holds between one-dimensional objects; triangle-congruence holds between two-dimensional objects; pyramid-congruence holds between three-dimensional objects. For any integer n, there are (hypothetical, if not actual) n-dimensional objects and, consequently, n-dimensional congruence.
+
+The use of provisional metrical standards and approximate physical laws
+A given object is provisionally taken as a length-standard. A congruence-relation is defined.
+On that basis, other objects are measured. Those measurements yield knowledge of physical laws. Those physical laws entail that, if an object of a certain type is taken as a standard, the result is a consistent set of measurements and also that an inconsistent set of measurements results if an object of some other type is taken as length-standard.
+  Given any magnitude m, if the references to length in the statements just made are replaced with references to m, the resulting statements are true.
+
+Triangulation and precisification
+  Small distances can be measured using meter rods, and they can also be measured using light rays. Large distances can be measured using light rays, but they cannot be measured using meter- rods. Within narrow horizons, meter-rod measurements and optical measurements yield the same results.
+  This is a contingent fact. Suppose it turned out---as it well might have---that the numbers yielded by meter-rod measurements could not be coordinated with the numbers yielded by optical measurements. In that case, there would be no one magnitude that was measured in both ways, and statements to the effect that the Sun is n meters from the Earth would be meaningless. But such statements are not meaningless, since, within the horizons within which both methods of measurement can be used, the results generated by the one method correspond to those yielded by the other.
+
+Precisification in relation to magnitudes other than length
+  One can use a thermometer to measure the temperature of bath water. One cannot use a thermometer to measure the temperature of magma, let alone the temperature of a star.
+  On the basis of thermometer-based measurements, one acquires knowledge of low-level physical laws (e.g. that such and such metals have such and such coefficients of expansion). On the basis of this knowledge, one acquires knowledge of higher-level physical laws (e.g. that radiation-intensity varies inversely with the square of the distance from the heat-source). On the basis of the totality of this information, one can compute very high temperatures.
+We know from personal experience that
+
+(i) A stronger flame is needed to boil a given amount of water in a short period of time than over a longer period of time;
+(ii) It is easier to hoist a given container when it's empty than when it's full; and
+(iii) Cars and computers that aren't maintained become dysfunctional more quickly than those that are maintained.
+
+On the basis of these facts, we know that
+
+(i*) An object's mass correlates with the amount of energy needed to heat it up;
+(ii*) An object's density correlates with the amount of energy needed to displace it; and (iii*) More energy is required to sustain a low-probability situation (e.g. an assemblage of objects that constitutes a working machine) than a high-probability situation (e.g. an assemblage of objects that serves no purpose).
+
+  On the basis of (i*)-(iii*), we can determine the sizes, masses, distances (from Earth and from each other), and the ages of celestial bodies. And on the basis of this knowledge, we can identify precise laws, to replace the approximate ones with which we began.
+
+Summary of findings
+   Day-to-day experience gives us approximate metrical knowledge, on the basis of which we can identify correlations on the basis of which we can obtain hitherto unobtainable metrical data. On the basis of this metrical data, we can identify precise laws, on the basis of which we can both add to and refine such metrical knowledge as we already have.
+
+Synchronic vs. diachronic measurements
+  Two meter-rods can be laid side by side. Non-simultaneous events cannot be laid side by side. If it is to be known how two such events compare in respect of duration, one must know of some periodic process (some event-sequence, each of whose members is of the same type as its successor: e.g. the round-trips made by a beam of light between two mirrors, rotations of the earth or of a cesium atom, somebody s heartbeat) that occurred during each event and, further, one must know how many installments of that processes occurred during each. If m installments of that process occur during the one event and n installments occur during the other, then, if that process is indeed a perfectly regular one, the length of the one relative to the other is n/m.
+
+Metrical Conventionalism
+
+    But it cannot be said," it will be objected, "that a given periodic process is regular unless there is already a way of determining duration. And there is no way of determining duration except in relation to some periodic process. Therefore, some periodic process must be stipulated to be perfectly regularity: it must be perfectly regular by convention. 
+This position, duly generalized, is known as conventionalism.
+  Conventionalism is false. This will be discussed below. Long story short: If duration is measured in terms of a process that is intuitively known to be erratic (e.g. somebody s heartbeat[22]), the resulting measurements aren t consistent with one another, but duration- measurements are consistent with one another if duration is measured in terms of a process that is intuitively known to be regular (e.g. the series of roundtrips made by a light beam between two mirrors whose distance from each other is fixed). Given that, relative to a given framework, an event cannot have distinct durations, it follows that conventionalism is false.
+
+Extensive vs. intensive magnitudes
+If 90  water is added to 70 water, the result is not 160  water. It is water that is n , 70?n?160.
+  If a one lb. object is put on top of a two lb. object, the result is an object whose weight exceeds the weight of either of the two original objects. (The resulting object weighs approximately three lbs.)
+The length of a straight object is (approximately) the sum of the lengths of its segments. Length and mass are extensive magnitudes. Temperature is an intensive magnitude.
+ Intensive  is synonymous with  non-extensive.  An extensive magnitude is one such that the degree to which a given object has that magnitude exceeds the degree to any given one of its parts has that magnitude. An additive magnitude is one such that the degree to which a given object has that magnitude is the arithmetical sum of the extent to which each of its parts has that magnitude.
+  Length and mass are extensive, and within limits they are both additive. Speed is extensive and, within limits, additive. Intelligence is intensive. So are temperature and density.
+  If two three ft. objects are laid side by side, the resulting object is not six ft. When it is said that length is extensive, what is meant is that there exists a non-contrived, knowledge-conducive way of conjoining objects such that the resulting object s length exceeds any given one of the objects conjoined. And when it is said that length is additive, what is meant is that there is exists a non-contrived, knowledge-conducive way of conjoining objects in such a way that the resulting object s length is the arithmetical sum of the lengths of the objects conjoined.[23]
+
+Relativity Theory and the non-additivity of scalar quantities
+  If you are at a train-station, your speed relative to that of a light-beam is 0 mph. If you get on a train traveling in the direction of that light-beam, your speed relative to it is still 0 mph. If you get on spaceship that is traveling in that direction at a rate of 150,000 miles/second, your speed relative to it is still 0 mph.
+  Given any framework F, the speed of light relative to F is c (?186,000 miles/second). A consequence---actually, the very essence of Special Relativity---is that there is no optical test by means of which one determine whether or not one is moving.
+  If speed were additive, these statements would be counterlogical. But speed, though extensive, is not additive. If you are moving at a rate of 30 mph on a train that is moving in the same direction at a rate of 30 mph, your speed relative to the train station is less than 60 mph.
+  A corollary is that length is non-additive. A corollary of this corollary is that volume is not additive.
+
+Direct measurements always yield rational numbers
+  Suppose that the ratio of L s length to LS s length is ?2. In that case, there is ipso facto no number n such that, if L is divided into n-equal parts, LS s length is some integral multiple of n. So if L s length, relative to LS, is ?2, that fact cannot be established by measuring L. If a given object s length is given by an irrational number, that object s length cannot be established by measuring that object.
+  Nonetheless, it can be known that a given object s length is given by such a number. If there is a triangle T such that
+
+(i) L is T s hypotenuse,
+(ii) LS is one of the other sides, and
+(iii) The third side is length-identical with LS, then L s length relative to L is ?2.
+
+  If there is a circle C such that L is length identical with C s circumference and LS is length- coincident with C s diameter, then L s length, relative to LS, is ?.
+
+Nomic Conventionalism
+  Suppose, as before, that LS is our length-standard, i.e. that it is stipulated to be length- constant, its length being one unit. It obviously isn t by comparing LS with some other object that we know LS to be length-constant. According to many (e.g. Russell, Poincar , Einstein), this entails that, in taking LS to be length-constant, we are simply adopting a convention, not registering a fact. Their argument:
+
+
+(CM) Since LS is our length-standard, there isn t some other object Ln such that LS s having a given length, or its being length-constant, was established by comparing LS with Ln. Given that length is comparative length, there is no other way to establish that LS is length-constant or that it has a given length. Therefore, in taking LS as a length-standard, we are simply adopting a convention: we are not acknowledging a fact about LS s length. Therefore, the statement  LS is one unit long  merely records a convention; it doesn t express a fact. The same is therefore true of  LS is length-constant (i.e. there is some length l----in this case one unit---- such that, at any given time LS s length is l).
+
+  For argument s sake, suppose that CM is cogent and that it cannot possibly be on the basis of known facts about LS s length that we take LS to be our length-standard. In that case, given any object L!, L! has just as much right as LS to be taken as a length-standard. L! can be an eel, a cylinder-shaped balloon, a sausage in a frying pan---anything at all. So far as there is any reason to take LS as a length-standard, and thus as length-constant, those advantages are of a purely practical nature. It may be that, by taking LS as length-constant and regard (cylinder-shaped balloon) L! as length-variable, the resulting system of physics is relatively simple; and it may be that if we take L! as length-constant and thus regard LS as length-variable, the resulting system of physics is prohibitively complex. If so, it doesn t follow that the first system of physics is more correct than the second. If L1 Ln are the laws constitutive of the LS-based system of physics and L*1 L*m are the laws constitutive of the L!-based system, L*1 L*m are no less real than L1 Ln. The question whether a given physical law exists has no meaning except in relation to objects that are taken as standards. Since it is entirely a matter of convention whether a given object is such a standard, the laws of nature are determined by our conventions.
+  This doctrine, though distinct from the one same-named doctrine previously considered, is known as conventionalism.
+  Thus,  conventionalism  is ambiguous. Sometimes it refers to metrical conventionalism, and sometimes it refers to nomic conventionalism.
+  Nomic conventionalism is seldom distinguished from nomic conventionalism. But those who do distinguish between them almost always take nomic conventionalism to be a consequence of metrical conventionalism. Their argument:
+
+If nomic conventionalism is correct, it is only relative to some arbitrary choice of standards that the so-called laws of physics (the Boyle-Charles Law, the Inverse- Square Law, the Parallelogram Law, e=mc2, and so on) are accurate. If balloon L! is taken as a length-standard, none of these so-called laws is even a truth, let alone a truth that expresses a law. These so-called laws are laws if optical standards of
+
+length (and length-related magnitudes: e.g. speed, distance, temperature) are adopted.
+
+This argument refuted
+
+  Supposing arguendo that conventionalism is correct, it doesn t follow that the laws of nature are entirely a matter of convention. What follows is that laws of nature are relations between convention-based standards, on the one hand, and empirical data, on the other.
+  Given only that LS is taken as a length-standard, nothing follows as to what the laws of nature are. But given that LS is taken as a length-standard, then supposing that LS-based measurements have yielded such and such results, it follows that, so far as those measurements were conducive of knowledge of natural law, there are thus and such laws of nature.
+  So supposing that conventionalism is correct, what follows is that the laws of nature describe non-conventional relations between metrical standards, on the one hand, and objects/events, on the other.
+
+Conventionalism vs. Strict Conventionalism
+  Let strict conventionalism be the position that the laws of nature are entirely a matter of convention. Strict conventionalism isn t a form of conventionalism. In fact, the two doctrines are incompatible. If the laws of nature were convention-determined, as opposed to merely convention-based, there would be no need to take measurements to identify those laws.
+  By the same token, so far as measurements are needed to identify them, they are, at most, convention-based, not convention-determined. The results of measurements are not determined by our metrical conventions. Given only that LS is stipulated to be one meter long, nothing follows as to how long a given car is: that car must be measured, and the outcome of that measurement is an empirical matter.
+  Supposing that strict conventionalism is false but that conventionalism is correct, magnitudes (e.g. lengths and distances) are properties non-conventional relations between events, on the one hand, and metrical conventions, on the other. In other words, if conventionalism is correct, then, even though the statement  the speed of light is framework invariant  doesn t describe a fact about light per se, it does describe a fact about the relationship between the behavior of light, on the one hand, and our metrical standards, on the other.
+  Given the fact that, if conventionalism is right, laws hold in virtue of non-conventional relations between conventions and events, it follows, for reasons now to be described, that conventionalism is a self-defeating doctrine.
+
+Conventionalism inconsistent with the desideratum that causal anomalies be eliminated
+  For argument s sake, let s suppose (probably correctly) that eels periodically increase and decrease in length, and let s suppose that we decide that we take some eel L! as our length- standard. Obviously L! per se can only be used in an extremely limited number of contexts. In order to use L! as a standard, there must be objects L!1 L!n such that, for each i (1?i?n), L!1 is congruent with L!n. Each series member must be D-congruent with each other such member.
+Further, there must be multiple such series: supposing that L!1 L!n mediates between L!, on the one hand, and some car x in Arizona, on the other, there will inevitably be some object y in Tibet (or on Mars) such that for no i (1?i?n) is L!i ever in a position to be juxtaposed with y. And each member of each such series must be D-congruent with each member of each other such series.
+  The empirical data being what it is, the likelihood is vanishingly close to zero that the length of a given object relative to a given such series-members will coincide with its length relative to every other such member or even any one such member.
+  A system of measurement must yield consistent results: if, relative to a given metrical standard, a given object (at a given time, relative to a given framework) both has, and does not have, a given length n, then that standard cannot coherently be used. For use of such a standard constitutes acceptance of the absurdity that n?n, for some number n.
+  It is an empirical fact that, when objects that we intuitively regard as length-variable (e.g. eels, cylinder-shaped balloons) that are used as length-standards, the resulting measurements are inconsistent with one another.
+  It is also an empirical fact that, when objects that we intuitively regard as length-constant are used as length-standards (e.g. platinum rods in temperature controlled rooms), the resulting measurements are consistent with each other to a high degree of approximation.
+  Finally, it is an empirical fact that, if an optical standard is used, there are fewer inconsistencies in the resulting measurement-set than if a non-optical standard is used.
+  Given that n=n, for any n, and given that use of an eel standard constitutes a rejection of this truism, whereas use of an optical standard constitutes acceptance of it, it must be said that, if eel- based measurements yield one set of physical laws and optics-based measurement yields a different set of laws, the latter are the laws that govern nature and the former are not.

@@ -2,3 +2,5 @@
 - [Long-form section isolation](long-form-section-isolation.md) — generate each explicit chapter from its own directive plus prior continuity, never future-section plans.
 - [Unicode math in PDF exports](unicode-math-pdf.md) — use a full Unicode prose font; standard jsPDF and partial KaTeX fonts silently omit common mathematical glyphs.
 - [Decisive philosophical prose](decisive-philosophical-prose.md) — generic style audits tolerate false balance; enforce explicit verdicts and rebuild evasive arguments.
+- [Long-form claim allocation](long-form-claim-allocation.md) — summaries and self-review do not prevent semantic repetition; separate coordination must reserve claims and examples before prose.
+- [Unbounded coherence analysis](unbounded-coherence-analysis.md) — large papers require persisted hierarchical mapping and global synthesis, never independent user-selected chunk judgments.

@@ -6,6 +6,7 @@ import { Share2 } from "lucide-react";
 import ShareViaEmailModal from "./ShareViaEmailModal";
 import ReportDownloadButton from "./ReportDownloadButton";
 import IntelligentRewriteButton from "./IntelligentRewriteButton";
+import ProgressiveOutput from "./ProgressiveOutput";
 
 interface ComparativeResultsProps {
   analysisA: DocumentAnalysis;
@@ -120,7 +121,8 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
             </div>
           </div>
         </div>
-        <p className="text-gray-700">{comparison.finalJudgment}</p>
+        <ProgressiveOutput text={comparison.finalJudgment} filename="comparative-final-assessment.txt"
+          render={(text) => <p className="text-gray-700 whitespace-pre-wrap">{text}</p>} />
       </div>
 
       {/* Strengths and Weaknesses Table */}
@@ -209,7 +211,11 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
             <h4 className="font-medium text-gray-800 mb-3">Document A Analysis</h4>
             <div className="prose prose-sm max-w-none">
               <div className="whitespace-pre-wrap text-gray-700 text-sm">
-                {analysisA.formattedReport || analysisA.analysis || "Analysis not available"}
+                 <ProgressiveOutput
+                   text={analysisA.formattedReport || analysisA.analysis || "Analysis not available"}
+                   filename="document-a-analysis.txt"
+                   render={(text) => <span>{text}</span>}
+                 />
               </div>
             </div>
           </div>
@@ -217,7 +223,11 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
             <h4 className="font-medium text-gray-800 mb-3">Document B Analysis</h4>
             <div className="prose prose-sm max-w-none">
               <div className="whitespace-pre-wrap text-gray-700 text-sm">
-                {analysisB.formattedReport || analysisB.analysis || "Analysis not available"}
+                 <ProgressiveOutput
+                   text={analysisB.formattedReport || analysisB.analysis || "Analysis not available"}
+                   filename="document-b-analysis.txt"
+                   render={(text) => <span>{text}</span>}
+                 />
               </div>
             </div>
           </div>
