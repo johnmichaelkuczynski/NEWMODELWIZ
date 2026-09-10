@@ -64,6 +64,7 @@ const HomePage: React.FC = () => {
   const [writingInstructions, setWritingInstructions] = useState("");
   const [generatedWriting, setGeneratedWriting] = useState("");
   const [isWriting, setIsWriting] = useState(false);
+  const [isStoppingWriting, setIsStoppingWriting] = useState(false);
   const [isRedoingWritingAudits, setIsRedoingWritingAudits] = useState(false);
   const [writingProgress, setWritingProgress] = useState("");
   const [writingJobId, setWritingJobId] = useState<number | null>(null);
@@ -444,6 +445,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       const status = await safeJson(statusResponse);
       if (!statusResponse.ok) throw new Error(status?.message || "Unable to read writing progress");
       if (status.status === "failed") throw new Error(status.error || "Writing failed");
+      if (status.output) setGeneratedWriting(status.output);
       setWritingProgress(
         status.usesLargeScaleCoherence
           ? `Large-scale coherence active: ${status.completedSections} of ${status.totalSections} sections completed`
@@ -454,8 +456,11 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     setWritingJobId(completed.id);
     setGeneratedWriting(completed.output);
     setWritingAudits(Array.isArray(completed.audits) ? completed.audits : []);
+    setIsStoppingWriting(false);
     setWritingProgress(
-      `Complete: ${completed.actualWordCount.toLocaleString()} words, plain text, ${completed.usesLargeScaleCoherence ? "large-scale coherence used" : "standard generation used"}`,
+      completed.stoppedEarly
+        ? `Stopped and saved: ${completed.actualWordCount.toLocaleString()} words`
+        : `Complete: ${completed.actualWordCount.toLocaleString()} words, plain text, ${completed.usesLargeScaleCoherence ? "large-scale coherence used" : "standard generation used"}`,
     );
     return completed;
   };
@@ -493,6 +498,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       if (data.usesLargeScaleCoherence) {
         setWritingProgress(`Large-scale coherence active: 0 sections completed`);
       }
+      setWritingJobId(data.jobId);
 
       const completed = await waitForWritingJob(data.jobId);
       trackEvent("writing_generated", {
@@ -503,8 +509,10 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         used_large_scale_coherence: completed.usesLargeScaleCoherence,
       });
       toast({
-        title: "Writing Complete",
-        description: "The requested work appears directly below your instructions.",
+        title: completed.stoppedEarly ? "Writing Stopped and Saved" : "Writing Complete",
+        description: completed.stoppedEarly
+          ? "Everything generated before you stopped has been saved below."
+          : "The requested work appears directly below your instructions.",
       });
     } catch (error: any) {
       trackEvent("writing_generation_failed", { provider: selectedProvider });
@@ -526,6 +534,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       const response = await fetch(`/api/writing/jobs/${writingJobId}/redo`, { method: "POST" });
       const data = await safeJson(response);
       if (!response.ok || !data?.jobId) throw new Error(data?.message || "Unable to redo the essay");
+      setWritingJobId(data.jobId);
       const completed = await waitForWritingJob(data.jobId);
       trackEvent("writing_redone_for_audits", {
         provider: selectedProvider,
@@ -546,6 +555,28 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       });
     } finally {
       setIsRedoingWritingAudits(false);
+    }
+  };
+
+  const handleStopAndSaveWriting = async () => {
+    if (!writingJobId || (!isWriting && !isRedoingWritingAudits)) return;
+    setIsStoppingWriting(true);
+    setWritingProgress("Stopping after the current chunk and saving everything generated...");
+    try {
+      const response = await fetch(`/api/writing/jobs/${writingJobId}/stop`, { method: "POST" });
+      const data = await safeJson(response);
+      if (!response.ok) throw new Error(data?.message || "Unable to stop writing");
+      toast({
+        title: "Stop Requested",
+        description: "The current chunk will finish, then all generated text will be saved.",
+      });
+    } catch (error: any) {
+      setIsStoppingWriting(false);
+      toast({
+        title: "Could Not Stop Writing",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -2728,6 +2759,22 @@ Generated on: ${new Date().toLocaleString()}`;
               </div>
               {generatedWriting && (
                 <div className="flex flex-wrap gap-2">
+                  {(isWriting || isRedoingWritingAudits) && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={handleStopAndSaveWriting}
+                      disabled={isStoppingWriting}
+                      data-testid="button-stop-save-writing"
+                    >
+                      {isStoppingWriting ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <Shield className="mr-2 h-4 w-4" />
+                      )}
+                      {isStoppingWriting ? "Stopping..." : "Stop and Save"}
+                    </Button>
+                  )}
                   <CopyButton text={normalizeMathNotation(generatedWriting)} />
                   <Button
                     variant="outline"
@@ -2753,13 +2800,21 @@ Generated on: ${new Date().toLocaleString()}`;
               className="max-h-[700px] min-h-[180px] overflow-y-auto whitespace-pre-wrap rounded-md bg-gray-50 p-4 text-sm leading-7 text-gray-900 dark:bg-gray-900 dark:text-gray-100"
               data-testid="generated-writing-output"
             >
-              {isWriting ? (
+              {isWriting && !generatedWriting ? (
                 <div className="flex items-center justify-center gap-2 py-16 text-indigo-700 dark:text-indigo-300">
                   <Loader2 className="h-5 w-5 animate-spin" />
                   {writingProgress || "Following your instructions and writing the requested work..."}
                 </div>
               ) : (
-                <MathRenderer content={generatedWriting} />
+                <>
+                  {(isWriting || isRedoingWritingAudits) && (
+                    <div className="mb-4 flex items-center gap-2 rounded bg-indigo-50 px-3 py-2 text-sm text-indigo-800 dark:bg-indigo-950/40 dark:text-indigo-200">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      {writingProgress || "Writing the next chunk..."}
+                    </div>
+                  )}
+                  <MathRenderer content={generatedWriting} />
+                </>
               )}
             </div>
             {!isWriting && generatedWriting && (

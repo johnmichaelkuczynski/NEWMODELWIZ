@@ -250,19 +250,35 @@ async function fillToTarget(
   targetWords: number,
   context: string,
   hardMinimum = false,
+  liveProgress?: (content: string) => Promise<boolean>,
+  pauseBetweenChunksMs = 0,
 ): Promise<string> {
   let text = removeMarkdown(initial);
   const minimumWords = hardMinimum ? targetWords : Math.ceil(targetWords * 0.9);
   const maximumWords = Math.floor(targetWords * 1.1);
-  for (let attempt = 0; countWords(text) < minimumWords && attempt < 4; attempt++) {
+  const maximumContinuationAttempts = Math.ceil(targetWords / 350) + 4;
+  for (let attempt = 0; countWords(text) < minimumWords && attempt < maximumContinuationAttempts; attempt++) {
+    if (liveProgress && await liveProgress(text)) {
+      throw new Error("WRITING_STOPPED_BY_USER");
+    }
+    if (pauseBetweenChunksMs > 0) {
+      await new Promise(resolve => setTimeout(resolve, pauseBetweenChunksMs));
+      if (liveProgress && await liveProgress(text)) {
+        throw new Error("WRITING_STOPPED_BY_USER");
+      }
+    }
     const deficit = minimumWords - countWords(text);
+    const continuationWords = Math.min(500, deficit + 40);
     const continuation = await callProvider(
       provider,
       `Continue prose in plain text only. Never use Markdown symbols. Return only the continuation. ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
-      `Continue the passage naturally by approximately ${deficit + 40} words and bring it to a complete stopping point. Do not repeat prior material. Preserve the argument, terminology, voice, and continuity described below.\n\nCONTEXT:\n${context}\n\nPASSAGE END:\n${text.split(/\s+/).slice(-500).join(" ")}`,
-      Math.min(5000, Math.ceil((deficit + 200) * 1.8)),
+      `Continue the passage naturally by approximately ${continuationWords} words. ${deficit <= 500 ? "Bring it to a complete stopping point." : "Do not conclude the section yet."} Do not repeat prior material. Preserve the argument, terminology, voice, and continuity described below.\n\nCONTEXT:\n${context}\n\nPASSAGE END:\n${text.split(/\s+/).slice(-500).join(" ")}`,
+      Math.min(1800, Math.ceil((continuationWords + 200) * 1.8)),
     );
     text = removeMarkdown(`${text}\n\n${continuation}`);
+  }
+  if (liveProgress && await liveProgress(text)) {
+    throw new Error("WRITING_STOPPED_BY_USER");
   }
   if (countWords(text) < minimumWords) {
     throw new Error(`Provider stopped at ${countWords(text)} words; minimum acceptable length is ${minimumWords}`);
@@ -481,11 +497,18 @@ export async function getWritingJob(jobId: number) {
   return job;
 }
 
+export async function requestWritingStop(jobId: number): Promise<void> {
+  await db.update(writingJobs)
+    .set({ stopRequested: true, updatedAt: new Date() })
+    .where(eq(writingJobs.id, jobId));
+}
+
 export async function processWritingJob(jobId: number): Promise<void> {
   const [job] = await db.select().from(writingJobs).where(eq(writingJobs.id, jobId));
   if (!job) throw new Error("Writing job not found");
   const provider = job.provider as WritingProvider;
   let inProgressContent = "";
+  const completedOutputParts: string[] = [];
   const auditFailures = new Map<number, { section: string; report: string }>();
 
   try {
@@ -493,6 +516,8 @@ export async function processWritingJob(jobId: number): Promise<void> {
       status: "planning",
       error: null,
       output: null,
+      stopRequested: false,
+      stoppedEarly: false,
       completedSections: 0,
       updatedAt: new Date(),
     }).where(eq(writingJobs.id, jobId));
@@ -521,6 +546,8 @@ export async function processWritingJob(jobId: number): Promise<void> {
       const workTitle = chapterNumber === 1 ? extractWorkTitle(job.instructions) : null;
       const globalStandard = extractGlobalStandard(job.instructions);
       const sectionMinimum = hardMinimum ? targetWords : Math.ceil(targetWords * 0.9);
+      const streamsInChunks = job.requestedWordCount > 1500;
+      const initialChunkWords = streamsInChunks ? Math.min(500, targetWords) : targetWords;
       const structuralInstruction = chapterNumber
         ? `This section corresponds exclusively to Chapter ${chapterNumber} of ${explicitChapterCount}. ${workTitle ? `Place the exact title "${workTitle}" on the first line, then use ` : "Begin with "}exactly one plain-text heading starting "Chapter ${chapterNumber}:" and write only that chapter. Do not repeat, preview, name, begin, or defend material assigned to another chapter.`
         : `Write section ${index + 1} of ${job.totalSections}.`;
@@ -536,11 +563,34 @@ export async function processWritingJob(jobId: number): Promise<void> {
       const draft = await callProvider(
         provider,
         `Write polished prose in plain text only. Use readable paragraphs separated by blank lines. Do not use Markdown: no hashes, asterisks, code fences, blockquotes, link syntax, or bullet markers. LaTeX underscores inside mathematical expressions are allowed. Return only the requested prose section. ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
-        `${structuralInstruction} Write approximately ${targetWords} words; the acceptable section range is ${sectionMinimum} through ${Math.floor(targetWords * 1.1)} words. End naturally; do not pad or cut the argument merely to hit an exact count. Use multiple coherent paragraphs of roughly 80 to 160 words each, separated by blank lines. Execute every requirement in the assigned directive. Maintain explicit logical and terminological continuity with every earlier section. Do not add conversational summaries, promises about later content, or meta-commentary. Do not preview, summarize, name, or perform material assigned to another chapter.${theoremInstruction}${globalStandard ? ` Apply this global standard: ${globalStandard}` : ""}\n\nASSIGNED DIRECTIVE:\n${guidedDirective}\n\nCONTINUITY FROM COMPLETED EARLIER CHAPTERS ONLY:\n${priorContext}`,
-        Math.min(6000, Math.ceil((targetWords + 250) * 1.8)),
+        `${structuralInstruction} Write the first approximately ${initialChunkWords} words of this ${targetWords}-word section.${streamsInChunks && initialChunkWords < targetWords ? " Stop at a natural paragraph boundary without concluding; later calls will continue the section." : " End naturally."} Use readable paragraphs of roughly 80 to 160 words each, separated by blank lines. Execute every requirement in the assigned directive. Maintain explicit logical and terminological continuity with every earlier section. Do not add conversational summaries, promises about later content, or meta-commentary. Do not preview, summarize, name, or perform material assigned to another chapter.${theoremInstruction}${globalStandard ? ` Apply this global standard: ${globalStandard}` : ""}\n\nASSIGNED DIRECTIVE:\n${guidedDirective}\n\nCONTINUITY FROM COMPLETED EARLIER CHAPTERS ONLY:\n${priorContext}`,
+        Math.min(1800, Math.ceil((initialChunkWords + 250) * 1.8)),
       );
       const preparedDraft = removeRepetitiveSummaryParagraphs(draft, globalStandard);
-      let content = await fillToTarget(provider, preparedDraft, targetWords, fillContext, hardMinimum);
+      const publishLiveProgress = async (currentSection: string): Promise<boolean> => {
+        inProgressContent = currentSection;
+        const liveOutput = preserveRequestedMathNotation(
+          normalizeMathNotation(removeMarkdown([...completedOutputParts, currentSection].filter(Boolean).join("\n\n"))),
+          job.instructions,
+        );
+        await db.update(writingJobs).set({
+          output: liveOutput,
+          updatedAt: new Date(),
+        }).where(eq(writingJobs.id, jobId));
+        const [currentJob] = await db.select({
+          stopRequested: writingJobs.stopRequested,
+        }).from(writingJobs).where(eq(writingJobs.id, jobId));
+        return Boolean(currentJob?.stopRequested);
+      };
+      let content = await fillToTarget(
+        provider,
+        preparedDraft,
+        targetWords,
+        fillContext,
+        hardMinimum,
+        publishLiveProgress,
+        streamsInChunks ? 5000 : 0,
+      );
       if (chapterNumber) {
         content = enforceChapterPresentation(content, chapterNumber, workTitle);
         content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
@@ -721,6 +771,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
         content,
         continuitySummary,
       });
+      completedOutputParts.push(content);
       inProgressContent = "";
       await db.update(writingJobs).set({
         completedSections: index + 1,
@@ -760,6 +811,8 @@ export async function processWritingJob(jobId: number): Promise<void> {
       output,
       completedSections: job.totalSections,
       auditReport: JSON.stringify(Array.from(auditFailures.values())),
+      stoppedEarly: false,
+      stopRequested: false,
       error: null,
       updatedAt: new Date(),
     }).where(eq(writingJobs.id, jobId));
@@ -783,6 +836,8 @@ export async function processWritingJob(jobId: number): Promise<void> {
           ...Array.from(auditFailures.values()),
           { section: "Generation", report: error.message || "A later generation step failed after usable text had been produced." },
         ]),
+        stoppedEarly: error.message === "WRITING_STOPPED_BY_USER",
+        stopRequested: false,
         error: null,
         updatedAt: new Date(),
       }).where(eq(writingJobs.id, jobId));

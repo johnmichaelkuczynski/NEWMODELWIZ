@@ -367,6 +367,8 @@ export const writingJobs = pgTable("writing_jobs", {
   output: text("output"),
   auditReport: text("audit_report"),
   auditGuidance: text("audit_guidance"),
+  stopRequested: boolean("stop_requested").notNull().default(false),
+  stoppedEarly: boolean("stopped_early").notNull().default(false),
   completedSections: integer("completed_sections").notNull().default(0),
   totalSections: integer("total_sections").notNull().default(1),
   error: text("error"),

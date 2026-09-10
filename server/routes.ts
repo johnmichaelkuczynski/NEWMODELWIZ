@@ -1548,6 +1548,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       completedSections: job.completedSections,
       totalSections: job.totalSections,
       output: job.output,
+      stoppedEarly: job.stoppedEarly,
       audits: (() => {
         try {
           return job.auditReport ? JSON.parse(job.auditReport) : [];
@@ -1597,6 +1598,20 @@ export async function registerRoutes(app: Express): Promise<Express> {
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Unable to redo the essay" });
     }
+  });
+
+  app.post("/api/writing/jobs/:id/stop", async (req: Request, res: Response) => {
+    const { getWritingJob, requestWritingStop } = await import("./services/longFormWriting");
+    const job = await getWritingJob(Number(req.params.id));
+    if (!job) return res.status(404).json({ message: "Writing job not found" });
+    if (job.userId && req.user?.id !== job.userId) {
+      return res.status(403).json({ message: "This writing job belongs to another user" });
+    }
+    if (job.status === "complete" || job.status === "failed") {
+      return res.json({ success: true, alreadyFinished: true });
+    }
+    await requestWritingStop(job.id);
+    return res.json({ success: true });
   });
 
   app.post("/api/chat-with-memory", async (req: Request, res: Response) => {
