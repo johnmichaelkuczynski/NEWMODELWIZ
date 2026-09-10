@@ -21,6 +21,46 @@ async function getPublicUser() {
 }
 
 export function registerPaymentRoutes(app: Express) {
+  app.post("/api/payments/subscribe", async (req: Request, res: Response) => {
+    try {
+      if (!stripe || !process.env.STRIPE_PRICE_ID) {
+        return res.status(503).json({ message: "Stripe subscription is not configured" });
+      }
+
+      const user = req.user || await getPublicUser();
+      const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0];
+      const protocol = forwardedProto || req.protocol;
+      const baseUrl = `${protocol}://${req.get("host")}`;
+
+      const session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+        success_url: `${baseUrl}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${baseUrl}/?payment=cancelled`,
+        client_reference_id: String(user.id),
+        customer_email: user.email || undefined,
+        metadata: {
+          userId: String(user.id),
+          purchaseType: "model-wiz-subscription",
+        },
+        subscription_data: {
+          metadata: {
+            userId: String(user.id),
+            purchaseType: "model-wiz-subscription",
+          },
+        },
+      });
+
+      return res.json({ url: session.url });
+    } catch (error: any) {
+      console.error("Subscription checkout error:", error);
+      return res.status(500).json({
+        message: "Unable to start subscription checkout",
+        error: error.message,
+      });
+    }
+  });
+
   // Create Stripe Checkout Session
   app.post("/api/payments/checkout", async (req: Request, res: Response) => {
     try {
@@ -122,7 +162,10 @@ export function registerPaymentRoutes(app: Express) {
     }
 
     // Handle the checkout.session.completed event
-    if (event.type === "checkout.session.completed") {
+    if (
+      event.type === "checkout.session.completed" &&
+      event.data.object.metadata?.purchaseType !== "model-wiz-subscription"
+    ) {
       const session = event.data.object;
       
       try {

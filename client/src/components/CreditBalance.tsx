@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { CreditCard } from "lucide-react";
 import { useState } from "react";
 import { BuyCreditsDialog } from "./BuyCreditsDialog";
+import { useToast } from "@/hooks/use-toast";
 
 interface CreditBalanceData {
   openai: number;
@@ -14,6 +15,8 @@ interface CreditBalanceData {
 
 export function CreditBalance() {
   const [showBuyDialog, setShowBuyDialog] = useState(false);
+  const [isStartingSubscription, setIsStartingSubscription] = useState(false);
+  const { toast } = useToast();
   
   const { data: credits } = useQuery<CreditBalanceData>({
     queryKey: ["/api/credits/balance"],
@@ -27,6 +30,28 @@ export function CreditBalance() {
     if (amount >= 1000000) return `${(amount / 1000000).toFixed(1)}M`;
     if (amount >= 1000) return `${(amount / 1000).toFixed(1)}K`;
     return amount.toString();
+  };
+
+  const startSubscriptionCheckout = async () => {
+    setIsStartingSubscription(true);
+    try {
+      const response = await fetch("/api/payments/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+      const data = await response.json();
+      if (!response.ok || !data.url) {
+        throw new Error(data.message || "Unable to open Stripe Checkout");
+      }
+      window.location.href = data.url;
+    } catch (error: any) {
+      toast({
+        title: "Payment unavailable",
+        description: error.message || "Unable to open Stripe Checkout",
+        variant: "destructive",
+      });
+      setIsStartingSubscription(false);
+    }
   };
 
   return (
@@ -61,6 +86,17 @@ export function CreditBalance() {
             Buy Credits
           </Button>
         )}
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={startSubscriptionCheckout}
+          disabled={isStartingSubscription}
+          className="gap-2 whitespace-nowrap"
+          data-testid="button-subscribe"
+        >
+          <CreditCard className="h-4 w-4" />
+          {isStartingSubscription ? "Opening Checkout..." : "Subscribe · $29.95/mo"}
+        </Button>
       </div>
 
       <BuyCreditsDialog open={showBuyDialog} onOpenChange={setShowBuyDialog} />

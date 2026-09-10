@@ -6,6 +6,7 @@ import { registerRoutes } from "./routes";
 import { validateEnvironmentOrExit } from "./utils/envValidation";
 
 const app = express();
+app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 
