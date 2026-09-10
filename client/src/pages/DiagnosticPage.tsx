@@ -103,7 +103,7 @@ export default function DiagnosticPage() {
         <h1 className="text-3xl font-bold">System Diagnostic</h1>
       </div>
       <p className="text-gray-600 dark:text-gray-400 mb-6">
-        Verifies services, providers, the database, analysis tools, Markdown exclusion, exact word counts,
+        Verifies services, providers, the database, analysis tools, Markdown exclusion, word-count range enforcement,
         and database-backed large-scale prose coherence.
       </p>
 

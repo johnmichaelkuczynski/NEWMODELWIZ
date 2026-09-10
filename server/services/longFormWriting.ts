@@ -30,6 +30,64 @@ export function removeMarkdown(text: string): string {
     .trim();
 }
 
+export function formatIntoParagraphs(text: string, targetParagraphWords = 130): string {
+  const sourceParagraphs = text
+    .trim()
+    .split(/\n\s*\n/)
+    .map(paragraph => paragraph.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+  const formatted: string[] = [];
+
+  for (const source of sourceParagraphs) {
+    if (countWords(source) <= 180) {
+      formatted.push(source);
+      continue;
+    }
+
+    const sentences = source.match(/[^.!?]+(?:[.!?]+["')\]]*|$)/g)?.map(sentence => sentence.trim()).filter(Boolean) || [source];
+    let paragraph: string[] = [];
+    let paragraphWords = 0;
+
+    for (const sentence of sentences) {
+      const sentenceWords = countWords(sentence);
+      if (sentenceWords > 180) {
+        if (paragraph.length) {
+          formatted.push(paragraph.join(" "));
+          paragraph = [];
+          paragraphWords = 0;
+        }
+        const words = sentence.split(/\s+/);
+        for (let index = 0; index < words.length; index += targetParagraphWords) {
+          formatted.push(words.slice(index, index + targetParagraphWords).join(" "));
+        }
+        continue;
+      }
+      if (paragraph.length && paragraphWords + sentenceWords > targetParagraphWords) {
+        formatted.push(paragraph.join(" "));
+        paragraph = [];
+        paragraphWords = 0;
+      }
+      paragraph.push(sentence);
+      paragraphWords += sentenceWords;
+    }
+    if (paragraph.length) formatted.push(paragraph.join(" "));
+  }
+
+  return formatted.join("\n\n");
+}
+
+function trimToWordCount(text: string, targetWords: number): string {
+  const wordPattern = /\S+/g;
+  let match: RegExpExecArray | null;
+  let words = 0;
+  let end = 0;
+  while ((match = wordPattern.exec(text)) !== null && words < targetWords) {
+    words += 1;
+    end = wordPattern.lastIndex;
+  }
+  return formatIntoParagraphs(text.slice(0, end).trim());
+}
+
 export function extractRequestedWordCount(instructions: string): number | null {
   const patterns = [
     /(?:exactly|approximately|about|around|roughly|at least|minimum of|word count(?:\s+of)?|length(?:\s+of)?)?\s*(\d[\d,]*)\s*[- ]?words?\b/i,
@@ -111,20 +169,24 @@ async function fillToTarget(
   context: string,
 ): Promise<string> {
   let text = removeMarkdown(initial);
-  for (let attempt = 0; countWords(text) < targetWords && attempt < 4; attempt++) {
-    const deficit = targetWords - countWords(text);
+  const minimumWords = Math.ceil(targetWords * 0.9);
+  const maximumWords = Math.floor(targetWords * 1.1);
+  for (let attempt = 0; countWords(text) < minimumWords && attempt < 4; attempt++) {
+    const deficit = minimumWords - countWords(text);
     const continuation = await callProvider(
       provider,
       "Continue prose in plain text only. Never use Markdown symbols. Return only the continuation.",
-      `Continue the passage naturally by at least ${deficit + 80} words. Do not repeat prior material. Preserve the argument, terminology, voice, and continuity described below.\n\nCONTEXT:\n${context}\n\nPASSAGE END:\n${text.split(/\s+/).slice(-500).join(" ")}`,
+      `Continue the passage naturally by approximately ${deficit + 40} words and bring it to a complete stopping point. Do not repeat prior material. Preserve the argument, terminology, voice, and continuity described below.\n\nCONTEXT:\n${context}\n\nPASSAGE END:\n${text.split(/\s+/).slice(-500).join(" ")}`,
       Math.min(5000, Math.ceil((deficit + 200) * 1.8)),
     );
     text = removeMarkdown(`${text}\n\n${continuation}`);
   }
-  if (countWords(text) < targetWords) {
-    throw new Error(`Provider stopped at ${countWords(text)} of ${targetWords} required words`);
+  if (countWords(text) < minimumWords) {
+    throw new Error(`Provider stopped at ${countWords(text)} words; minimum acceptable length is ${minimumWords}`);
   }
-  return text.split(/\s+/).slice(0, targetWords).join(" ");
+  return countWords(text) > maximumWords
+    ? trimToWordCount(text, maximumWords)
+    : formatIntoParagraphs(text);
 }
 
 async function createBlueprint(provider: WritingProvider, instructions: string, sectionCount: number): Promise<string> {
@@ -182,8 +244,8 @@ export async function processWritingJob(jobId: number): Promise<void> {
       const targetWords = baseTarget + (index < remainder ? 1 : 0);
       const draft = await callProvider(
         provider,
-        "Write polished prose in plain text only. Do not use Markdown: no hashes, asterisks, underscores, code fences, blockquotes, link syntax, or bullet markers. Return only the requested prose section.",
-        `Write section ${index + 1} of ${job.totalSections}. It must contain at least ${targetWords + 80} words so it can be normalized to exactly ${targetWords} words. Follow the user's instructions and global blueprint. Maintain explicit logical and terminological continuity with every earlier section. Do not add meta-commentary.\n\nUSER INSTRUCTIONS:\n${job.instructions}\n\nGLOBAL BLUEPRINT AND CONTINUITY LEDGER:\n${ledger}`,
+        "Write polished prose in plain text only. Use readable paragraphs separated by blank lines. Do not use Markdown: no hashes, asterisks, underscores, code fences, blockquotes, link syntax, or bullet markers. Return only the requested prose section.",
+        `Write section ${index + 1} of ${job.totalSections} at approximately ${targetWords} words. A length from ${Math.ceil(targetWords * 0.9)} through ${Math.floor(targetWords * 1.1)} words is acceptable. End naturally; do not pad or cut the argument merely to hit an exact count. Use multiple coherent paragraphs of roughly 80 to 160 words each, separated by blank lines. Follow the user's instructions and global blueprint. Maintain explicit logical and terminological continuity with every earlier section. Do not add meta-commentary.\n\nUSER INSTRUCTIONS:\n${job.instructions}\n\nGLOBAL BLUEPRINT AND CONTINUITY LEDGER:\n${ledger}`,
         Math.min(6000, Math.ceil((targetWords + 250) * 1.8)),
       );
       const content = await fillToTarget(provider, draft, targetWords, ledger);
@@ -218,8 +280,10 @@ export async function processWritingJob(jobId: number): Promise<void> {
       .orderBy(asc(writingJobSections.sectionIndex));
     const output = removeMarkdown(sections.map(section => section.content).join("\n\n"));
     const actualWords = countWords(output);
-    if (actualWords !== job.requestedWordCount) {
-      throw new Error(`Final word-count validation failed: ${actualWords}/${job.requestedWordCount}`);
+    const minimumWords = Math.ceil(job.requestedWordCount * 0.9);
+    const maximumWords = Math.floor(job.requestedWordCount * 1.1);
+    if (actualWords < minimumWords || actualWords > maximumWords) {
+      throw new Error(`Final word-count validation failed: ${actualWords} words is outside ${minimumWords}-${maximumWords}`);
     }
     if (containsMarkdown(output)) throw new Error("Final Markdown validation failed");
 

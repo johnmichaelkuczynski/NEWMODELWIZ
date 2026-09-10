@@ -30,6 +30,8 @@ import CopyButton from "@/components/CopyButton";
 import SendToButton from "@/components/SendToButton";
 import { MathRenderer } from "@/components/MathRenderer";
 import { trackEvent } from "@/lib/analytics";
+import { Document as WordDocument, Packer, Paragraph as WordParagraph } from "docx";
+import { jsPDF } from "jspdf";
 
 async function safeJson(response: Response): Promise<any> {
   try {
@@ -370,6 +372,55 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     });
   };
 
+  const generatedParagraphs = (text: string) =>
+    text.split(/\n\s*\n/).map(paragraph => paragraph.replace(/\s+/g, " ").trim()).filter(Boolean);
+
+  const downloadGeneratedWord = async () => {
+    const doc = new WordDocument({
+      sections: [{
+        properties: {},
+        children: generatedParagraphs(generatedWriting).map(text => new WordParagraph({
+          text,
+          spacing: { after: 220, line: 360 },
+        })),
+      }],
+    });
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = "generated-work.docx";
+    anchor.click();
+    URL.revokeObjectURL(url);
+    trackEvent("generated_writing_downloaded", { format: "docx" });
+  };
+
+  const downloadGeneratedPdf = () => {
+    const pdf = new jsPDF({ unit: "pt", format: "letter" });
+    const margin = 54;
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const lineHeight = 16;
+    let y = margin;
+    pdf.setFont("times", "normal");
+    pdf.setFontSize(11);
+
+    for (const paragraph of generatedParagraphs(generatedWriting)) {
+      const lines = pdf.splitTextToSize(paragraph, pageWidth - margin * 2) as string[];
+      for (const line of lines) {
+        if (y + lineHeight > pageHeight - margin) {
+          pdf.addPage();
+          y = margin;
+        }
+        pdf.text(line, margin, y);
+        y += lineHeight;
+      }
+      y += lineHeight * 0.65;
+    }
+    pdf.save("generated-work.pdf");
+    trackEvent("generated_writing_downloaded", { format: "pdf" });
+  };
+
   const handleWriteFromInstructions = async () => {
     if (!writingInstructions.trim()) {
       toast({
@@ -412,14 +463,14 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         setWritingProgress(
           status.usesLargeScaleCoherence
             ? `Large-scale coherence active: ${status.completedSections} of ${status.totalSections} sections completed`
-            : "Writing and enforcing the exact word count...",
+            : "Writing within 10% of the requested word count...",
         );
         if (status.status === "complete") completed = status;
       }
 
       setGeneratedWriting(completed.output);
       setWritingProgress(
-        `Complete: exactly ${completed.actualWordCount.toLocaleString()} words, plain text, ${completed.usesLargeScaleCoherence ? "large-scale coherence used" : "standard generation used"}`,
+        `Complete: ${completed.actualWordCount.toLocaleString()} words (within 10% of the ${completed.requestedWordCount.toLocaleString()}-word target), plain text, ${completed.usesLargeScaleCoherence ? "large-scale coherence used" : "standard generation used"}`,
       );
       trackEvent("writing_generated", {
         provider: selectedProvider,
@@ -2622,7 +2673,7 @@ Generated on: ${new Date().toLocaleString()}`;
                 )}
               </div>
               {generatedWriting && (
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <CopyButton text={generatedWriting} />
                   <Button
                     variant="outline"
@@ -2631,7 +2682,15 @@ Generated on: ${new Date().toLocaleString()}`;
                     data-testid="button-download-generated-writing"
                   >
                     <Download className="mr-2 h-4 w-4" />
-                    Download
+                    TXT
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={downloadGeneratedPdf} data-testid="button-download-generated-pdf">
+                    <Download className="mr-2 h-4 w-4" />
+                    PDF
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={downloadGeneratedWord} data-testid="button-download-generated-word">
+                    <Download className="mr-2 h-4 w-4" />
+                    Word
                   </Button>
                 </div>
               )}

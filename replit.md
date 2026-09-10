@@ -34,7 +34,7 @@ The application employs a monorepo structure, separating client and server compo
       - **Batch Mode**: Run multiple functions simultaneously with enforced aggressive settings
       - **BOTTOMLINE Function**: Synthesizes analysis results into polished final output tailored to specific audience, objective, tone, length, and emphasis. Uses intelligent weighting to prioritize intermediate results based on relevance to stated objectives.
     - **AI Chat Assistant**: Provides conversation history and context from the Zhi Database.
-    - **Instruction-to-Writing Generator**: Must return the exact requested word count and plain text without Markdown. Requests over 2,000 words must use database-backed large-scale coherence with a global blueprint, persisted sections, and an evolving continuity ledger.
+    - **Instruction-to-Writing Generator**: Must return within 10% above or below the requested word count and use plain text without Markdown. Requests over 2,000 target words must use database-backed large-scale coherence with a global blueprint, persisted sections, and an evolving continuity ledger.
     - **Conservative Reconstruction**: "Charitable Interpretation" mode for generating coherent essays articulating a text's unified argument.
 
 ## Recent Changes (December 2024)
