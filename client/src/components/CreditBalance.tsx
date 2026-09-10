@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { CreditCard } from "lucide-react";
+import { CheckCircle2, CreditCard } from "lucide-react";
 import { useState } from "react";
 import { BuyCreditsDialog } from "./BuyCreditsDialog";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,11 @@ interface CreditBalanceData {
   unlimited: boolean;
 }
 
+interface SubscriptionStatusData {
+  subscribed: boolean;
+  status: string;
+}
+
 export function CreditBalance() {
   const [showBuyDialog, setShowBuyDialog] = useState(false);
   const [isStartingSubscription, setIsStartingSubscription] = useState(false);
@@ -21,6 +26,11 @@ export function CreditBalance() {
   const { data: credits } = useQuery<CreditBalanceData>({
     queryKey: ["/api/credits/balance"],
     refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  const { data: subscription } = useQuery<SubscriptionStatusData>({
+    queryKey: ["/api/payments/subscription-status"],
+    refetchInterval: 10000,
   });
 
   if (!credits) return null;
@@ -90,12 +100,20 @@ export function CreditBalance() {
           size="sm"
           variant="secondary"
           onClick={startSubscriptionCheckout}
-          disabled={isStartingSubscription}
+          disabled={isStartingSubscription || subscription?.subscribed}
           className="gap-2 whitespace-nowrap"
           data-testid="button-subscribe"
         >
-          <CreditCard className="h-4 w-4" />
-          {isStartingSubscription ? "Opening Checkout..." : "Subscribe · $29.95/mo"}
+          {subscription?.subscribed ? (
+            <CheckCircle2 className="h-4 w-4" />
+          ) : (
+            <CreditCard className="h-4 w-4" />
+          )}
+          {subscription?.subscribed
+            ? "Subscribed"
+            : isStartingSubscription
+              ? "Opening Checkout..."
+              : "Subscribe · $29.95/mo"}
         </Button>
       </div>
 

@@ -12,7 +12,7 @@ import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import NotFound from "@/pages/not-found";
 import DiagnosticPage from "@/pages/DiagnosticPage";
 import { BrainCircuit, Brain, Mail, Trash2, Activity, LogIn, LogOut } from "lucide-react";
-import { useState, createContext, useContext } from "react";
+import { useEffect, useState, createContext, useContext } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CreditBalance } from "@/components/CreditBalance";
@@ -70,6 +70,14 @@ function ResetConfirmDialog({ open, onOpenChange }: { open: boolean; onOpenChang
 function Navigation() {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const { user, isLoading, logout, isLoggingOut } = useAuth();
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("auth") !== "success") return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    url.searchParams.delete("auth");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [user]);
 
   return (
     <nav className="bg-primary text-primary-foreground py-4">
@@ -171,6 +179,16 @@ function Navigation() {
           </div>
         </div>
       </div>
+        {!isLoading && user && (
+          <div className="container mx-auto mt-2 flex justify-end">
+            <div
+              className="rounded-md bg-primary-foreground/15 px-3 py-1 text-sm font-semibold"
+              data-testid="signed-in-user"
+            >
+              Signed in as {user.email || user.username}
+            </div>
+          </div>
+        )}
       
       <ResetConfirmDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen} />
     </nav>

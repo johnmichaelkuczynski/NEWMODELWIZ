@@ -25,7 +25,7 @@ import {
   type InsertUserSubscription,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, or } from "drizzle-orm";
 import session from "express-session";
 import createMemoryStore from "memorystore";
 
@@ -70,6 +70,7 @@ export interface IStorage {
   updateCreditTransactionStatus(id: number, status: string, paymentIntentId?: string): Promise<CreditTransaction>;
   updateCreditTransactionSessionId(id: number, sessionId: string): Promise<CreditTransaction>;
   upsertUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription>;
+  getUserSubscription(userId: number, email?: string | null): Promise<UserSubscription | undefined>;
   updateUserSubscriptionStatus(stripeSubscriptionId: string, status: string): Promise<UserSubscription | undefined>;
 }
 
@@ -310,6 +311,21 @@ export class DatabaseStorage implements IStorage {
         },
       })
       .returning();
+    return result;
+  }
+
+  async getUserSubscription(
+    userId: number,
+    email?: string | null,
+  ): Promise<UserSubscription | undefined> {
+    const condition = email
+      ? or(eq(userSubscriptions.userId, userId), eq(userSubscriptions.googleEmail, email))
+      : eq(userSubscriptions.userId, userId);
+    const [result] = await db
+      .select()
+      .from(userSubscriptions)
+      .where(condition)
+      .limit(1);
     return result;
   }
 

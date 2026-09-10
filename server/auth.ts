@@ -118,7 +118,7 @@ export function setupAuth(app: Express) {
     passport.authenticate("google", {
       failureRedirect: "/?auth=failed",
       callbackURL: callbackUrl(req),
-    } as any)(req, res, () => res.redirect("/"));
+    } as any)(req, res, () => res.redirect("/?auth=success"));
   });
 
   app.get("/api/auth/user", (req, res) => {

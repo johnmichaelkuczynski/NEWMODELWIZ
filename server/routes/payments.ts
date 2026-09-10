@@ -21,6 +21,19 @@ async function getPublicUser() {
 }
 
 export function registerPaymentRoutes(app: Express) {
+  app.get("/api/payments/subscription-status", async (req: Request, res: Response) => {
+    if (!req.user) {
+      return res.json({ subscribed: false, status: "none" });
+    }
+
+    const subscription = await storage.getUserSubscription(req.user.id, req.user.email);
+    const subscribed = subscription?.status === "active" || subscription?.status === "trialing";
+    return res.json({
+      subscribed,
+      status: subscription?.status || "none",
+    });
+  });
+
   app.post("/api/payments/subscribe", async (req: Request, res: Response) => {
     try {
       if (!stripe || !process.env.STRIPE_PRICE_ID) {
@@ -32,6 +45,10 @@ export function registerPaymentRoutes(app: Express) {
       }
 
       const user = req.user;
+      const existingSubscription = await storage.getUserSubscription(user.id, user.email);
+      if (existingSubscription?.status === "active" || existingSubscription?.status === "trialing") {
+        return res.status(409).json({ message: "You are already subscribed" });
+      }
       const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0];
       const protocol = forwardedProto || req.protocol;
       const baseUrl = `${protocol}://${req.get("host")}`;
