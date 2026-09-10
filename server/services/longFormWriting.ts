@@ -475,11 +475,10 @@ export async function createWritingJob(input: {
   requestedWordCount: number;
   auditGuidance?: string;
 }) {
-  const usesLargeScaleCoherence = input.requestedWordCount > 2000;
   const explicitChapterCount = detectExplicitChapterCount(input.instructions);
-  const totalSections = usesLargeScaleCoherence
-    ? explicitChapterCount || Math.ceil(input.requestedWordCount / 1200)
-    : 1;
+  const usesLargeScaleCoherence = input.requestedWordCount > 2000 || Boolean(explicitChapterCount && explicitChapterCount > 1);
+  const totalSections = explicitChapterCount
+    || (input.requestedWordCount > 2000 ? Math.ceil(input.requestedWordCount / 1200) : 1);
   const [job] = await db.insert(writingJobs).values({
     userId: input.userId,
     instructions: input.instructions,

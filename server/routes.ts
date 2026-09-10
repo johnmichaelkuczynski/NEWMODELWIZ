@@ -1525,7 +1525,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       return res.status(202).json({
         jobId: job.id,
         requestedWordCount: wordCount,
-        usesLargeScaleCoherence: wordCount > 2000,
+        usesLargeScaleCoherence: job.usesLargeScaleCoherence,
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Unable to start writing job" });
