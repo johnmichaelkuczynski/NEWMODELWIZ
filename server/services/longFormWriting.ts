@@ -862,8 +862,9 @@ export async function createWritingJob(input: {
   provider: WritingProvider;
   requestedWordCount: number;
   auditGuidance?: string;
+  forceSingleSection?: boolean;
 }) {
-  const explicitChapterCount = detectExplicitChapterCount(input.instructions);
+  const explicitChapterCount = input.forceSingleSection ? null : detectExplicitChapterCount(input.instructions);
   const usesLargeScaleCoherence = isMegaglobalRequest(input.requestedWordCount, explicitChapterCount);
   const totalSections = explicitChapterCount
     || (input.requestedWordCount > 2000 ? Math.ceil(input.requestedWordCount / 1200) : 1);

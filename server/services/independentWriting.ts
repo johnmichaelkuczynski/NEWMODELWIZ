@@ -166,8 +166,9 @@ export async function createIndependentWritingJob(input: {
   provider: IndependentProvider;
   requestedWordCount: number;
   auditGuidance?: string;
+  forceSingleSection?: boolean;
 }) {
-  const chapters = chapterCount(input.instructions);
+  const chapters = input.forceSingleSection ? null : chapterCount(input.instructions);
   const totalSections = chapters || (input.requestedWordCount > 2000 ? Math.ceil(input.requestedWordCount / 1200) : 1);
   const [job] = await db.insert(writingJobs).values({
     userId: input.userId,

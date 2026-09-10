@@ -60,6 +60,7 @@ function instructionsRequireMultipleSections(value: unknown): boolean {
 async function requiresSignedInDatabaseOwner(req: Request, path: string): Promise<boolean> {
   if (path === "/api/coherence-analysis-jobs") return true;
   if (path === "/api/writing/jobs" || path === "/api/writing-v2/jobs") {
+    if (req.body?.forceSingleSectionPreview === true) return false;
     return requestedWritingWords(req) > 2000 || instructionsRequireMultipleSections(req.body?.instructions);
   }
   if (/^\/api\/writing(?:-v2)?\/jobs\/\d+\/(resume|redo)$/.test(path)) {
@@ -259,6 +260,27 @@ export async function enforcePaidAiAccess(req: Request, res: Response, next: Nex
   try {
     const requestPath = `${req.baseUrl || ""}${req.path}`;
     if (req.method !== "POST" || !isMeteredPath(requestPath)) return next();
+    const isWritingCreation = requestPath === "/api/writing/jobs" || requestPath === "/api/writing-v2/jobs";
+    const access = await accessTier(req);
+    const usage = access.subscribed
+      ? { actionsUsed: 0, wordsReserved: 0 }
+      : await currentUsage(access.identityKey);
+
+    if (!req.user && isWritingCreation) {
+      const actionsRemaining = ANONYMOUS_ACTION_LIMIT - usage.actionsUsed;
+      const wordsRemaining = ANONYMOUS_WORD_LIMIT - usage.wordsReserved;
+      if (actionsRemaining > 0 && wordsRemaining >= 50) {
+        const originallyRequestedWords = requestedWritingWords(req);
+        const previewWords = Math.min(originallyRequestedWords, wordsRemaining);
+        const ownerRequired = await requiresSignedInDatabaseOwner(req, requestPath);
+        if (ownerRequired || previewWords < originallyRequestedWords) {
+          req.body.originalRequestedWordCount = originallyRequestedWords;
+          req.body.requestedWordCount = previewWords;
+          req.body.forceSingleSectionPreview = true;
+        }
+      }
+    }
+
     if (!req.user && await requiresSignedInDatabaseOwner(req, requestPath)) {
       return res.status(401).json({
         code: "SIGN_IN_REQUIRED",
@@ -266,9 +288,7 @@ export async function enforcePaidAiAccess(req: Request, res: Response, next: Nex
         nextAction: "sign-in",
       });
     }
-    const access = await accessTier(req);
     if (access.subscribed) return next();
-    const usage = await currentUsage(access.identityKey);
     if (requiresSubscription(requestPath)) {
       return quotaResponse(res, access.tier as "anonymous" | "free", usage);
     }
@@ -296,6 +316,9 @@ export async function enforcePaidAiAccess(req: Request, res: Response, next: Nex
     res.setHeader("X-Treatise-Access-Tier", access.tier);
     res.setHeader("X-Treatise-Actions-Remaining", String(Math.max(0, reserved.actionLimit - reserved.actionsUsed)));
     res.setHeader("X-Treatise-Words-Remaining", String(Math.max(0, reserved.wordLimit - reserved.wordsReserved)));
+    if (req.body?.forceSingleSectionPreview) {
+      res.setHeader("X-Treatise-Preview", "true");
+    }
     next();
   } catch (error) {
     next(error);

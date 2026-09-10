@@ -580,17 +580,29 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         if (data?.code === "SIGN_IN_REQUIRED") {
           const message = data?.message || "Sign in with Google to receive additional free writing.";
           setWritingProgress(message);
-          throw new Error(message);
+          toast({
+            title: "Continue with Google",
+            description: message,
+          });
+          return;
         }
         if (data?.code === "SUBSCRIPTION_REQUIRED") {
           const message = data?.message || "Subscribe for unlimited writing and analysis.";
           setWritingProgress(message);
-          throw new Error(message);
+          toast({
+            title: "Continue Writing",
+            description: message,
+          });
+          return;
         }
         throw new Error(data?.message || "The requested writing could not be generated.");
       }
 
-      if (data.usesLargeScaleCoherence) {
+      if (data.preview) {
+        setWritingProgress(
+          `Generating a ${data.requestedWordCount.toLocaleString()}-word free preview now. Sign in to generate the complete ${data.originalRequestedWordCount.toLocaleString()}-word work.`,
+        );
+      } else if (data.usesLargeScaleCoherence) {
         setWritingProgress(`Large-scale coherence active: 0 sections completed`);
       }
       setWritingJobId(data.jobId);
@@ -604,8 +616,14 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         used_large_scale_coherence: completed.usesLargeScaleCoherence,
       });
       toast({
-        title: completed.stoppedEarly ? "Writing Stopped and Saved" : "Writing Complete",
-        description: completed.stoppedEarly
+        title: data.preview
+          ? "Free Preview Ready"
+          : completed.stoppedEarly
+            ? "Writing Stopped and Saved"
+            : "Writing Complete",
+        description: data.preview
+          ? `Your ${completed.requestedWordCount.toLocaleString()}-word preview appears below. Sign in to create the complete ${data.originalRequestedWordCount.toLocaleString()}-word work.`
+          : completed.stoppedEarly
           ? "Everything generated before you stopped has been saved below."
           : "The requested work appears directly below your instructions.",
       });
