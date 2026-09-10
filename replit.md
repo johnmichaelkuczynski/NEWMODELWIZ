@@ -1,7 +1,9 @@
-# Cognitive Analysis Platform
+# Treatise Pro
 
 ## Overview
-The Cognitive Analysis Platform is designed to analyze written text to assess the intelligence and cognitive fingerprint of authors using multi-model AI evaluation. Its primary purpose is to offer deep insights into cognitive abilities and thought processes from written content. Key capabilities include document analysis, AI detection, multi-language translation, comprehensive cognitive profiling, and intelligent text rewriting with advanced features for maximizing intelligence scores.
+Treatise Pro is designed to create, analyze, test, and strengthen long-form writing using multi-model AI evaluation. Key capabilities include document generation, whole-document coherence analysis, argument testing, cognitive analysis, AI detection, multi-language translation, comprehensive profiling, and intelligent text rewriting.
+
+Primary public domain: https://treatisepro.com
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.

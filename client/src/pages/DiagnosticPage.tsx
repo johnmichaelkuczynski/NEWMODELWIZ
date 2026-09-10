@@ -57,7 +57,7 @@ export default function DiagnosticPage() {
   const downloadReport = () => {
     if (!result) return;
     const lines: string[] = [];
-    lines.push("COGNITIVE ANALYSIS PLATFORM — DIAGNOSTIC REPORT");
+    lines.push("TREATISE PRO — DIAGNOSTIC REPORT");
     lines.push(new Date().toLocaleString());
     lines.push("=".repeat(64));
     lines.push("");

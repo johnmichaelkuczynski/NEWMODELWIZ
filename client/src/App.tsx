@@ -95,7 +95,7 @@ function Navigation() {
             >
               <img src={zhiLogo} alt="ZHI Systems logo" className="h-8 w-8 object-contain" />
             </a>
-            <div className="font-bold text-xl">Cognitive Analysis Platform</div>
+            <div className="font-bold text-xl">Treatise Pro</div>
           </div>
           <a 
             href="mailto:johnmichaelkuczynski@gmail.com" 

@@ -1,14 +1,14 @@
-# 🧠 COGNITIVE ANALYSIS PLATFORM
+# TREATISE PRO
 
-**Multi-Model AI Platform for Intelligence Analysis, Cognitive Profiling, and Argument Stress-Testing**
+**Multi-Model AI Platform for Long-Form Writing, Coherence Analysis, and Argument Stress-Testing**
 
 ---
 
 ## 🧩 Overview
 
-The Cognitive Analysis Platform is a multi-model AI system for evaluating the intelligence and cognitive fingerprint of any written text. It plugs into five top-tier proprietary LLMs (ZHI 1–5) and lets users route any task to the model best suited for it -- intelligence scoring, formal axiomatization, mathematical proof checking, scientific accuracy auditing, or full-pipeline argument synthesis.
+Treatise Pro is a multi-model AI system for creating and evaluating long-form writing. It plugs into five top-tier proprietary LLMs (ZHI 1–5) and lets users route tasks to the model best suited for them—including writing, whole-document coherence analysis, intelligence scoring, formal axiomatization, mathematical proof checking, scientific accuracy auditing, and full-pipeline argument synthesis.
 
-Unlike consumer chatbots that produce generic, hedged, watered-down output, the Cognitive Analysis Platform is built around a strict operating principle: every analysis is rigorous, every verdict is explicit, and the user's instructions are sacred. If you ask for 25 objections, you get 25 objections. If you ask for a refined rewrite that absorbs every counter-argument, that is exactly what is produced. No padding, no preamble, no editorializing.
+Treatise Pro is built around a strict operating principle: every analysis is rigorous, every verdict is explicit, and the user's instructions control the requested output.
 
 ---
 

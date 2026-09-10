@@ -79,3 +79,31 @@ mtime_ms = 1789027417713
 storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:99538b7d-be2e-4ef4-a505-d1b9ecd820e0/fec24aee-762f-45dd-a948-3cc1ef4d8b63/dfc9c259-b59e-4ee3-88c1-52a3f513b833"
 storage_version_token = "1789027454767688"
 content_type = "text/plain"
+
+[[outputs]]
+id = "7LQadeuhvl3ssL18vw1QE"
+uri = "file://attached_assets/generated_videos/treatise-pro-end-of-llm-amnesia-promo.mp4"
+type = "video"
+title = "Treatise Pro — The End of LLM Amnesia Promo"
+description = "Updated 60-second promotional video. The original visuals and byte-identical audio are preserved; the closing URL now reads treatisepro.com."
+logical_id = "3fbd171c-0e9b-4c23-9034-5164cd2d6e58"
+content_hash = "sha256:7899c52275dc74d5fe10accd9490537101627167294d3f7a77b9fc7ee5a46a9c"
+size = 3173704
+mtime_ms = 1789027628128
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:99538b7d-be2e-4ef4-a505-d1b9ecd820e0/3fbd171c-0e9b-4c23-9034-5164cd2d6e58/a6482420-cfe3-4bcf-a20b-b8053df62994"
+storage_version_token = "1789027664297384"
+content_type = "video/mp4"
+
+[[outputs]]
+id = "59ouiJ_ocS0WUg7TpN85V"
+uri = "file://attached_assets/treatise-pro-tiktok-description.txt"
+type = "text"
+title = "Treatise Pro — TikTok Description"
+description = "TikTok-ready promotional description with the call-to-action URL updated to treatisepro.com."
+logical_id = "2bcb0fe4-10d0-4fec-a2e2-f27a09d5f6e2"
+content_hash = "sha256:53bc753bb18b7fb0b97d97bb26848f4b377a871675fd226fadc959728936cfb9"
+size = 396
+mtime_ms = 1789027628208
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:99538b7d-be2e-4ef4-a505-d1b9ecd820e0/2bcb0fe4-10d0-4fec-a2e2-f27a09d5f6e2/4f3eba1f-76b8-4ba7-9398-82403ec11760"
+storage_version_token = "1789027665121608"
+content_type = "text/plain"
