@@ -1,4 +1,5 @@
 import { Express, Request, Response, NextFunction } from "express";
+import { setupAuth } from "./auth";
 import multer from "multer";
 import { storage } from "./storage";
 import path from "path";
@@ -549,6 +550,7 @@ Provide detailed analysis of literary merit, character development, plot structu
 }
 
 export async function registerRoutes(app: Express): Promise<Express> {
+  setupAuth(app);
   
   // Register payment routes
   registerPaymentRoutes(app);

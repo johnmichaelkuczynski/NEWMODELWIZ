@@ -6,3 +6,26 @@ id = "EEZRqyy9ZZyW1CFWIUXCz"
 uri = "file://attached_assets/cognitive-analysis-platform-promo.mp4"
 type = "video"
 title = "Cognitive Analysis Platform — Promo Video (real app footage)"
+logical_id = "e1212687-bfc8-4866-916a-523739013b20"
+
+[[outputs]]
+id = "z-J86nTvHGG20pPi4x4iG"
+uri = "file://attached_assets/generated_audio/modelwiz-promo-voiceover.mp3"
+type = "audio"
+title = "ModelWiz promotional voiceover"
+description = "Text-to-speech audio: Every writer knows the wall. You ask an AI to write a long work, and by chapter four, it contradicts its thesis, forgets its characters, and dissolves into repetitive fluff. Mee…"
+logical_id = "111ad440-61d0-40cf-8210-5aeea451d6f6"
+
+[[outputs]]
+id = "sMsXGwV6EcqKpMMw1wrRW"
+uri = "file://attached_assets/generated_videos/modelwiz-end-of-llm-amnesia-promo.mp4"
+type = "video"
+title = "The End of LLM Amnesia — ModelWiz Promo"
+description = "60-second 16:9 promotional video in 720p with Russ voiceover, real product visuals, and no music."
+logical_id = "c727cd08-b83e-4c9e-8372-a907ad5f648f"
+content_hash = "sha256:925bb9c9f49ef943d907fa625fcda21dae71b26db8d2a09ff24928136a878b17"
+size = 2905138
+mtime_ms = 1789006142011
+storage_uri = "gcs://replit-rams-assets-spock/rams/assets/repl:99538b7d-be2e-4ef4-a505-d1b9ecd820e0/c727cd08-b83e-4c9e-8372-a907ad5f648f/a90f146c-46ea-4014-bd6b-c5c8d97d3b5b"
+storage_version_token = "1789006161735249"
+content_type = "video/mp4"

@@ -11,13 +11,14 @@ import WebSearchPage from "@/pages/WebSearchPage";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import NotFound from "@/pages/not-found";
 import DiagnosticPage from "@/pages/DiagnosticPage";
-import { BrainCircuit, Brain, Mail, Trash2, Activity } from "lucide-react";
+import { BrainCircuit, Brain, Mail, Trash2, Activity, LogIn, LogOut } from "lucide-react";
 import { useState, createContext, useContext } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CreditBalance } from "@/components/CreditBalance";
 import zhiLogo from "@assets/zhi_logoc_1788019705241.png";
 import { trackEvent } from "@/lib/analytics";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 
 // Reset Context
 interface ResetContextType {
@@ -68,6 +69,7 @@ function ResetConfirmDialog({ open, onOpenChange }: { open: boolean; onOpenChang
 
 function Navigation() {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const { user, isLoading, logout, isLoggingOut } = useAuth();
 
   return (
     <nav className="bg-primary text-primary-foreground py-4">
@@ -134,6 +136,37 @@ function Navigation() {
               <Trash2 className="h-4 w-4 mr-1" />
               Reset All
             </Button>
+
+            {!isLoading && (
+              user ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={logout}
+                  disabled={isLoggingOut}
+                  className="text-primary-foreground hover:bg-primary-foreground/10"
+                  data-testid="button-google-logout"
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  {isLoggingOut ? "Signing out..." : "Sign out"}
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  variant="secondary"
+                  size="sm"
+                  data-testid="button-google-login"
+                >
+                  <a
+                    href="/api/auth/google"
+                    onClick={() => trackEvent("google_login_started", { location: "header" })}
+                  >
+                    <LogIn className="h-4 w-4 mr-1" />
+                    Sign in with Google
+                  </a>
+                </Button>
+              )
+            )}
             
           </div>
         </div>
@@ -179,12 +212,14 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ResetContext.Provider value={{ resetAll }}>
-        <TooltipProvider>
-          <Toaster />
-          <Router resetKey={resetKey} />
-        </TooltipProvider>
-      </ResetContext.Provider>
+      <AuthProvider>
+        <ResetContext.Provider value={{ resetAll }}>
+          <TooltipProvider>
+            <Toaster />
+            <Router resetKey={resetKey} />
+          </TooltipProvider>
+        </ResetContext.Provider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

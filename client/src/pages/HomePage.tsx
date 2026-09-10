@@ -57,6 +57,9 @@ const HomePage: React.FC = () => {
   // State for document inputs
   const [documentA, setDocumentA] = useState<DocumentInputType>({ content: "" });
   const [documentB, setDocumentB] = useState<DocumentInputType>({ content: "" });
+  const [writingInstructions, setWritingInstructions] = useState("");
+  const [generatedWriting, setGeneratedWriting] = useState("");
+  const [isWriting, setIsWriting] = useState(false);
 
   // State for analysis results
   const [analysisA, setAnalysisA] = useState<DocumentAnalysis | null>(null);
@@ -364,6 +367,57 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       title: "Download Started",
       description: `Downloading ${filename}`,
     });
+  };
+
+  const handleWriteFromInstructions = async () => {
+    if (!writingInstructions.trim()) {
+      toast({
+        title: "Instructions Required",
+        description: "Tell the app what you want it to write.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsWriting(true);
+    setGeneratedWriting("");
+
+    try {
+      const response = await fetch("/api/chat-with-memory", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: `Write the requested work now. Follow every structural, conceptual, stylistic, formatting, length, and continuity requirement in the instructions. Produce the work itself rather than discussing the request or merely outlining what you would write.\n\nUSER INSTRUCTIONS:\n${writingInstructions}`,
+          provider: selectedProvider,
+          useExternalKnowledge,
+          conversationHistory: [],
+        }),
+      });
+      const data = await safeJson(response);
+      if (!response.ok || !data?.content) {
+        throw new Error(data?.message || "The requested writing could not be generated.");
+      }
+
+      setGeneratedWriting(data.content);
+      trackEvent("writing_generated", {
+        provider: selectedProvider,
+        instruction_character_count: writingInstructions.length,
+        output_character_count: data.content.length,
+      });
+      toast({
+        title: "Writing Complete",
+        description: "The requested work appears directly below your instructions.",
+      });
+    } catch (error: any) {
+      trackEvent("writing_generation_failed", { provider: selectedProvider });
+      toast({
+        title: "Writing Failed",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsWriting(false);
+    }
   };
 
   // Text chunking for large documents (500+ words)
@@ -2485,6 +2539,89 @@ Generated on: ${new Date().toLocaleString()}`;
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-6xl">
+      <section className="mb-8 rounded-lg border-2 border-indigo-300 bg-gradient-to-r from-indigo-50 to-blue-50 p-6 shadow-md dark:border-indigo-700 dark:from-indigo-950/30 dark:to-blue-950/30">
+        <div className="mb-4">
+          <h1 className="flex items-center gap-2 text-2xl font-bold text-indigo-950 dark:text-indigo-100">
+            <FileEdit className="h-6 w-6 text-indigo-600" />
+            Tell the App What You Want Written
+          </h1>
+          <p className="mt-1 text-sm text-indigo-800 dark:text-indigo-200">
+            Give complete instructions for the document, book, article, screenplay, or other work you want. Include the subject, structure, length, style, and any constraints.
+          </p>
+        </div>
+
+        <Textarea
+          value={writingInstructions}
+          onChange={(event) => setWritingInstructions(event.target.value)}
+          placeholder={'Example: Construct a comprehensive, 10–12 chapter theoretical treatise titled “The Mechanics of Normative Entailment.” Define three foundational axioms in Chapter 1, derive every later argument from them, address the strongest objections in Chapter 9, and maintain exact terminological consistency throughout.'}
+          className="min-h-[220px] bg-white text-base leading-relaxed dark:bg-gray-950"
+          data-testid="textarea-writing-instructions"
+        />
+
+        <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <ProviderSelector
+            selectedProvider={selectedProvider}
+            onProviderChange={setSelectedProvider}
+            label="Writing Model"
+            apiStatus={apiStatus}
+            className="w-full sm:max-w-xs"
+          />
+          <Button
+            onClick={handleWriteFromInstructions}
+            disabled={isWriting || !writingInstructions.trim()}
+            className="min-w-44 bg-indigo-700 hover:bg-indigo-800"
+            data-testid="button-write-from-instructions"
+          >
+            {isWriting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Writing...
+              </>
+            ) : (
+              <>
+                <FileEdit className="mr-2 h-4 w-4" />
+                Write This
+              </>
+            )}
+          </Button>
+        </div>
+
+        {(isWriting || generatedWriting) && (
+          <div className="mt-6 rounded-lg border border-indigo-200 bg-white p-5 dark:border-indigo-800 dark:bg-gray-950">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold">Your Generated Work</h2>
+              {generatedWriting && (
+                <div className="flex gap-2">
+                  <CopyButton text={generatedWriting} />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDownloadText(generatedWriting, "generated-work.txt")}
+                    data-testid="button-download-generated-writing"
+                  >
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </Button>
+                </div>
+              )}
+            </div>
+            <div
+              className="max-h-[700px] min-h-[180px] overflow-y-auto whitespace-pre-wrap rounded-md bg-gray-50 p-4 text-sm leading-7 text-gray-900 dark:bg-gray-900 dark:text-gray-100"
+              data-testid="generated-writing-output"
+            >
+              {isWriting ? (
+                <div className="flex items-center justify-center gap-2 py-16 text-indigo-700 dark:text-indigo-300">
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Following your instructions and writing the requested work...
+                </div>
+              ) : (
+                <MathRenderer content={generatedWriting} />
+              )}
+            </div>
+          </div>
+        )}
+      </section>
+
       {/* External Knowledge Toggle - KEPT VISIBLE PER USER REQUEST */}
       <div className="flex justify-end mb-4">
         <div className="flex items-center gap-3 p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border-2 border-blue-300 dark:border-blue-700 shadow-md min-w-[320px]">
