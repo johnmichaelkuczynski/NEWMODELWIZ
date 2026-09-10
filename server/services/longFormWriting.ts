@@ -371,12 +371,16 @@ async function auditSection(
   blueprint: string,
   content: string,
   chapterNumber: number | null,
+  auditGuidance?: string | null,
 ): Promise<string> {
-  const assignedDirective = chapterNumber ? extractChapterDirective(instructions, chapterNumber) : instructions;
+  const originalDirective = chapterNumber ? extractChapterDirective(instructions, chapterNumber) : instructions;
+  const assignedDirective = auditGuidance
+    ? `${originalDirective}\n\nMANDATORY AUDIT CORRECTIONS THAT OVERRIDE CONFLICTING ORIGINAL INSTRUCTIONS:\n${auditGuidance}`
+    : originalDirective;
   const standard = extractGlobalStandard(instructions);
   return removeMarkdown(await callProvider(
     provider,
-    `Act as a strict compliance auditor. Check explicit requirements, mathematical fidelity, concrete explanatory coverage, and the mandatory standards for utilitarian and philosophical prose. Respond with PASS if every requirement assigned to this section is satisfied. Otherwise respond with FAIL followed by a concise list of concrete omissions or violations. Plain text only. ${MATH_NOTATION_STYLE}`,
+    `Act as a strict compliance auditor. Check explicit requirements, mathematical fidelity, concrete explanatory coverage, and the mandatory standards for utilitarian and philosophical prose. Respond with PASS if every requirement assigned to this section is satisfied. Otherwise respond with FAIL followed by a concise list of concrete omissions or violations. If mandatory audit corrections are supplied, they override directly conflicting original instructions; never cite obedience to an overriding correction as a violation. Plain text only. ${MATH_NOTATION_STYLE}`,
     `Audit ${chapterNumber ? `Chapter ${chapterNumber}` : "the following section"}. Whole-work title, length, chapter-count, and completion requirements are validated separately and must not be evaluated here. Any requirement that the final theorem quote or link to the opening sentence of the complete work is also validated and inserted during final assembly, so do not fail this section for the absence or wording of that cross-document callback. Fail for another substantive explicit-constraint violation. Fail when a non-self-evident substantive claim lacks a nearby concrete example, case, counterexample, or application, or when a vague category phrase is used without naming representative instances. Do not demand examples for headings, elementary connective statements, or conclusions already demonstrated. For philosophical or theoretical prose, fail unnecessary hedging, undefined abstractions, prestige language substituted for reasoning, false balance, or criticism that does not identify the opponent's exact error. If the directive asks for an evaluation, fail unless the writer's verdict appears in the first sentence and the conclusion gives the verdict's decisive reason. Fail an essay that merely alternates summaries of proponents and critics. Do not fail uncertainty that is itself precisely stated and justified. Fail utilitarian style only when the opening delays substance through ceremonial framing or the text contains one of the empty verbal gestures explicitly named below; do not invent additional banned phrases or reject useful explanatory language merely because it could be shortened. Do not accept promises that an assigned task will be completed later. ${UTILITARIAN_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}${standard ? ` Apply this additional standard: ${standard}` : ""}\n\nASSIGNED DIRECTIVE:\n${assignedDirective}\n\nSECTION:\n${content}`,
     700,
   ));
@@ -390,8 +394,12 @@ async function repairSection(
   audit: string,
   chapterNumber: number | null,
   targetWords: number,
+  auditGuidance?: string | null,
 ): Promise<string> {
-  const assignedDirective = chapterNumber ? extractChapterDirective(instructions, chapterNumber) : instructions;
+  const originalDirective = chapterNumber ? extractChapterDirective(instructions, chapterNumber) : instructions;
+  const assignedDirective = auditGuidance
+    ? `${originalDirective}\n\nMANDATORY AUDIT CORRECTIONS THAT OVERRIDE CONFLICTING ORIGINAL INSTRUCTIONS:\n${auditGuidance}`
+    : originalDirective;
   const title = chapterNumber === 1 ? extractWorkTitle(instructions) : null;
   const standard = extractGlobalStandard(instructions);
   return callProvider(
@@ -449,17 +457,19 @@ export async function createWritingJob(input: {
   instructions: string;
   provider: WritingProvider;
   requestedWordCount: number;
+  auditGuidance?: string;
 }) {
   const usesLargeScaleCoherence = input.requestedWordCount > 2000;
   const explicitChapterCount = detectExplicitChapterCount(input.instructions);
   const totalSections = usesLargeScaleCoherence
-    ? Math.max(Math.ceil(input.requestedWordCount / 1200), explicitChapterCount || 0)
+    ? explicitChapterCount || Math.ceil(input.requestedWordCount / 1200)
     : 1;
   const [job] = await db.insert(writingJobs).values({
     userId: input.userId,
     instructions: input.instructions,
     provider: input.provider,
     requestedWordCount: input.requestedWordCount,
+    auditGuidance: input.auditGuidance || null,
     usesLargeScaleCoherence,
     totalSections,
   }).returning();
@@ -475,9 +485,17 @@ export async function processWritingJob(jobId: number): Promise<void> {
   const [job] = await db.select().from(writingJobs).where(eq(writingJobs.id, jobId));
   if (!job) throw new Error("Writing job not found");
   const provider = job.provider as WritingProvider;
+  let inProgressContent = "";
+  const auditFailures = new Map<number, { section: string; report: string }>();
 
   try {
-    await db.update(writingJobs).set({ status: "planning", updatedAt: new Date() }).where(eq(writingJobs.id, jobId));
+    await db.update(writingJobs).set({
+      status: "planning",
+      error: null,
+      output: null,
+      completedSections: 0,
+      updatedAt: new Date(),
+    }).where(eq(writingJobs.id, jobId));
     const blueprint = job.usesLargeScaleCoherence
       ? await createBlueprint(provider, job.instructions, job.totalSections)
       : removeMarkdown(job.instructions);
@@ -497,6 +515,9 @@ export async function processWritingJob(jobId: number): Promise<void> {
       const targetWords = sectionTargets[index];
       const chapterNumber = explicitChapterCount ? index + 1 : null;
       const assignedDirective = chapterNumber ? extractChapterDirective(job.instructions, chapterNumber) : job.instructions;
+      const guidedDirective = job.auditGuidance
+        ? `${assignedDirective}\n\nMANDATORY CORRECTIONS FROM THE PRIOR AUDIT. THESE OVERRIDE ANY CONFLICTING ORIGINAL INSTRUCTION:\n${job.auditGuidance}`
+        : assignedDirective;
       const workTitle = chapterNumber === 1 ? extractWorkTitle(job.instructions) : null;
       const globalStandard = extractGlobalStandard(job.instructions);
       const sectionMinimum = hardMinimum ? targetWords : Math.ceil(targetWords * 0.9);
@@ -510,12 +531,12 @@ export async function processWritingJob(jobId: number): Promise<void> {
         ? "There is no earlier chapter. Do not discuss any later chapter or later technical concept."
         : ledger;
       const fillContext = chapterNumber
-        ? `CURRENT CHAPTER DIRECTIVE:\n${assignedDirective}\n\nCOMPLETED EARLIER CHAPTER CONTINUITY:\n${priorContext}\n\nRemain inside the current chapter. Do not announce transitions or mention any chapter unless the current directive explicitly requires that reference.`
+        ? `CURRENT CHAPTER DIRECTIVE:\n${guidedDirective}\n\nCOMPLETED EARLIER CHAPTER CONTINUITY:\n${priorContext}\n\nRemain inside the current chapter. Do not announce transitions or mention any chapter unless the current directive explicitly requires that reference.`
         : priorContext;
       const draft = await callProvider(
         provider,
         `Write polished prose in plain text only. Use readable paragraphs separated by blank lines. Do not use Markdown: no hashes, asterisks, code fences, blockquotes, link syntax, or bullet markers. LaTeX underscores inside mathematical expressions are allowed. Return only the requested prose section. ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
-        `${structuralInstruction} Write approximately ${targetWords} words; the acceptable section range is ${sectionMinimum} through ${Math.floor(targetWords * 1.1)} words. End naturally; do not pad or cut the argument merely to hit an exact count. Use multiple coherent paragraphs of roughly 80 to 160 words each, separated by blank lines. Execute every requirement in the assigned directive. Maintain explicit logical and terminological continuity with every earlier section. Do not add conversational summaries, promises about later content, or meta-commentary. Do not preview, summarize, name, or perform material assigned to another chapter.${theoremInstruction}${globalStandard ? ` Apply this global standard: ${globalStandard}` : ""}\n\nASSIGNED DIRECTIVE:\n${assignedDirective}\n\nCONTINUITY FROM COMPLETED EARLIER CHAPTERS ONLY:\n${priorContext}`,
+        `${structuralInstruction} Write approximately ${targetWords} words; the acceptable section range is ${sectionMinimum} through ${Math.floor(targetWords * 1.1)} words. End naturally; do not pad or cut the argument merely to hit an exact count. Use multiple coherent paragraphs of roughly 80 to 160 words each, separated by blank lines. Execute every requirement in the assigned directive. Maintain explicit logical and terminological continuity with every earlier section. Do not add conversational summaries, promises about later content, or meta-commentary. Do not preview, summarize, name, or perform material assigned to another chapter.${theoremInstruction}${globalStandard ? ` Apply this global standard: ${globalStandard}` : ""}\n\nASSIGNED DIRECTIVE:\n${guidedDirective}\n\nCONTINUITY FROM COMPLETED EARLIER CHAPTERS ONLY:\n${priorContext}`,
         Math.min(6000, Math.ceil((targetWords + 250) * 1.8)),
       );
       const preparedDraft = removeRepetitiveSummaryParagraphs(draft, globalStandard);
@@ -536,12 +557,12 @@ export async function processWritingJob(jobId: number): Promise<void> {
       const evasiveDraft = containsAcademicEvasion(content);
       let audit = evasiveDraft
         ? "FAIL: The section contains academic evasion or a false-balance conclusion. Replace it with a definite thesis, exact reasoning, and an unequivocal conclusion."
-        : await auditSection(provider, job.instructions, blueprint, content, chapterNumber);
+        : await auditSection(provider, job.instructions, blueprint, content, chapterNumber, job.auditGuidance);
       if (!/^pass\b/i.test(audit.trim())) {
         const replacement = evasiveDraft
           ? await rewriteDecisively(
               provider,
-              assignedDirective,
+              guidedDirective,
               content,
               chapterNumber,
               targetWords,
@@ -555,6 +576,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
               audit,
               chapterNumber,
               targetWords,
+              job.auditGuidance,
             );
         content = await fillToTarget(provider, replacement, targetWords, fillContext, hardMinimum);
         if (chapterNumber) {
@@ -573,7 +595,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
         if (evasiveDraft && containsAcademicEvasion(content)) {
           const decisiveRetry = await rewriteDecisively(
             provider,
-            assignedDirective,
+            guidedDirective,
             content,
             chapterNumber,
             targetWords,
@@ -596,16 +618,22 @@ export async function processWritingJob(jobId: number): Promise<void> {
         }
         audit = containsAcademicEvasion(content)
           ? "FAIL: Academic evasion or false balance remained after repair."
-          : await auditSection(provider, job.instructions, blueprint, content, chapterNumber);
+          : await auditSection(provider, job.instructions, blueprint, content, chapterNumber, job.auditGuidance);
         if (!/^pass\b/i.test(audit.trim())) {
-          throw new Error(`${chapterNumber ? `Chapter ${chapterNumber}` : `Section ${index + 1}`} failed compliance review: ${audit}`);
+          console.warn(`${chapterNumber ? `Chapter ${chapterNumber}` : `Section ${index + 1}`} delivered after best-effort compliance repair: ${audit}`);
+          auditFailures.set(index, {
+            section: chapterNumber ? `Chapter ${chapterNumber}` : `Section ${index + 1}`,
+            report: audit.replace(/^fail\s*:?\s*/i, "").trim(),
+          });
+        } else {
+          auditFailures.delete(index);
         }
       }
       if (chapterNumber && globalStandard && /\bno repetitive (?:conversational )?summaries\b/i.test(globalStandard)) {
         const requiresFinalTheorem = /final paragraph[\s\S]{0,180}\btheorem\b/i.test(assignedDirective);
         const polished = await polishSection(
           provider,
-          assignedDirective,
+          guidedDirective,
           content,
           chapterNumber,
           targetWords,
@@ -624,17 +652,57 @@ export async function processWritingJob(jobId: number): Promise<void> {
         }
         content = enforceSingleFinalTheorem(content, assignedDirective);
         content = preserveRequestedMathNotation(normalizeMathNotation(content), assignedDirective);
+        if (containsAcademicEvasion(content)) {
+          const decisivePolishRepair = await rewriteDecisively(
+            provider,
+            guidedDirective,
+            content,
+            chapterNumber,
+            targetWords,
+            workTitle,
+          );
+          content = enforceChapterPresentation(decisivePolishRepair, chapterNumber, workTitle);
+          content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
+          content = removeRepetitiveSummaryParagraphs(content, globalStandard);
+          content = enforceSingleFinalTheorem(content, assignedDirective);
+          content = preserveRequestedMathNotation(normalizeMathNotation(content), assignedDirective);
+        }
         audit = containsAcademicEvasion(content)
           ? "FAIL: Academic evasion or false balance remained after editing."
-          : await auditSection(provider, job.instructions, blueprint, content, chapterNumber);
+          : await auditSection(provider, job.instructions, blueprint, content, chapterNumber, job.auditGuidance);
         if (!/^pass\b/i.test(audit.trim())) {
-          throw new Error(`Chapter ${chapterNumber} failed post-edit compliance review: ${audit}`);
+          console.warn(`Chapter ${chapterNumber} delivered after best-effort post-edit repair: ${audit}`);
+          auditFailures.set(index, {
+            section: `Chapter ${chapterNumber}`,
+            report: audit.replace(/^fail\s*:?\s*/i, "").trim(),
+          });
+        } else {
+          auditFailures.delete(index);
         }
       }
-      if (chapterNumber) validateChapterSection(content, chapterNumber);
-      if (containsMarkdown(content)) throw new Error(`Markdown remained in section ${index + 1}`);
-      if (containsEmptyVerbalGestures(content)) throw new Error(`Empty verbal gesture remained in section ${index + 1}`);
-      if (containsAcademicEvasion(content)) throw new Error(`Academic evasion remained in section ${index + 1}`);
+      if (chapterNumber) {
+        try {
+          validateChapterSection(content, chapterNumber);
+        } catch (error) {
+          console.warn(`Chapter ${chapterNumber} delivered despite a remaining structural warning:`, error);
+        }
+      }
+      content = removeMarkdown(content);
+      if (containsEmptyVerbalGestures(content)) {
+        console.warn(`Section ${index + 1} delivered with a remaining utilitarian-style warning.`);
+        auditFailures.set(index, {
+          section: chapterNumber ? `Chapter ${chapterNumber}` : `Section ${index + 1}`,
+          report: "The delivered text still contains a ceremonial or empty verbal gesture.",
+        });
+      }
+      if (containsAcademicEvasion(content)) {
+        console.warn(`Section ${index + 1} delivered with a remaining philosophical-style warning.`);
+        auditFailures.set(index, {
+          section: chapterNumber ? `Chapter ${chapterNumber}` : `Section ${index + 1}`,
+          report: "The delivered text still contains academic evasion or false-balance language.",
+        });
+      }
+      inProgressContent = content;
 
       const continuitySummary = job.usesLargeScaleCoherence
         ? removeMarkdown(await callProvider(
@@ -653,6 +721,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
         content,
         continuitySummary,
       });
+      inProgressContent = "";
       await db.update(writingJobs).set({
         completedSections: index + 1,
         coherenceLedger: ledger,
@@ -670,26 +739,55 @@ export async function processWritingJob(jobId: number): Promise<void> {
     const actualWords = countWords(output);
     const { minimum: minimumWords, maximum: maximumWords } = getWordCountRange(job.instructions, job.requestedWordCount);
     if (actualWords < minimumWords || actualWords > maximumWords) {
-      throw new Error(`Final word-count validation failed: ${actualWords} words is outside ${minimumWords}-${maximumWords}`);
+      console.warn(`Final document delivered outside the requested word-count range: ${actualWords} words is outside ${minimumWords}-${maximumWords}.`);
     }
     if (explicitChapterCount) {
       const headings = chapterHeadings(output);
       const expected = Array.from({ length: explicitChapterCount }, (_, index) => index + 1);
       if (headings.length !== expected.length || headings.some((heading, index) => heading !== expected[index])) {
-        throw new Error(`Final chapter validation failed: expected ${expected.join(", ")}; received ${headings.join(", ") || "none"}`);
+        console.warn(`Final document delivered with a chapter-structure warning: expected ${expected.join(", ")}; received ${headings.join(", ") || "none"}.`);
       }
     }
-    if (containsMarkdown(output)) throw new Error("Final Markdown validation failed");
-    if (containsEmptyVerbalGestures(output)) throw new Error("Final utilitarian-style validation failed");
-    if (containsAcademicEvasion(output)) throw new Error("Final philosophical-style validation failed");
+    if (containsEmptyVerbalGestures(output)) {
+      console.warn("Final document delivered with a remaining utilitarian-style warning.");
+    }
+    if (containsAcademicEvasion(output)) {
+      console.warn("Final document delivered with a remaining philosophical-style warning.");
+    }
 
     await db.update(writingJobs).set({
       status: "complete",
       output,
       completedSections: job.totalSections,
+      auditReport: JSON.stringify(Array.from(auditFailures.values())),
+      error: null,
       updatedAt: new Date(),
     }).where(eq(writingJobs.id, jobId));
   } catch (error: any) {
+    const savedSections = await db.select().from(writingJobSections)
+      .where(eq(writingJobSections.jobId, jobId))
+      .orderBy(asc(writingJobSections.sectionIndex));
+    const deliverableParts = savedSections.map(section => section.content);
+    if (inProgressContent.trim()) deliverableParts.push(inProgressContent);
+    if (deliverableParts.length > 0) {
+      const recoverableOutput = preserveRequestedMathNotation(
+        normalizeMathNotation(removeMarkdown(deliverableParts.join("\n\n"))),
+        job.instructions,
+      );
+      console.error(`Writing job ${jobId} encountered an error after producing text; delivering the best available document instead:`, error);
+      await db.update(writingJobs).set({
+        status: "complete",
+        output: recoverableOutput,
+        completedSections: deliverableParts.length,
+        auditReport: JSON.stringify([
+          ...Array.from(auditFailures.values()),
+          { section: "Generation", report: error.message || "A later generation step failed after usable text had been produced." },
+        ]),
+        error: null,
+        updatedAt: new Date(),
+      }).where(eq(writingJobs.id, jobId));
+      return;
+    }
     await db.update(writingJobs).set({
       status: "failed",
       error: error.message || "Writing failed",

@@ -64,7 +64,10 @@ const HomePage: React.FC = () => {
   const [writingInstructions, setWritingInstructions] = useState("");
   const [generatedWriting, setGeneratedWriting] = useState("");
   const [isWriting, setIsWriting] = useState(false);
+  const [isRedoingWritingAudits, setIsRedoingWritingAudits] = useState(false);
   const [writingProgress, setWritingProgress] = useState("");
+  const [writingJobId, setWritingJobId] = useState<number | null>(null);
+  const [writingAudits, setWritingAudits] = useState<Array<{ section: string; report: string }>>([]);
 
   // State for analysis results
   const [analysisA, setAnalysisA] = useState<DocumentAnalysis | null>(null);
@@ -433,6 +436,30 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     trackEvent("generated_writing_downloaded", { format: "pdf" });
   };
 
+  const waitForWritingJob = async (jobId: number) => {
+    let completed: any = null;
+    while (!completed) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      const statusResponse = await fetch(`/api/writing/jobs/${jobId}`);
+      const status = await safeJson(statusResponse);
+      if (!statusResponse.ok) throw new Error(status?.message || "Unable to read writing progress");
+      if (status.status === "failed") throw new Error(status.error || "Writing failed");
+      setWritingProgress(
+        status.usesLargeScaleCoherence
+          ? `Large-scale coherence active: ${status.completedSections} of ${status.totalSections} sections completed`
+          : "Writing within 10% of the requested word count...",
+      );
+      if (status.status === "complete") completed = status;
+    }
+    setWritingJobId(completed.id);
+    setGeneratedWriting(completed.output);
+    setWritingAudits(Array.isArray(completed.audits) ? completed.audits : []);
+    setWritingProgress(
+      `Complete: ${completed.actualWordCount.toLocaleString()} words, plain text, ${completed.usesLargeScaleCoherence ? "large-scale coherence used" : "standard generation used"}`,
+    );
+    return completed;
+  };
+
   const handleWriteFromInstructions = async () => {
     if (!writingInstructions.trim()) {
       toast({
@@ -445,6 +472,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
 
     setIsWriting(true);
     setGeneratedWriting("");
+    setWritingAudits([]);
+    setWritingJobId(null);
     setWritingProgress("Planning the requested work...");
 
     try {
@@ -465,25 +494,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         setWritingProgress(`Large-scale coherence active: 0 sections completed`);
       }
 
-      let completed: any = null;
-      while (!completed) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        const statusResponse = await fetch(`/api/writing/jobs/${data.jobId}`);
-        const status = await safeJson(statusResponse);
-        if (!statusResponse.ok) throw new Error(status?.message || "Unable to read writing progress");
-        if (status.status === "failed") throw new Error(status.error || "Writing failed");
-        setWritingProgress(
-          status.usesLargeScaleCoherence
-            ? `Large-scale coherence active: ${status.completedSections} of ${status.totalSections} sections completed`
-            : "Writing within 10% of the requested word count...",
-        );
-        if (status.status === "complete") completed = status;
-      }
-
-      setGeneratedWriting(completed.output);
-      setWritingProgress(
-        `Complete: ${completed.actualWordCount.toLocaleString()} words (within 10% of the ${completed.requestedWordCount.toLocaleString()}-word target), plain text, ${completed.usesLargeScaleCoherence ? "large-scale coherence used" : "standard generation used"}`,
-      );
+      const completed = await waitForWritingJob(data.jobId);
       trackEvent("writing_generated", {
         provider: selectedProvider,
         instruction_character_count: writingInstructions.length,
@@ -504,6 +515,37 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       });
     } finally {
       setIsWriting(false);
+    }
+  };
+
+  const handleRedoWritingForAudits = async () => {
+    if (!writingJobId || !writingAudits.length) return;
+    setIsRedoingWritingAudits(true);
+    setWritingProgress("Redoing the essay to correct the failed audits...");
+    try {
+      const response = await fetch(`/api/writing/jobs/${writingJobId}/redo`, { method: "POST" });
+      const data = await safeJson(response);
+      if (!response.ok || !data?.jobId) throw new Error(data?.message || "Unable to redo the essay");
+      const completed = await waitForWritingJob(data.jobId);
+      trackEvent("writing_redone_for_audits", {
+        provider: selectedProvider,
+        failed_audit_count: writingAudits.length,
+        output_character_count: completed.output.length,
+      });
+      toast({
+        title: "Revised Essay Complete",
+        description: completed.audits?.length
+          ? "The revised essay is displayed with its new audit results."
+          : "The revised essay passed all displayed audits.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Redo Could Not Start",
+        description: error.message || "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRedoingWritingAudits(false);
     }
   };
 
@@ -2655,7 +2697,7 @@ Generated on: ${new Date().toLocaleString()}`;
           />
           <Button
             onClick={handleWriteFromInstructions}
-            disabled={isWriting || !writingInstructions.trim()}
+            disabled={isWriting || isRedoingWritingAudits || !writingInstructions.trim()}
             className="min-w-44 bg-indigo-700 hover:bg-indigo-800"
             data-testid="button-write-from-instructions"
           >
@@ -2720,6 +2762,44 @@ Generated on: ${new Date().toLocaleString()}`;
                 <MathRenderer content={generatedWriting} />
               )}
             </div>
+            {!isWriting && generatedWriting && (
+              <div className="mt-5 rounded-md border border-amber-300 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950/30" data-testid="writing-audit-section">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="flex items-center gap-2 font-semibold text-amber-950 dark:text-amber-100">
+                      <MessageSquareWarning className="h-5 w-5" />
+                      Essay Audits
+                    </h3>
+                    <p className="mt-1 text-sm text-amber-900 dark:text-amber-200">
+                      {writingAudits.length
+                        ? `${writingAudits.length} audit ${writingAudits.length === 1 ? "issue remains" : "issues remain"} in the delivered essay.`
+                        : "The delivered essay passed all audits."}
+                    </p>
+                  </div>
+                  {writingAudits.length > 0 && (
+                    <Button
+                      onClick={handleRedoWritingForAudits}
+                      disabled={isRedoingWritingAudits}
+                      className="bg-amber-700 hover:bg-amber-800"
+                      data-testid="button-redo-writing-audits"
+                    >
+                      <RefreshCw className={`mr-2 h-4 w-4 ${isRedoingWritingAudits ? "animate-spin" : ""}`} />
+                      {isRedoingWritingAudits ? "Redoing Essay..." : "Redo Essay to Pass Audits"}
+                    </Button>
+                  )}
+                </div>
+                {writingAudits.length > 0 && (
+                  <div className="mt-4 space-y-3">
+                    {writingAudits.map((audit, index) => (
+                      <div key={`${audit.section}-${index}`} className="rounded border border-amber-200 bg-white p-3 dark:border-amber-900 dark:bg-gray-950">
+                        <div className="text-sm font-semibold text-amber-950 dark:text-amber-100">{audit.section}</div>
+                        <div className="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-800 dark:text-gray-200">{audit.report}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </section>

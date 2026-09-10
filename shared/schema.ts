@@ -365,6 +365,8 @@ export const writingJobs = pgTable("writing_jobs", {
   blueprint: text("blueprint"),
   coherenceLedger: text("coherence_ledger"),
   output: text("output"),
+  auditReport: text("audit_report"),
+  auditGuidance: text("audit_guidance"),
   completedSections: integer("completed_sections").notNull().default(0),
   totalSections: integer("total_sections").notNull().default(1),
   error: text("error"),

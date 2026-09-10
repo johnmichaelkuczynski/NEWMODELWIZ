@@ -1548,8 +1548,55 @@ export async function registerRoutes(app: Express): Promise<Express> {
       completedSections: job.completedSections,
       totalSections: job.totalSections,
       output: job.output,
+      audits: (() => {
+        try {
+          return job.auditReport ? JSON.parse(job.auditReport) : [];
+        } catch {
+          return [];
+        }
+      })(),
       error: job.error,
     });
+  });
+
+  app.post("/api/writing/jobs/:id/redo", async (req: Request, res: Response) => {
+    try {
+      const { getWritingJob, createWritingJob, processWritingJob } = await import("./services/longFormWriting");
+      const original = await getWritingJob(Number(req.params.id));
+      if (!original) return res.status(404).json({ message: "Writing job not found" });
+      if (original.userId && req.user?.id !== original.userId) {
+        return res.status(403).json({ message: "This writing job belongs to another user" });
+      }
+      let audits: Array<{ section?: string; report?: string }> = [];
+      try {
+        audits = original.auditReport ? JSON.parse(original.auditReport) : [];
+      } catch {
+        audits = [];
+      }
+      if (!audits.length) {
+        return res.status(400).json({ message: "This essay has no failed audits to correct" });
+      }
+      const auditGuidance = audits
+        .map(item => `${item.section || "Essay"}: ${item.report || "Correct the failed audit."}`)
+        .join("\n\n");
+      const redo = await createWritingJob({
+        userId: original.userId || undefined,
+        instructions: original.instructions,
+        provider: original.provider as any,
+        requestedWordCount: original.requestedWordCount,
+        auditGuidance,
+      });
+      void processWritingJob(redo.id).catch(error => {
+        console.error(`Writing redo job ${redo.id} failed:`, error);
+      });
+      return res.status(202).json({
+        jobId: redo.id,
+        requestedWordCount: redo.requestedWordCount,
+        usesLargeScaleCoherence: redo.usesLargeScaleCoherence,
+      });
+    } catch (error: any) {
+      return res.status(500).json({ message: error.message || "Unable to redo the essay" });
+    }
   });
 
   app.post("/api/chat-with-memory", async (req: Request, res: Response) => {
