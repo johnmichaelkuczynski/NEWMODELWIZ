@@ -3,6 +3,8 @@ import { chunkText } from "@/lib/textUtils";
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
 import pdfParse from 'pdf-parse';
 import { extractWithMathpix } from './mathpixOCR';
 
@@ -44,6 +46,9 @@ export async function extractTextFromFile(
       case '.docx':
         result = await extractTextFromDocx(file);
         break;
+      case '.doc':
+        result = await extractTextFromDoc(file);
+        break;
       case '.pdf':
         result = await extractTextFromPdf(file);
         break;
@@ -56,7 +61,7 @@ export async function extractTextFromFile(
         result = await extractTextFromImage(file);
         break;
       default:
-        throw new Error(`Unsupported file type: ${fileExtension}. Supported types: .txt, .docx, .pdf, .jpg, .jpeg, .png, .gif, .bmp, .webp`);
+        throw new Error(`Unsupported file type: ${fileExtension}. Supported types: .txt, .doc, .docx, .pdf, .jpg, .jpeg, .png, .gif, .bmp, .webp`);
     }
     
     // Apply chunking if the document is large
@@ -110,6 +115,29 @@ async function extractTextFromDocx(file: Express.Multer.File): Promise<DocumentI
       filename: file.originalname,
       mimeType: file.mimetype
     };
+  }
+}
+
+async function extractTextFromDoc(file: Express.Multer.File): Promise<DocumentInput> {
+  const tempFilePath = path.join(os.tmpdir(), `${Date.now()}-${path.basename(file.originalname)}`);
+  try {
+    fs.writeFileSync(tempFilePath, file.buffer);
+    const { stdout } = await promisify(execFile)('antiword', [tempFilePath], {
+      maxBuffer: 12 * 1024 * 1024,
+    });
+    if (!stdout.trim()) {
+      throw new Error("No readable text was found in the DOC file");
+    }
+    return {
+      content: stdout,
+      filename: file.originalname,
+      mimeType: file.mimetype,
+    };
+  } catch (error) {
+    console.error("Error extracting text from DOC:", error);
+    throw new Error("The DOC file could not be read. Save it as DOCX, PDF, or TXT and try again.");
+  } finally {
+    if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
   }
 }
 

@@ -65,6 +65,9 @@ const HomePage: React.FC = () => {
   const [documentB, setDocumentB] = useState<DocumentInputType>({ content: "" });
   const [writingInstructions, setWritingInstructions] = useState("");
   const [writingDesiredWordCount, setWritingDesiredWordCount] = useState("");
+  const [writingSourceName, setWritingSourceName] = useState("");
+  const [isWritingSourceLoading, setIsWritingSourceLoading] = useState(false);
+  const writingSourceInputRef = useRef<HTMLInputElement>(null);
   const [generatedWriting, setGeneratedWriting] = useState("");
   const [isWriting, setIsWriting] = useState(false);
   const [isStoppingWriting, setIsStoppingWriting] = useState(false);
@@ -415,6 +418,47 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         description: "Could not read the file. Please try a different format.",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleWritingSourceUpload = async (file: File) => {
+    const allowedExtensions = [".txt", ".doc", ".docx", ".pdf"];
+    const extension = file.name.slice(file.name.lastIndexOf(".")).toLowerCase();
+    if (!allowedExtensions.includes(extension)) {
+      toast({
+        title: "Choose a document",
+        description: "Upload a TXT, DOC, DOCX, or PDF file.",
+      });
+      return;
+    }
+
+    setIsWritingSourceLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/extract-text", { method: "POST", body: formData });
+      const data = await safeJson(response);
+      if (!response.ok || !data?.content?.trim()) {
+        throw new Error(data?.message || "No readable text was found in that document.");
+      }
+
+      const sourceBlock = `SOURCE DOCUMENT — ${file.name}\n\n${data.content.trim()}\n\nEND SOURCE DOCUMENT`;
+      setWritingInstructions(current => current.trim()
+        ? `${current.trim()}\n\n${sourceBlock}`
+        : `Rewrite, improve, expand, or draw from the source document below according to these instructions:\n\n[Type your instructions here]\n\n${sourceBlock}`);
+      setWritingSourceName(file.name);
+      toast({
+        title: "Document Ready",
+        description: `${file.name} is now included in the writing instructions.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: "Document Not Added",
+        description: error.message || "The document could not be read. Your existing instructions were not changed.",
+      });
+    } finally {
+      setIsWritingSourceLoading(false);
+      if (writingSourceInputRef.current) writingSourceInputRef.current.value = "";
     }
   };
 
@@ -3020,13 +3064,58 @@ Generated on: ${new Date().toLocaleString()}`;
           </p>
         </div>
 
-        <Textarea
-          value={writingInstructions}
-          onChange={(event) => setWritingInstructions(event.target.value)}
-          placeholder={'Example: Construct a comprehensive, 10–12 chapter theoretical treatise titled “The Mechanics of Normative Entailment.” Define three foundational axioms in Chapter 1, derive every later argument from them, address the strongest objections in Chapter 9, and maintain exact terminological consistency throughout.'}
-          className="min-h-[220px] bg-white text-base leading-relaxed dark:bg-gray-950"
-          data-testid="textarea-writing-instructions"
-        />
+        <div
+          className="rounded-md border border-dashed border-indigo-300 bg-white/60 p-3 transition-colors hover:border-indigo-500 dark:border-indigo-700 dark:bg-gray-950/60"
+          onDragOver={(event) => {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "copy";
+          }}
+          onDrop={(event) => {
+            event.preventDefault();
+            const file = event.dataTransfer.files?.[0];
+            if (file) void handleWritingSourceUpload(file);
+          }}
+          data-testid="dropzone-writing-source"
+        >
+          <Textarea
+            value={writingInstructions}
+            onChange={(event) => setWritingInstructions(event.target.value)}
+            placeholder={'Type or paste instructions and source text here, or upload a paper below. Example: Rewrite this argument about Kant with a clearer thesis, stronger objections, and more precise distinctions.'}
+            className="min-h-[220px] border-0 bg-white text-base leading-relaxed shadow-none focus-visible:ring-1 dark:bg-gray-950"
+            data-testid="textarea-writing-instructions"
+          />
+          <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-indigo-100 pt-3 dark:border-indigo-900">
+            <input
+              ref={writingSourceInputRef}
+              type="file"
+              accept=".txt,.doc,.docx,.pdf,text/plain,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
+              className="hidden"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) void handleWritingSourceUpload(file);
+              }}
+              data-testid="input-writing-source"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => writingSourceInputRef.current?.click()}
+              disabled={isWritingSourceLoading || isWriting}
+              data-testid="button-writing-source"
+            >
+              {isWritingSourceLoading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="mr-2 h-4 w-4" />
+              )}
+              {isWritingSourceLoading ? "Reading Document..." : "Upload Source Document"}
+            </Button>
+            <span className="text-sm text-indigo-700 dark:text-indigo-300">
+              {writingSourceName || "Drag and drop TXT, DOC, DOCX, or PDF"}
+            </span>
+          </div>
+        </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_0.8fr_auto] lg:items-end">
           <div className="w-full">
