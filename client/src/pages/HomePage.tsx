@@ -64,6 +64,7 @@ const HomePage: React.FC = () => {
   const [documentA, setDocumentA] = useState<DocumentInputType>({ content: "" });
   const [documentB, setDocumentB] = useState<DocumentInputType>({ content: "" });
   const [writingInstructions, setWritingInstructions] = useState("");
+  const [writingSourceDocument, setWritingSourceDocument] = useState("");
   const [writingDesiredWordCount, setWritingDesiredWordCount] = useState("");
   const [writingSourceName, setWritingSourceName] = useState("");
   const [isWritingSourceLoading, setIsWritingSourceLoading] = useState(false);
@@ -504,14 +505,11 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         throw new Error(data?.message || "No readable text was found in that document.");
       }
 
-      const sourceBlock = `SOURCE DOCUMENT — ${file.name}\n\n${data.content.trim()}\n\nEND SOURCE DOCUMENT`;
-      setWritingInstructions(current => current.trim()
-        ? `${current.trim()}\n\n${sourceBlock}`
-        : `Rewrite, improve, expand, or draw from the source document below according to these instructions:\n\n[Type your instructions here]\n\n${sourceBlock}`);
+      setWritingSourceDocument(data.content.trim());
       setWritingSourceName(file.name);
       toast({
         title: "Document Ready",
-        description: `${file.name} is now included in the writing instructions.`,
+        description: `${file.name} is available as a separate source document. Your instructions were not changed.`,
       });
     } catch (error: any) {
       toast({
@@ -677,6 +675,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           instructions: writingInstructions,
+          sourceDocument: writingSourceDocument,
           provider: selectedProvider,
           ...(explicitWordCount !== undefined ? { requestedWordCount: explicitWordCount } : {}),
         }),
@@ -3142,7 +3141,7 @@ Generated on: ${new Date().toLocaleString()}`;
           <Textarea
             value={writingInstructions}
             onChange={(event) => setWritingInstructions(event.target.value)}
-            placeholder={'Type or paste instructions and source text here, or upload a paper below. Example: Rewrite this argument about Kant with a clearer thesis, stronger objections, and more precise distinctions.'}
+            placeholder={'Type or paste only your writing instructions here. Example: Write a 1,000-word argument that logic requires non-spatiotemporal entities.'}
             className="min-h-[220px] border-0 bg-white text-base leading-relaxed shadow-none focus-visible:ring-1 dark:bg-gray-950"
             data-testid="textarea-writing-instructions"
           />
@@ -3177,6 +3176,36 @@ Generated on: ${new Date().toLocaleString()}`;
               {writingSourceName || "Drag and drop TXT, DOC, DOCX, or PDF"}
             </span>
           </div>
+          {writingSourceDocument && (
+            <div className="mt-4 border-t-2 border-indigo-300 pt-4 dark:border-indigo-700" data-testid="writing-source-document-panel">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <div>
+                  <Label className="font-semibold">Uploaded Source Document — Separate from Instructions</Label>
+                  <p className="text-xs text-muted-foreground">
+                    This text is evidence only. Its headings and directives cannot control the writing structure.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setWritingSourceDocument("");
+                    setWritingSourceName("");
+                    if (writingSourceInputRef.current) writingSourceInputRef.current.value = "";
+                  }}
+                >
+                  Discard Source
+                </Button>
+              </div>
+              <Textarea
+                value={writingSourceDocument}
+                readOnly
+                className="min-h-[160px] bg-slate-50 font-mono text-sm dark:bg-slate-950"
+                data-testid="textarea-writing-source-document"
+              />
+            </div>
+          )}
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_0.8fr_auto] lg:items-end">

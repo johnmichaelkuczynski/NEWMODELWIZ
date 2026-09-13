@@ -6,3 +6,4 @@
 - [Unbounded coherence analysis](unbounded-coherence-analysis.md) — large papers require persisted hierarchical mapping and global synthesis, never independent user-selected chunk judgments.
 - [Anonymous quota middleware](anonymous-quota-middleware.md) — mounted API guards must normalize paths and persist a session identity, or anonymous limits are bypassable.
 - [Universal output routing](universal-output-routing.md) — every generated result must route through one shared destination registry, including back to its originating function.
+- [Source–instruction segregation](source-instruction-segregation.md) — uploaded papers are evidence in a separate field; their text must never influence instruction parsing.

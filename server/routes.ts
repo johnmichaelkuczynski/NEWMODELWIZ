@@ -1676,6 +1676,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     try {
       const {
         instructions,
+        sourceDocument,
         provider = "zhi1",
         requestedWordCount,
         originalRequestedWordCount,
@@ -1684,6 +1685,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
       } = req.body;
       if (!instructions || typeof instructions !== "string") {
         return res.status(400).json({ message: "Writing instructions are required" });
+      }
+      if (sourceDocument !== undefined && typeof sourceDocument !== "string") {
+        return res.status(400).json({ message: "Source document must be text" });
       }
       const validProviders = ["zhi1", "zhi2", "zhi3", "zhi4", "zhi5"];
       if (!validProviders.includes(provider)) {
@@ -1704,6 +1708,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const job = await createWritingJob({
         userId: req.user?.id,
         instructions,
+        sourceDocument: sourceDocument?.trim() || undefined,
         provider,
         requestedWordCount: wordCount,
         forceSingleSection: forceSingleSectionPreview === true,
@@ -1730,6 +1735,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     try {
       const {
         instructions,
+        sourceDocument,
         provider = "zhi1",
         requestedWordCount,
         originalRequestedWordCount,
@@ -1738,6 +1744,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
       } = req.body;
       if (!instructions || typeof instructions !== "string") {
         return res.status(400).json({ message: "Writing instructions are required" });
+      }
+      if (sourceDocument !== undefined && typeof sourceDocument !== "string") {
+        return res.status(400).json({ message: "Source document must be text" });
       }
       if (!["zhi1", "zhi2", "zhi3", "zhi4", "zhi5"].includes(provider)) {
         return res.status(400).json({ message: "Invalid writing provider" });
@@ -1754,6 +1763,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const job = await createIndependentWritingJob({
         userId: req.user?.id,
         instructions,
+        sourceDocument: sourceDocument?.trim() || undefined,
         provider,
         requestedWordCount: wordCount,
         forceSingleSection: forceSingleSectionPreview === true,
@@ -1884,6 +1894,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const redo = await createWritingJob({
         userId: original.userId || undefined,
         instructions: original.instructions,
+        sourceDocument: original.sourceDocument || undefined,
         provider: original.provider as any,
         requestedWordCount: original.requestedWordCount,
         auditGuidance,
@@ -1923,6 +1934,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const redo = await createIndependentWritingJob({
         userId: original.userId || undefined,
         instructions: original.instructions,
+        sourceDocument: original.sourceDocument || undefined,
         provider: original.provider as any,
         requestedWordCount: original.requestedWordCount,
         auditGuidance,

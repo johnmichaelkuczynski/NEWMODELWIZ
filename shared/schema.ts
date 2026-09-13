@@ -358,6 +358,7 @@ export const writingJobs = pgTable("writing_jobs", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").references(() => users.id),
   instructions: text("instructions").notNull(),
+  sourceDocument: text("source_document"),
   provider: text("provider").notNull(),
   requestedWordCount: integer("requested_word_count").notNull(),
   usesLargeScaleCoherence: boolean("uses_large_scale_coherence").notNull().default(false),
