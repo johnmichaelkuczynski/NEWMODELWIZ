@@ -3125,8 +3125,19 @@ Generated on: ${new Date().toLocaleString()}`;
           </p>
         </div>
 
+        <div className="rounded-md border border-indigo-300 bg-white/60 p-3 dark:border-indigo-700 dark:bg-gray-950/60">
+          <Label className="mb-2 block text-base font-semibold">Writing Instructions</Label>
+          <Textarea
+            value={writingInstructions}
+            onChange={(event) => setWritingInstructions(event.target.value)}
+            placeholder={'Type or paste only your writing instructions here. Example: Write a 1,000-word argument that logic requires non-spatiotemporal entities.'}
+            className="min-h-[180px] bg-white text-base leading-relaxed dark:bg-gray-950"
+            data-testid="textarea-writing-instructions"
+          />
+        </div>
+
         <div
-          className="rounded-md border border-dashed border-indigo-300 bg-white/60 p-3 transition-colors hover:border-indigo-500 dark:border-indigo-700 dark:bg-gray-950/60"
+          className="mt-4 rounded-md border-2 border-dashed border-emerald-300 bg-emerald-50/60 p-3 transition-colors hover:border-emerald-500 dark:border-emerald-700 dark:bg-emerald-950/20"
           onDragOver={(event) => {
             event.preventDefault();
             event.dataTransfer.dropEffect = "copy";
@@ -3138,12 +3149,37 @@ Generated on: ${new Date().toLocaleString()}`;
           }}
           data-testid="dropzone-writing-source"
         >
+          <div className="mb-2 flex items-start justify-between gap-3">
+            <div>
+              <Label className="text-base font-semibold">Source Paper</Label>
+              <p className="text-xs text-muted-foreground">
+                Paste, edit, or upload the paper here. This content is evidence only and cannot control the writing instructions.
+              </p>
+            </div>
+            {writingSourceDocument && (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setWritingSourceDocument("");
+                  setWritingSourceName("");
+                  if (writingSourceInputRef.current) writingSourceInputRef.current.value = "";
+                }}
+              >
+                Discard Source
+              </Button>
+            )}
+          </div>
           <Textarea
-            value={writingInstructions}
-            onChange={(event) => setWritingInstructions(event.target.value)}
-            placeholder={'Type or paste only your writing instructions here. Example: Write a 1,000-word argument that logic requires non-spatiotemporal entities.'}
-            className="min-h-[220px] border-0 bg-white text-base leading-relaxed shadow-none focus-visible:ring-1 dark:bg-gray-950"
-            data-testid="textarea-writing-instructions"
+            value={writingSourceDocument}
+            onChange={(event) => {
+              setWritingSourceDocument(event.target.value);
+              if (!event.target.value) setWritingSourceName("");
+            }}
+            placeholder="Paste the source paper here, edit an uploaded paper, or drag and drop a TXT, DOC, DOCX, or PDF file into this box."
+            className="min-h-[220px] bg-white font-mono text-sm leading-relaxed dark:bg-gray-950"
+            data-testid="textarea-writing-source-document"
           />
           <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-indigo-100 pt-3 dark:border-indigo-900">
             <input
@@ -3176,36 +3212,6 @@ Generated on: ${new Date().toLocaleString()}`;
               {writingSourceName || "Drag and drop TXT, DOC, DOCX, or PDF"}
             </span>
           </div>
-          {writingSourceDocument && (
-            <div className="mt-4 border-t-2 border-indigo-300 pt-4 dark:border-indigo-700" data-testid="writing-source-document-panel">
-              <div className="mb-2 flex items-center justify-between gap-3">
-                <div>
-                  <Label className="font-semibold">Uploaded Source Document — Separate from Instructions</Label>
-                  <p className="text-xs text-muted-foreground">
-                    This text is evidence only. Its headings and directives cannot control the writing structure.
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setWritingSourceDocument("");
-                    setWritingSourceName("");
-                    if (writingSourceInputRef.current) writingSourceInputRef.current.value = "";
-                  }}
-                >
-                  Discard Source
-                </Button>
-              </div>
-              <Textarea
-                value={writingSourceDocument}
-                readOnly
-                className="min-h-[160px] bg-slate-50 font-mono text-sm dark:bg-slate-950"
-                data-testid="textarea-writing-source-document"
-              />
-            </div>
-          )}
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_0.8fr_auto] lg:items-end">
