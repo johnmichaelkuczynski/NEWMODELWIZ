@@ -77,9 +77,19 @@ async function reconcileCustomerSubscription(customerId: string) {
 export function registerPaymentRoutes(app: Express) {
   app.post("/api/payments/subscribe", async (req: Request, res: Response) => {
     try {
-      if (!stripe || !process.env.STRIPE_PRICE_ID) {
+      const configuredPriceIds = [
+        process.env.STRIPE_PRICE_ID,
+        process.env.STRIPE_PRICE_ID_2,
+      ].filter((priceId): priceId is string => Boolean(priceId));
+      if (!stripe || configuredPriceIds.length === 0) {
         return res.status(503).json({ message: "Stripe subscription is not configured" });
       }
+      const requestedPriceId =
+        typeof req.body?.priceId === "string" ? req.body.priceId.trim() : "";
+      if (requestedPriceId && !configuredPriceIds.includes(requestedPriceId)) {
+        return res.status(400).json({ message: "Invalid subscription price" });
+      }
+      const selectedPriceId = requestedPriceId || configuredPriceIds[0];
       const stripeClient = stripe;
 
       const user = getSignedInUser(req, res);
@@ -136,13 +146,14 @@ export function registerPaymentRoutes(app: Express) {
           (candidate) =>
             candidate.mode === "subscription" &&
             candidate.metadata?.purchaseType === "model-wiz-subscription" &&
+            candidate.metadata?.priceId === selectedPriceId &&
             Boolean(candidate.url),
         );
         if (existingSession) return existingSession;
 
         return stripeClient.checkout.sessions.create({
           mode: "subscription",
-          line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
+          line_items: [{ price: selectedPriceId, quantity: 1 }],
           success_url: `${baseUrl}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${baseUrl}/?payment=cancelled`,
           client_reference_id: String(currentUser.id),
@@ -150,11 +161,13 @@ export function registerPaymentRoutes(app: Express) {
           metadata: {
             userId: String(currentUser.id),
             purchaseType: "model-wiz-subscription",
+            priceId: selectedPriceId,
           },
           subscription_data: {
             metadata: {
               userId: String(currentUser.id),
               purchaseType: "model-wiz-subscription",
+              priceId: selectedPriceId,
             },
           },
         });
