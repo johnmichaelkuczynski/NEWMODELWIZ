@@ -1,4 +1,5 @@
 import { apiRequest } from "./queryClient";
+import { readNdjsonStream } from "@/components/WordCountStatus";
 import { 
   DocumentInput, 
   AIDetectionResult, 
@@ -241,7 +242,17 @@ export async function translateDocument(
       provider,
       filename,
     });
-    return await response.json();
+    let result: TranslationResult | null = null;
+    await readNdjsonStream(response, message => {
+      if (message.type === "done") {
+        result = {
+          success: true,
+          translatedContent: message.translatedText,
+        };
+      }
+    });
+    if (!result) throw new Error("Translation ended without a completed result");
+    return result;
   } catch (error) {
     console.error("Error translating document:", error);
     throw error;
@@ -262,7 +273,24 @@ export async function rewriteDocument(
     };
     
     const response = await apiRequest("POST", "/api/rewrite", request);
-    return await response.json();
+    let result: RewriteResult | null = null;
+    await readNdjsonStream(response, message => {
+      if (message.type === "done") {
+        const rewrittenText = message.rewrittenText || "";
+        result = {
+          originalText,
+          rewrittenText,
+          stats: {
+            originalLength: originalText.length,
+            rewrittenLength: rewrittenText.length,
+            lengthChange: originalText.length ? ((rewrittenText.length - originalText.length) / originalText.length) * 100 : 0,
+            instructionFollowed: options.instruction,
+          },
+        };
+      }
+    });
+    if (!result) throw new Error("Rewrite ended without a completed result");
+    return result;
   } catch (error) {
     console.error("Error rewriting document:", error);
     throw error;

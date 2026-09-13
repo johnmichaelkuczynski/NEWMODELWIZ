@@ -240,7 +240,6 @@ export default function DiagnosticPage() {
             Pinging providers, testing the database, and exercising analysis and long-form writing…
           </div>
           <div className="text-sm text-gray-500 mt-1">The large-scale prose test can take several minutes.</div>
-          <WordCountStatus running count={0} className="mt-2" />
         </Card>
       )}
 

@@ -10,7 +10,7 @@ import { Send, Upload, Download, Mail, FileText, Paperclip, ArrowUpToLine, Datab
 import { MathRenderer } from './MathRenderer';
 import CopyButton from '@/components/CopyButton';
 import SendToButton from '@/components/SendToButton';
-import WordCountStatus from '@/components/WordCountStatus';
+import WordCountStatus, { readNdjsonStream } from '@/components/WordCountStatus';
 
 interface ChatMessage {
   id: string;
@@ -56,6 +56,7 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
   const [inputMessage, setInputMessage] = useState<string>("");
   const [selectedProvider, setSelectedProvider] = useState<LLMProvider>("zhi1");
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [streamingResponse, setStreamingResponse] = useState("");
   const [useExternalKnowledge, setUseExternalKnowledge] = useState<boolean>(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -134,6 +135,7 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
     const currentQuestion = inputMessage;
     setInputMessage("");
     setIsLoading(true);
+    setStreamingResponse("");
 
     try {
       // Build conversation history for API (only last 10 messages to avoid context overflow)
@@ -161,8 +163,17 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      const assistantContent = data.content || data.response || "No response received";
+      let assistantContent = "";
+      await readNdjsonStream(response, data => {
+        if (data.type === "chunk") {
+          assistantContent += data.text;
+          setStreamingResponse(assistantContent);
+        } else if (data.type === "done") {
+          assistantContent = data.content ?? assistantContent;
+          setStreamingResponse(assistantContent);
+        }
+      });
+      assistantContent ||= "No response received";
 
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
@@ -186,6 +197,7 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
       setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
+      setStreamingResponse("");
     }
   };
 
@@ -449,7 +461,7 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
                   <div className="animate-spin h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full"></div>
                   <span>AI is thinking...</span>
                 </div>
-                <WordCountStatus running count={0} className="mt-2" />
+                <WordCountStatus running text={streamingResponse} className="mt-2" />
               </div>
             </div>
           )}

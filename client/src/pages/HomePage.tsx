@@ -28,7 +28,7 @@ import { AnalysisMode, DocumentInput as DocumentInputType, AIDetectionResult, Do
 import { useToast } from "@/hooks/use-toast";
 import CopyButton from "@/components/CopyButton";
 import ProgressiveOutput from "@/components/ProgressiveOutput";
-import WordCountStatus from "@/components/WordCountStatus";
+import WordCountStatus, { readNdjsonStream } from "@/components/WordCountStatus";
 import SendToButton from "@/components/SendToButton";
 import { MathRenderer } from "@/components/MathRenderer";
 import { trackEvent } from "@/lib/analytics";
@@ -51,6 +51,20 @@ async function safeJson(response: Response): Promise<any> {
   }
 }
 
+async function readGeneratedResponse(response: Response, onText: (text: string) => void): Promise<any> {
+  let accumulated = "";
+  let finalMessage: any = null;
+  await readNdjsonStream(response, message => {
+    if (message.type === "chunk") {
+      accumulated += message.text || "";
+      onText(accumulated);
+    } else if (message.type === "done") {
+      finalMessage = message;
+      if (typeof message.output === "string") onText(message.output);
+    }
+  });
+  return finalMessage;
+}
 const HomePage: React.FC = () => {
   const { toast } = useToast();
   
@@ -85,7 +99,6 @@ const HomePage: React.FC = () => {
   const [comparison, setComparison] = useState<DocumentComparison | null>(null);
 
 
-
   // State for loading indicators
   const [isAnalysisLoading, setIsAnalysisLoading] = useState(false);
   const [isAICheckLoading, setIsAICheckLoading] = useState(false);
@@ -99,7 +112,6 @@ const HomePage: React.FC = () => {
   const [aiDetectionResult, setAIDetectionResult] = useState<AIDetectionResult | undefined>(undefined);
 
 
-  
   // State for case assessment
   const [caseAssessmentModalOpen, setCaseAssessmentModalOpen] = useState(false);
   const [caseAssessmentResult, setCaseAssessmentResult] = useState<any>(null);
@@ -1094,7 +1106,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         throw new Error(errorData.message || 'Validation failed');
       }
 
-      const data = await response.json();
+      const data = await readGeneratedResponse(response, setValidatorOutput);
       if (data.success && data.output) {
         setValidatorOutput(data.output);
         toast({
@@ -1132,7 +1144,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
               }),
             });
             if (retryResponse.ok) {
-              const retryData = await retryResponse.json();
+              setValidatorOutput("");
+              const retryData = await readGeneratedResponse(retryResponse, setValidatorOutput);
               if (retryData.success && retryData.output) {
                 setValidatorOutput(retryData.output);
                 toast({
@@ -1248,7 +1261,16 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         throw new Error(errorData.message || 'Batch validation failed');
       }
 
-      const data = await response.json();
+      let batchText = "";
+      let data: any = null;
+      await readNdjsonStream(response, message => {
+        if (message.type === "chunk") {
+          batchText += message.text || "";
+          setValidatorOutput(batchText);
+        } else if (message.type === "done") {
+          data = message;
+        }
+      });
       console.log('Batch validation response:', data);
       if (data.success && data.results) {
         console.log('Setting batch results:', data.results.length, 'items');
@@ -1502,7 +1524,11 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
             }),
           });
 
-          const data = await safeJson(response);
+          let suiteText = "";
+          const data = await readGeneratedResponse(response, text => {
+            suiteText = text;
+            setValidatorOutput(text);
+          });
           if (!response.ok || !data?.success || !data?.output) {
             batchResults.push({ mode, success: false, error: data?.message || "Processing failed" });
           } else {
@@ -3103,7 +3129,6 @@ Generated on: ${new Date().toLocaleString()}`;
   };
   
 
-  
   // Handler for resetting the entire analysis
   const handleReset = () => {
     // Clear document inputs
@@ -3744,7 +3769,6 @@ Generated on: ${new Date().toLocaleString()}`;
               )}
               
 
-              
               {/* Semantic Density Analysis - always shown when there's text */}
               {mode === "single" && documentA.content.trim() && (
                 <div className="bg-white rounded-lg shadow-md p-6 mb-8 mt-8">
@@ -3755,7 +3779,6 @@ Generated on: ${new Date().toLocaleString()}`;
           )}
         </div>
       )}
-
 
 
       {/* Case Assessment Modal - REMOVED: Results now show in main report only */}
@@ -3791,7 +3814,6 @@ Generated on: ${new Date().toLocaleString()}`;
           title: documentB.filename || "Document B"
         }}
       />
-
 
 
       {/* Inline Streaming Results Area */}
@@ -5150,7 +5172,7 @@ Generated on: ${new Date().toLocaleString()}`;
             <div className="flex flex-col items-center justify-center py-12">
               <Loader2 className="w-12 h-12 animate-spin text-emerald-600 mb-4" />
               <p className="text-gray-600 dark:text-gray-400">Processing text validation...</p>
-              <WordCountStatus running count={0} className="mt-2" />
+              <WordCountStatus running text={validatorOutput} className="mt-2" />
             </div>
           )}
 
@@ -5160,7 +5182,7 @@ Generated on: ${new Date().toLocaleString()}`;
               <Loader2 className="w-12 h-12 animate-spin text-emerald-600 mb-4" />
               <p className="text-gray-600 dark:text-gray-400">Processing {validatorSelectedModes.length} functions...</p>
               <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">This may take a few minutes</p>
-              <WordCountStatus running count={0} className="mt-2" />
+              <WordCountStatus running text={validatorOutput} className="mt-2" />
             </div>
           )}
 
@@ -5859,7 +5881,8 @@ Generated on: ${new Date().toLocaleString()}`;
                           llmProvider: validatorLLMProvider,
                         }),
                       });
-                      const data = await response.json();
+                      setValidatorOutput("");
+                      const data = await readGeneratedResponse(response, setValidatorOutput);
                       if (data.success) {
                         setValidatorOutput(data.output);
                         toast({

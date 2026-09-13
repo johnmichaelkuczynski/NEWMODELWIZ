@@ -138,6 +138,82 @@ export interface RewriteParams {
 }
 
 export class AIProviderService {
+  async rewriteStream(
+    provider: string,
+    params: RewriteParams,
+    onChunk: (chunk: string) => void,
+  ): Promise<string> {
+    const prompt = buildRewritePrompt(params);
+    let output = "";
+    const emit = (text: string) => {
+      if (!text) return;
+      output += text;
+      onChunk(text);
+    };
+
+    if (provider === "openai") {
+      const stream = await openai.chat.completions.create({
+        model: DEFAULT_OPENAI_MODEL,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 4000,
+        stream: true,
+      });
+      for await (const event of stream) emit(event.choices[0]?.delta?.content || "");
+      return this.cleanMarkup(output);
+    }
+
+    if (provider === "anthropic") {
+      const stream = await anthropic.messages.stream({
+        model: DEFAULT_ANTHROPIC_MODEL,
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: 4000,
+        temperature: 0.7,
+      });
+      stream.on("text", emit);
+      await stream.finalMessage();
+      return this.cleanMarkup(output);
+    }
+
+    const config = provider === "perplexity"
+      ? { url: "https://api.perplexity.ai/chat/completions", key: process.env.PERPLEXITY_API_KEY || process.env.PERPLEXITY_API_KEY_ENV_VAR, model: "sonar-pro" }
+      : provider === "deepseek"
+        ? { url: "https://api.deepseek.com/chat/completions", key: process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY_ENV_VAR, model: "deepseek-chat" }
+        : null;
+    if (!config?.key) throw new Error(`Unsupported or unconfigured provider: ${provider}`);
+    const response = await fetch(config.url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${config.key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: config.model,
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
+        max_tokens: 4000,
+        stream: true,
+      }),
+    });
+    if (!response.ok || !response.body) throw new Error(`${provider} API error: ${response.status} ${await response.text()}`);
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const data = line.slice(6).trim();
+        if (!data || data === "[DONE]") continue;
+        try {
+          emit(JSON.parse(data).choices?.[0]?.delta?.content || "");
+        } catch {}
+      }
+      if (done) break;
+    }
+    return this.cleanMarkup(output);
+  }
+
   async rewriteWithOpenAI(params: RewriteParams): Promise<string> {
     console.log("🔥 CALLING OPENAI API - Input length:", params.inputText?.length || 0);
     const prompt = buildRewritePrompt({

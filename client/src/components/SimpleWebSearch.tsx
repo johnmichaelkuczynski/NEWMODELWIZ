@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, ExternalLink, ArrowDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
+import { readNdjsonStream } from "@/components/WordCountStatus";
 
 interface WebSearchResult {
   title: string;
@@ -94,7 +95,18 @@ const SimpleWebSearch: React.FC = () => {
         }),
       });
       
-      const data = await response.json();
+      let streamedText = "";
+      let data: any = null;
+      await readNdjsonStream(response, message => {
+        if (message.type === "chunk") {
+          streamedText += message.text || "";
+          setRewrittenText(streamedText);
+        } else if (message.type === "done") {
+          data = message;
+          streamedText = message.rewrittenText ?? streamedText;
+          setRewrittenText(streamedText);
+        }
+      });
       
       if (data.success && data.rewrittenText) {
         setRewrittenText(data.rewrittenText);

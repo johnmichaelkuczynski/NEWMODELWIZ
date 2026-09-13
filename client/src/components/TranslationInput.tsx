@@ -14,7 +14,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import WordCountStatus from "@/components/WordCountStatus";
+import WordCountStatus, { readNdjsonStream } from "@/components/WordCountStatus";
 
 // Language options for translation
 const languageOptions = [
@@ -173,11 +173,7 @@ export function TranslationInput() {
     };
 
     try {
-      // Using server-sent events to monitor progress
-      const eventSource = new EventSource(`/api/translate?_=${Date.now()}`);
-      
-      // Start translation by posting the content
-      fetch("/api/translate", {
+      const response = await fetch("/api/translate", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -187,39 +183,22 @@ export function TranslationInput() {
           options,
           filename: fileName,
         }),
-      }).catch(err => {
-        console.error("Translation request error:", err);
-        setError("Failed to start translation. Please try again.");
-        eventSource.close();
-        setIsLoading(false);
       });
-
-      // Handle progress updates
-      eventSource.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        setProgress(data);
-
-        // If translation is completed or failed, clean up
-        if (data.status === "completed") {
-          setTranslatedContent(data.translatedContent || "");
-          eventSource.close();
-          setIsLoading(false);
-        } else if (data.status === "failed") {
-          setError(data.error || "Translation failed. Please try again.");
-          eventSource.close();
-          setIsLoading(false);
+      let accumulated = "";
+      await readNdjsonStream(response, data => {
+        if (data.type === "chunk") {
+          accumulated += data.text;
+          setTranslatedContent(accumulated);
+        } else if (data.type === "done") {
+          accumulated = data.translatedText ?? accumulated;
+          setTranslatedContent(accumulated);
+          setProgress({ currentChunk: 1, totalChunks: 1, status: "completed" });
         }
-      };
-
-      // Handle EventSource errors
-      eventSource.onerror = () => {
-        setError("Lost connection to the server. Please try again.");
-        eventSource.close();
-        setIsLoading(false);
-      };
+      });
     } catch (err) {
       console.error("Error setting up translation:", err);
       setError("Failed to set up translation. Please try again.");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -438,7 +417,7 @@ export function TranslationInput() {
               </div>
             </div>
           )}
-          {isLoading && <WordCountStatus running count={0} className="mt-3" />}
+          {isLoading && <WordCountStatus running text={translatedContent} className="mt-3" />}
           
           {/* Hidden download link for the translated file */}
           <a 

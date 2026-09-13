@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileDown, Search, Loader2, ArrowLeft, ExternalLink, RefreshCw, FileText, Bot, BrainCircuit, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import WordCountStatus from "@/components/WordCountStatus";
+import WordCountStatus, { readNdjsonStream } from "@/components/WordCountStatus";
 
 interface SearchResult {
   title: string;
@@ -45,6 +45,7 @@ const WebSearchPage: React.FC = () => {
   const [rewrittenContent, setRewrittenContent] = useState<string>('');
   const [aiResponses, setAiResponses] = useState<AIResponse[]>([]);
   const [isRewriting, setIsRewriting] = useState(false);
+  const [searchStreamingText, setSearchStreamingText] = useState("");
   
   // Keep count of selected items for display
   const selectedCount = searchResults.filter(r => r.selected).length;
@@ -62,6 +63,8 @@ const WebSearchPage: React.FC = () => {
     
     setIsSearching(true);
     setSearchResults([]);
+    setAiResponses([]);
+    setSearchStreamingText("");
     
     try {
       // First, search Google
@@ -87,8 +90,8 @@ const WebSearchPage: React.FC = () => {
       // Then, get responses from all AI providers
       const aiProviders = ['openai', 'anthropic', 'perplexity'];
       
-      const aiPromises = aiProviders.map(provider => 
-        fetch('/api/rewrite', {
+      const aiPromises = aiProviders.map(async provider => {
+        const response = await fetch('/api/rewrite', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -98,8 +101,24 @@ const WebSearchPage: React.FC = () => {
             instructions: "Respond with comprehensive, factual information about this topic. Include relevant details, background, and context. Be objective and educational.",
             provider
           }),
-        }).then(r => r.json())
-      );
+        });
+        let text = "";
+        let final: any = null;
+        await readNdjsonStream(response, message => {
+          if (message.type === "chunk") {
+            text += message.text;
+            setSearchStreamingText(prev => prev + message.text);
+            setAiResponses(prev => {
+              const next = prev.filter(item => item.provider !== provider);
+              return [...next, { provider, response: text }];
+            });
+          } else if (message.type === "done") {
+            final = message;
+            text = message.rewrittenText ?? text;
+          }
+        });
+        return final || { success: true, rewrittenText: text };
+      });
       
       const aiResults = await Promise.all(aiPromises);
       const newAiResponses: AIResponse[] = [];
@@ -239,8 +258,9 @@ Your task is to create a comprehensive synthesis of the provided content accordi
       // Make separate requests to each provider if "all" is selected
       if (selectedProvider === 'all') {
         const providers = ['openai', 'anthropic', 'perplexity'];
-        const promises = providers.map(provider => 
-          fetch('/api/rewrite', {
+        setRewrittenContent("");
+        const promises = providers.map(async provider => {
+          const response = await fetch('/api/rewrite', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -250,8 +270,20 @@ Your task is to create a comprehensive synthesis of the provided content accordi
               instructions: detailedInstructions,
               provider
             }),
-          }).then(r => r.json())
-        );
+          });
+          let text = "";
+          let final: any = null;
+          await readNdjsonStream(response, message => {
+            if (message.type === "chunk") {
+              text += message.text;
+              setRewrittenContent(prev => prev + message.text);
+            } else if (message.type === "done") {
+              final = message;
+              text = message.rewrittenText ?? text;
+            }
+          });
+          return final || { success: true, rewrittenText: text };
+        });
         
         const results = await Promise.all(promises);
         let combinedResponse = '';
@@ -278,7 +310,19 @@ Your task is to create a comprehensive synthesis of the provided content accordi
           }),
         });
         
-        const data = await response.json();
+        let streamedText = "";
+        let data: any = null;
+        setRewrittenContent("");
+        await readNdjsonStream(response, message => {
+          if (message.type === "chunk") {
+            streamedText += message.text;
+            setRewrittenContent(streamedText);
+          } else if (message.type === "done") {
+            data = message;
+            streamedText = message.rewrittenText ?? streamedText;
+            setRewrittenContent(streamedText);
+          }
+        });
         
         if (data.success && data.rewrittenText) {
           setRewrittenContent(data.rewrittenText);
@@ -495,7 +539,7 @@ Your task is to create a comprehensive synthesis of the provided content accordi
               
               {/* AI Responses Tab */}
               <TabsContent value="aiResults" className="space-y-4">
-                {isSearching && <WordCountStatus running count={0} />}
+                {isSearching && <WordCountStatus running text={searchStreamingText} />}
                 {aiResponses.length === 0 ? (
                   <p className="text-gray-500 italic">No AI responses available</p>
                 ) : (
@@ -637,7 +681,7 @@ Your task is to create a comprehensive synthesis of the provided content accordi
               </Button>
               
               {/* Rewrite Results */}
-              {isRewriting && <WordCountStatus running count={0} className="mt-4" />}
+              {isRewriting && <WordCountStatus running text={rewrittenContent} className="mt-4" />}
               {rewrittenContent && (
                 <div className="mt-8 border border-green-300 rounded-lg p-4 bg-green-50">
                   <div className="flex justify-between items-center mb-4">

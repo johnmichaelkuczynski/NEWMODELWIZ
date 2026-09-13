@@ -8,3 +8,4 @@
 - [Universal output routing](universal-output-routing.md) — every generated result must route through one shared destination registry, including back to its originating function.
 - [Source–instruction segregation](source-instruction-segregation.md) — uploaded papers are evidence in a separate field; their text must never influence instruction parsing.
 - [Requested writing length](requested-writing-length.md) — the requested word count is a delivery minimum; internal chunks must be combined into one document.
+- [Streaming response contracts](streaming-response-contracts.md) — stream at provider boundaries without replacing prompt semantics, and migrate every endpoint consumer together.

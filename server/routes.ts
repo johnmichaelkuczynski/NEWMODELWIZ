@@ -84,7 +84,7 @@ function cleanMarkup(text: string): string {
     .trim();
 }
 
-// REAL-TIME STREAMING: Case Assessment for ALL ZHI providers
+type StreamMessage = { role: "system" | "user" | "assistant"; content: string };
 async function streamCaseAssessment(text: string, provider: string, res: any, context?: string) {
   let prompt = `Assess how well this text makes its case. Analyze argument effectiveness, proof quality, claim credibility and provide specific numerical scores.
 
@@ -1535,13 +1535,13 @@ export async function registerRoutes(app: Express): Promise<Express> {
   });
   
 
-  
   // Translate document
   app.post("/api/translate", async (req: Request, res: Response) => {
     try {
-      const { text, options, provider = "openai" } = req.body;
+      const { text, content, options, provider = "openai" } = req.body;
+      const sourceText = text || content;
       
-      if (!text) {
+      if (!sourceText) {
         return res.status(400).json({ error: "Text is required" });
       }
       
@@ -1549,15 +1549,21 @@ export async function registerRoutes(app: Express): Promise<Express> {
         return res.status(400).json({ error: "Target language is required" });
       }
       
-      // Import the translation service
-      const { translateDocument } = await import('./services/translationService');
-      
-      // Translate the document
       console.log(`TRANSLATING TO ${options.targetLanguage.toUpperCase()} WITH ${provider.toUpperCase()}`);
-      const result = await translateDocument(text, options, provider);
-      return res.json(result);
+      beginNdjson(res);
+      const prompt = `Translate the following text from ${options.sourceLanguage === "auto" ? "its original language" : options.sourceLanguage} to ${options.targetLanguage}. Preserve the original formatting and intellectual quality.\n\n${sourceText}`;
+      const translatedText = await streamProviderText(provider, [
+        { role: "system", content: "You are a professional translator. Return only the translation." },
+        { role: "user", content: prompt },
+      ], chunk => writeNdjson(res, { type: "chunk", text: chunk }), { temperature: 0.2 });
+      writeNdjson(res, { type: "done", translatedText });
+      return res.end();
     } catch (error: any) {
       console.error("Error translating document:", error);
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Failed to translate document" });
+        return res.end();
+      }
       return res.status(500).json({ 
         error: true, 
         message: error.message || "Failed to translate document" 
@@ -2061,88 +2067,20 @@ ${externalKnowledge}`;
         content: message
       });
 
-      // Make LLM request with conversation history
-      let content;
-      
-      if (actualProvider === 'openai') {
-        const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'gpt-4o',
-            messages: [
-              { role: 'system', content: systemMessage },
-              ...messages
-            ],
-            temperature: 0.7,
-            max_tokens: 4000
-          }),
-        });
-
-        const openaiData = await openaiResponse.json();
-        content = openaiData.choices?.[0]?.message?.content || "No response";
-        
-      } else if (actualProvider === 'anthropic') {
-        const anthropic = (await import('@anthropic-ai/sdk')).default;
-        const client = new anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-        
-        const claudeResponse = await client.messages.create({
-          model: 'claude-sonnet-4-5',
-          max_tokens: 4000,
-          system: systemMessage,
-          messages: messages
-        });
-        
-        content = claudeResponse.content[0].type === 'text' ? claudeResponse.content[0].text : "No response";
-        
-      } else if (actualProvider === 'deepseek') {
-        const deepseekResponse = await fetch('https://api.deepseek.com/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'deepseek-chat',
-            messages: [
-              { role: 'system', content: systemMessage },
-              ...messages
-            ],
-            temperature: 0.7
-          }),
-        });
-
-        const deepseekData = await deepseekResponse.json();
-        content = deepseekData.choices?.[0]?.message?.content || "No response";
-        
-      } else if (actualProvider === 'grok') {
-        const grokResponse = await fetch('https://api.x.ai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${process.env.GROK_API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'grok-3',
-            messages: [
-              { role: 'system', content: systemMessage },
-              ...messages
-            ],
-            temperature: 0.7
-          }),
-        });
-
-        const grokData = await grokResponse.json();
-        content = grokData.choices?.[0]?.message?.content || "No response";
-      }
-
-      return res.json({ content });
+      beginNdjson(res);
+      const content = await streamProviderText(actualProvider, [
+        { role: "system", content: systemMessage },
+        ...messages,
+      ], chunk => writeNdjson(res, { type: "chunk", text: chunk }), { maxTokens: 4000 });
+      writeNdjson(res, { type: "done", content });
+      return res.end();
       
     } catch (error: any) {
       console.error("Error in chat with memory:", error);
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Failed to process chat message" });
+        return res.end();
+      }
       return res.status(500).json({ 
         error: true, 
         message: error.message || "Failed to process chat message" 
@@ -2845,7 +2783,11 @@ PROVIDE A FINAL VALIDATED SCORE OUT OF 100 IN THE FORMAT: SCORE: X/100
   // Main rewrite endpoint - GPT Bypass Humanizer
   app.post("/api/rewrite", async (req, res) => {
     try {
-      const rewriteRequest: RewriteRequest = req.body;
+      const rewriteRequest: RewriteRequest = {
+        ...req.body,
+        inputText: req.body.inputText || req.body.originalText || req.body.text,
+        customInstructions: req.body.customInstructions || req.body.instructions,
+      };
       
       // Validate request
       if (!rewriteRequest.inputText || !rewriteRequest.provider) {
@@ -2871,21 +2813,18 @@ PROVIDE A FINAL VALIDATED SCORE OUT OF 100 IN THE FORMAT: SCORE: X/100
       });
 
       try {
-        // Perform rewrite
-        const rewrittenText = await aiProviderService.rewrite(rewriteRequest.provider, {
+        beginNdjson(res);
+        const cleanedRewrittenText = await aiProviderService.rewriteStream(rewriteRequest.provider, {
           inputText: rewriteRequest.inputText,
           styleText: rewriteRequest.styleText,
           contentMixText: rewriteRequest.contentMixText,
           customInstructions: rewriteRequest.customInstructions,
           selectedPresets: rewriteRequest.selectedPresets,
           mixingMode: rewriteRequest.mixingMode,
-        });
+        }, chunk => writeNdjson(res, { type: "chunk", text: chunk }));
 
         // Analyze output text
-        const outputAnalysis = await gptZeroService.analyzeText(rewrittenText);
-
-        // Clean markup from rewritten text
-        const cleanedRewrittenText = cleanMarkup(rewrittenText);
+        const outputAnalysis = await gptZeroService.analyzeText(cleanedRewrittenText);
 
         // Update job with results
         await storage.updateRewriteJob(rewriteJob.id, {
@@ -2901,7 +2840,8 @@ PROVIDE A FINAL VALIDATED SCORE OUT OF 100 IN THE FORMAT: SCORE: X/100
           jobId: rewriteJob.id.toString(),
         };
 
-        res.json(response);
+        writeNdjson(res, { type: "done", ...response, success: true });
+        res.end();
       } catch (error) {
         // Update job with error status
         await storage.updateRewriteJob(rewriteJob.id, {
@@ -2911,7 +2851,12 @@ PROVIDE A FINAL VALIDATED SCORE OUT OF 100 IN THE FORMAT: SCORE: X/100
       }
     } catch (error: any) {
       console.error('Rewrite error:', error);
-      res.status(500).json({ message: error.message });
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message });
+        res.end();
+      } else {
+        res.status(500).json({ message: error.message });
+      }
     }
   });
 
@@ -3867,120 +3812,16 @@ Remember: NO markdown formatting. Use plain text with CAPS headers only.`;
       
       let output = '';
       let usedProvider = requestedProvider;
+      beginNdjson(res);
       
       const callProvider = async (prov: string): Promise<string> => {
         console.log(`[Text Model Validator] Trying provider: ${prov}`);
-        
-        if (prov === 'zhi1') {
-          const OpenAI = (await import('openai')).default;
-          const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-          if (!process.env.OPENAI_API_KEY) throw new Error('OPENAI_API_KEY not configured');
-          const completion = await openai.chat.completions.create({
-            model: 'gpt-4o',
-            max_tokens: 4096,
-            temperature: 0.7,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user', content: userPrompt }
-            ]
-          });
-          const result = completion.choices[0]?.message?.content || '';
-          if (!result) throw new Error('Empty response from ZHI 1');
-          return result;
-        } else if (prov === 'zhi2') {
-          if (!process.env.ANTHROPIC_API_KEY) throw new Error('ANTHROPIC_API_KEY not configured');
-          const Anthropic = (await import('@anthropic-ai/sdk')).default;
-          const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-          const message = await anthropic.messages.create({
-            model: "claude-sonnet-4-5",
-            max_tokens: 4096,
-            temperature: 0.7,
-            system: systemPrompt,
-            messages: [{ role: "user", content: userPrompt }]
-          });
-          const result = message.content[0].type === 'text' ? message.content[0].text : '';
-          if (!result) throw new Error('Empty response from ZHI 2');
-          return result;
-        } else if (prov === 'zhi3') {
-          if (!process.env.DEEPSEEK_API_KEY) throw new Error('DEEPSEEK_API_KEY not configured');
-          const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'deepseek-chat',
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-              ],
-              max_tokens: 4096,
-              temperature: 0.7,
-            }),
-          });
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`DeepSeek API error ${response.status}: ${errorText}`);
-          }
-          const data = await response.json();
-          const result = data.choices?.[0]?.message?.content || '';
-          if (!result) throw new Error('Empty response from ZHI 3');
-          return result;
-        } else if (prov === 'zhi4') {
-          if (!process.env.PERPLEXITY_API_KEY) throw new Error('PERPLEXITY_API_KEY not configured');
-          const response = await fetch('https://api.perplexity.ai/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'sonar-pro',
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-              ],
-              max_tokens: 4096,
-              temperature: 0.7,
-            }),
-          });
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Perplexity API error ${response.status}: ${errorText}`);
-          }
-          const data = await response.json();
-          const result = data.choices?.[0]?.message?.content || '';
-          if (!result) throw new Error('Empty response from ZHI 4');
-          return result;
-        } else {
-          // zhi5 - Grok
-          if (!process.env.GROK_API_KEY) throw new Error('GROK_API_KEY not configured');
-          const response = await fetch('https://api.x.ai/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${process.env.GROK_API_KEY}`,
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              model: 'grok-3',
-              messages: [
-                { role: 'system', content: systemPrompt },
-                { role: 'user', content: userPrompt }
-              ],
-              max_tokens: 4096,
-              temperature: 0.7,
-            }),
-          });
-          if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`Grok API error ${response.status}: ${errorText}`);
-          }
-          const data = await response.json();
-          const result = data.choices?.[0]?.message?.content || '';
-          if (!result) throw new Error('Empty response from ZHI 5');
-          return result;
-        }
+        const result = await streamProviderText(prov, [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ], chunk => writeNdjson(res, { type: "chunk", text: chunk }));
+        if (!result) throw new Error(`Empty response from ${prov}`);
+        return result;
       }
 
       for (const prov of providersToTry) {
@@ -4173,18 +4014,23 @@ Model: ${providerDisplay}`;
       
       parameterHeader += `\n═══════════════════════════════════════════════════\n\n`;
 
-      res.json({
+      const finalOutput = parameterHeader + output;
+      writeNdjson(res, {
+        type: "done",
         success: true,
-        output: parameterHeader + output,
+        output: finalOutput,
         mode: mode
       });
+      res.end();
 
     } catch (error: any) {
       console.error("Text Model Validator error:", error);
-      res.status(500).json({ 
-        success: false,
-        message: error.message || "Validation failed" 
-      });
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Validation failed" });
+        res.end();
+      } else {
+        res.status(500).json({ success: false, message: error.message || "Validation failed" });
+      }
     }
   });
 
@@ -4210,6 +4056,7 @@ Model: ${providerDisplay}`;
       }
 
       console.log(`[Text Model Validator Batch] Processing ${modes.length} modes: ${modes.join(', ')}`);
+      beginNdjson(res);
 
       // Process modes in parallel with concurrency limit
       const processMode = async (mode: string): Promise<{ mode: string; success: boolean; output?: string; error?: string }> => {
@@ -4234,7 +4081,27 @@ Model: ${providerDisplay}`;
             })
           });
 
-          const data = await response.json();
+          if (!response.ok || !response.body) {
+            throw new Error(await response.text() || `Processing failed (${response.status})`);
+          }
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let buffer = "";
+          let data: any = null;
+          while (true) {
+            const { done, value } = await reader.read();
+            buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || "";
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              const message = JSON.parse(line);
+              if (message.type === "chunk") writeNdjson(res, { type: "chunk", mode, text: message.text });
+              if (message.type === "done") data = message;
+              if (message.type === "error") throw new Error(message.message);
+            }
+            if (done) break;
+          }
           if (data.success) {
             return { mode, success: true, output: data.output };
           } else {
@@ -4255,20 +4122,24 @@ Model: ${providerDisplay}`;
         results.push(...batchResults);
       }
 
-      res.json({
+      writeNdjson(res, {
+        type: "done",
         success: true,
         results,
         totalModes: modes.length,
         successfulModes: results.filter(r => r.success).length,
         failedModes: results.filter(r => !r.success).length
       });
+      res.end();
 
     } catch (error: any) {
       console.error("Text Model Validator Batch error:", error);
-      res.status(500).json({ 
-        success: false,
-        message: error.message || "Batch validation failed" 
-      });
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Batch validation failed" });
+        res.end();
+      } else {
+        res.status(500).json({ success: false, message: error.message || "Batch validation failed" });
+      }
     }
   });
 
@@ -5502,4 +5373,90 @@ Provide ONLY the rewritten section. Do not include any explanations, description
   }
 
   return app;
+}
+
+async function streamProviderText(
+  provider: string,
+  messages: StreamMessage[],
+  onChunk: (chunk: string) => void,
+  options: { maxTokens?: number; temperature?: number } = {},
+): Promise<string> {
+  const maxTokens = options.maxTokens ?? 4096;
+  const temperature = options.temperature ?? 0.7;
+  let output = "";
+  const emit = (chunk: string) => {
+    if (!chunk) return;
+    output += chunk;
+    onChunk(chunk);
+  };
+
+  if (provider === "anthropic" || provider === "zhi2") {
+    const Anthropic = (await import("@anthropic-ai/sdk")).default;
+    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const system = messages.find(message => message.role === "system")?.content;
+    const stream = await client.messages.stream({
+      model: "claude-sonnet-4-5",
+      max_tokens: maxTokens,
+      temperature,
+      ...(system ? { system } : {}),
+      messages: messages.filter(message => message.role !== "system") as any,
+    });
+    stream.on("text", emit);
+    await stream.finalMessage();
+    return output;
+  }
+
+  const configs: Record<string, { url: string; key?: string; model: string }> = {
+    openai: { url: "https://api.openai.com/v1/chat/completions", key: process.env.OPENAI_API_KEY, model: "gpt-4o" },
+    zhi1: { url: "https://api.openai.com/v1/chat/completions", key: process.env.OPENAI_API_KEY, model: "gpt-4o" },
+    deepseek: { url: "https://api.deepseek.com/chat/completions", key: process.env.DEEPSEEK_API_KEY, model: "deepseek-chat" },
+    zhi3: { url: "https://api.deepseek.com/chat/completions", key: process.env.DEEPSEEK_API_KEY, model: "deepseek-chat" },
+    perplexity: { url: "https://api.perplexity.ai/chat/completions", key: process.env.PERPLEXITY_API_KEY, model: "sonar-pro" },
+    zhi4: { url: "https://api.perplexity.ai/chat/completions", key: process.env.PERPLEXITY_API_KEY, model: "sonar-pro" },
+    grok: { url: "https://api.x.ai/v1/chat/completions", key: process.env.GROK_API_KEY, model: "grok-3" },
+    zhi5: { url: "https://api.x.ai/v1/chat/completions", key: process.env.GROK_API_KEY, model: "grok-3" },
+  };
+  const config = configs[provider];
+  if (!config?.key) throw new Error(`${provider} is not configured`);
+  const response = await fetch(config.url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${config.key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ model: config.model, messages, stream: true, max_tokens: maxTokens, temperature }),
+  });
+  if (!response.ok || !response.body) throw new Error(`${provider} API error ${response.status}: ${await response.text()}`);
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+    for (const line of lines) {
+      if (!line.startsWith("data: ")) continue;
+      const data = line.slice(6).trim();
+      if (!data || data === "[DONE]") continue;
+      try {
+        emit(JSON.parse(data).choices?.[0]?.delta?.content || "");
+      } catch {}
+    }
+    if (done) break;
+  }
+  return output;
+}
+
+function beginNdjson(res: Response) {
+  res.status(200);
+  res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("X-Accel-Buffering", "no");
+  (res as any).flushHeaders?.();
+}
+
+function writeNdjson(res: Response, value: unknown) {
+  if (!res.writableEnded) {
+    res.write(`${JSON.stringify(value)}\n`);
+    (res as any).flush?.();
+  }
 }
