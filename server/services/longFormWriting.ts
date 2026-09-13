@@ -188,9 +188,8 @@ export function extractRequestedWordCount(instructions: string): number | null {
 }
 
 export function getWordCountRange(instructions: string, targetWords: number): { minimum: number; maximum: number } {
-  const hasHardMinimum = /\b(?:minimum of|at least|no fewer than)\s*\d[\d,]*\s*[- ]?words?\b/i.test(isolateWritingDirective(instructions));
   return {
-    minimum: hasHardMinimum ? targetWords : Math.ceil(targetWords * 0.9),
+    minimum: targetWords,
     maximum: Math.floor(targetWords * 1.1),
   };
 }

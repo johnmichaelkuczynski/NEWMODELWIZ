@@ -14,7 +14,7 @@ const originalOpenAiKey = process.env.OPENAI_API_KEY;
 const createdJobIds: number[] = [];
 let testUserId: number;
 
-function prose(label: string, words = 680): string {
+function prose(label: string, words = 720): string {
   const sentence = `${label} makes a definite claim through a concrete example and exact reasoning.`;
   return Array.from({ length: Math.ceil(words / sentence.split(/\s+/).length) }, () => sentence)
     .join(" ")

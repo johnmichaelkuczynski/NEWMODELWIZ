@@ -344,7 +344,7 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
     if (!await stopRequested(jobId)) {
       const measuredWords = words(output);
       const hardMinimum = /(?:minimum(?:\s+length)?(?:\s+of|\s*:)?|at least|no fewer than)\s*\d/i.test(job.instructions);
-      const minimumWords = hardMinimum ? job.requestedWordCount : Math.ceil(job.requestedWordCount * 0.9);
+      const minimumWords = job.requestedWordCount;
       const maximumWords = hardMinimum ? null : Math.floor(job.requestedWordCount * 1.1);
       if (measuredWords < minimumWords || (maximumWords !== null && measuredWords > maximumWords)) {
         audits.push({
