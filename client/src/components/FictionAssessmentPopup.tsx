@@ -226,8 +226,7 @@ ${fictionText}`;
               <div className="text-sm text-gray-600">
                 {fictionText.length} characters, ~{Math.ceil(fictionText.split(' ').filter(w => w.trim()).length)} words
               </div>
-                  <SendToButton text={result.detailedAssessment} size="sm" />
-                  <Button
+              <Button
                 onClick={handleAssessment}
                 disabled={isLoading || !fictionText.trim()}
                 className="bg-purple-600 hover:bg-purple-700"
@@ -244,24 +243,27 @@ ${fictionText}`;
             <div className="space-y-6 border-t pt-6">
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Assessment Results</h3>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Download className="h-4 w-4" />
-                      Download Report
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent>
-                    <DropdownMenuItem onSelect={() => downloadReport('pdf')}>
-                      <FileText className="w-4 h-4 mr-2" />
-                      PDF Report
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => downloadReport('txt')}>
-                      <FileText className="w-4 h-4 mr-2" />
-                      Text File
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <div className="flex items-center gap-2">
+                  <SendToButton text={result.detailedAssessment} size="sm" />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="flex items-center gap-2">
+                        <Download className="h-4 w-4" />
+                        Download Report
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuItem onSelect={() => downloadReport('pdf')}>
+                        <FileText className="w-4 h-4 mr-2" />
+                        PDF Report
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => downloadReport('txt')}>
+                        <FileText className="w-4 h-4 mr-2" />
+                        Text File
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
 
               {/* Overall Score */}
