@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { apiRequest } from '@/lib/queryClient';
 import jsPDF from 'jspdf';
 import ProgressiveOutput from "./ProgressiveOutput";
+import SendToButton from "./SendToButton";
 
 interface FictionAssessmentResult {
   worldCoherence: number;
@@ -264,7 +265,10 @@ ${result.detailedAssessment}`;
 
               <Card>
                 <CardHeader>
+                <div className="flex items-center justify-between gap-3">
                   <CardTitle>Detailed Assessment</CardTitle>
+                  <SendToButton text={result.detailedAssessment} size="sm" />
+                </div>
                 </CardHeader>
                 <CardContent>
                   <div className="prose max-w-none">

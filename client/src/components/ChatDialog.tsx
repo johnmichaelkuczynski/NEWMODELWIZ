@@ -80,6 +80,21 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
     }
   }, [messages]);
 
+  useEffect(() => {
+    const receiveOutput = (event: Event) => {
+      const { destination, text } = (event as CustomEvent<{ destination: string; text: string }>).detail || {};
+      if (destination !== "AI Chat" || !text?.trim()) return;
+      setInputMessage(text);
+      window.setTimeout(() => {
+        const input = document.querySelector('[data-testid="chat-input"]') as HTMLTextAreaElement | null;
+        input?.scrollIntoView({ behavior: "smooth", block: "center" });
+        input?.focus();
+      }, 0);
+    };
+    window.addEventListener("treatise:send-output", receiveOutput);
+    return () => window.removeEventListener("treatise:send-output", receiveOutput);
+  }, []);
+
   // Add streaming chunk to chat
   const addStreamingChunk = (chunk: string, index: number, total: number) => {
     const chunkMessage: ChatMessage = {

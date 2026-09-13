@@ -275,6 +275,68 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
   const [coherenceStageProgress, setCoherenceStageProgress] = useState<string>("");
   const [coherenceResumeFrom, setCoherenceResumeFrom] = useState<number | null>(null);
   const [detectedCoherenceType, setDetectedCoherenceType] = useState<string | null>(null);
+
+  useEffect(() => {
+    const routeOutput = (event: Event) => {
+      const { destination, text } = (event as CustomEvent<{ destination: string; text: string }>).detail || {};
+      if (!text?.trim()) return;
+      let targetTestId = "";
+      switch (destination) {
+        case "Writing":
+          setWritingInstructions(text);
+          targetTestId = "textarea-writing-instructions";
+          break;
+        case "Intelligence Analysis":
+          setDocumentA({ content: text });
+          targetTestId = "document-input-a";
+          break;
+        case "Humanizer":
+          setBoxA(text);
+          targetTestId = "textarea-box-a";
+          break;
+        case "Text Model Validator":
+          setValidatorInputText(text);
+          targetTestId = "textarea-validator-input";
+          break;
+        case "BOTTOMLINE":
+          setValidatorInputText(text);
+          setBottomlineIdea(text);
+          setShowBottomlinePanel(true);
+          targetTestId = "button-run-bottomline";
+          break;
+        case "Objections":
+          setObjectionsInputText(text);
+          setObjectionsSourceText(text);
+          setShowObjectionsPanel(true);
+          targetTestId = "textarea-objections-input";
+          break;
+        case "Whole-Document Coherence":
+          setCoherenceInputText(text);
+          targetTestId = "textarea-coherence-input";
+          break;
+        case "Mathematical Analysis":
+          setCoherenceInputText(text);
+          setCoherenceType("mathematical");
+          targetTestId = "textarea-coherence-input";
+          break;
+        case "Case Assessment":
+          setDocumentA({ content: text });
+          targetTestId = "button-case-assessment";
+          break;
+        case "Fiction Assessment":
+          setDocumentA({ content: text });
+          targetTestId = "button-fiction-assessment";
+          break;
+      }
+      window.setTimeout(() => {
+        const target = document.querySelector(`[data-testid="${targetTestId}"]`) as HTMLElement | null;
+        target?.scrollIntoView({ behavior: "smooth", block: "center" });
+        target?.focus?.();
+      }, 0);
+    };
+    window.addEventListener("treatise:send-output", routeOutput);
+    return () => window.removeEventListener("treatise:send-output", routeOutput);
+  }, []);
   
   useEffect(() => {
     const savedJobId = localStorage.getItem("activeCoherenceAnalysisJob");
@@ -3220,15 +3282,7 @@ Generated on: ${new Date().toLocaleString()}`;
                     </Button>
                   )}
                   {!isWriting && !isRedoingWritingAudits && (
-                    <Button
-                      size="sm"
-                      onClick={handleSendGeneratedWritingToValidator}
-                      className="bg-emerald-700 text-white hover:bg-emerald-800"
-                      data-testid="button-send-writing-to-validator"
-                    >
-                      <ArrowRight className="mr-2 h-4 w-4" />
-                      Send to Text Model Validator
-                    </Button>
+                    <SendToButton text={normalizeMathNotation(generatedWriting)} size="sm" />
                   )}
                   <CopyButton text={normalizeMathNotation(generatedWriting)} />
                   <Button
@@ -5357,6 +5411,7 @@ Generated on: ${new Date().toLocaleString()}`;
                     )}
                   </h4>
                   <div className="flex gap-2">
+                    <SendToButton text={bottomlineOutput} size="sm" />
                     <Button
                       variant="outline"
                       size="sm"
@@ -5461,6 +5516,7 @@ Generated on: ${new Date().toLocaleString()}`;
                     </Badge>
                   </h4>
                   <div className="flex gap-2">
+                    <SendToButton text={objectionsOutput} size="sm" />
                     <Button
                       variant="outline"
                       size="sm"
@@ -6765,6 +6821,7 @@ Generated on: ${new Date().toLocaleString()}`;
                   )}
                 </div>
                 <div className="flex gap-2">
+                  <SendToButton text={mathProofCorrectedProof} size="sm" />
                   <Button
                     variant="outline"
                     size="sm"

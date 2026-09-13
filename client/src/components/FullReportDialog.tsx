@@ -15,6 +15,7 @@ import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType } fro
 import { jsPDF } from "jspdf";
 import SimpleShareViaEmailModal from './SimpleShareViaEmailModal';
 import WordCountStatus from '@/components/WordCountStatus';
+import SendToButton from '@/components/SendToButton';
 
 interface FullReportDialogProps {
   open: boolean;
@@ -677,7 +678,8 @@ ${analysis.analysis || ''}
         
         <DialogFooter className="flex justify-between gap-2 mt-6 pt-4 border-t">
           <div className="flex gap-2">
-            <Button 
+            <SendToButton text={createReportContent()} size="sm" />
+            <Button
               variant="outline" 
               onClick={handleCopy}
               className="flex items-center gap-2"

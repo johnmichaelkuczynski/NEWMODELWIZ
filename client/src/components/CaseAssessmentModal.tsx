@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import jsPDF from 'jspdf';
 import { cleanAIResponse } from "@/lib/textUtils";
 import ProgressiveOutput from "./ProgressiveOutput";
+import SendToButton from "./SendToButton";
 
 // Provider name mapping - ZHI branding only, never expose actual LLM names
 const getProviderDisplayName = (provider: string): string => {
@@ -244,7 +245,10 @@ ${result.detailedAssessment}
             {/* Detailed Assessment */}
             <Card>
               <CardHeader>
-                <CardTitle>Detailed Assessment</CardTitle>
+                <div className="flex items-center justify-between gap-3">
+                  <CardTitle>Detailed Assessment</CardTitle>
+                  <SendToButton text={cleanAIResponse(result.detailedAssessment)} size="sm" />
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="prose max-w-none">

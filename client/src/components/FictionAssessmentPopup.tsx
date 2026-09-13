@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { apiRequest } from '@/lib/queryClient';
 import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
+import SendToButton from "./SendToButton";
 
 interface FictionAssessmentResult {
   worldCoherence: number;
@@ -225,7 +226,8 @@ ${fictionText}`;
               <div className="text-sm text-gray-600">
                 {fictionText.length} characters, ~{Math.ceil(fictionText.split(' ').filter(w => w.trim()).length)} words
               </div>
-              <Button 
+                  <SendToButton text={result.detailedAssessment} size="sm" />
+                  <Button
                 onClick={handleAssessment}
                 disabled={isLoading || !fictionText.trim()}
                 className="bg-purple-600 hover:bg-purple-700"

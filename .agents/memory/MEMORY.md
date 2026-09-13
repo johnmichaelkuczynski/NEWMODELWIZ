@@ -5,3 +5,4 @@
 - [Long-form claim allocation](long-form-claim-allocation.md) — summaries and self-review do not prevent semantic repetition; separate coordination must reserve claims and examples before prose.
 - [Unbounded coherence analysis](unbounded-coherence-analysis.md) — large papers require persisted hierarchical mapping and global synthesis, never independent user-selected chunk judgments.
 - [Anonymous quota middleware](anonymous-quota-middleware.md) — mounted API guards must normalize paths and persist a session identity, or anonymous limits are bypassable.
+- [Universal output routing](universal-output-routing.md) — every generated result must route through one shared destination registry, including back to its originating function.

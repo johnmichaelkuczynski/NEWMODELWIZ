@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Download, Loader2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import ProgressiveOutput from "./ProgressiveOutput";
+import SendToButton from "./SendToButton";
 
 interface FictionComparisonResult {
   winnerDocument: 'A' | 'B';
@@ -126,14 +127,20 @@ ${result.detailedBreakdown}`;
             </Button>
             
             {result && (
-              <Button
-                onClick={downloadReport}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download Report
-              </Button>
+              <>
+                <SendToButton
+                  text={`FICTION COMPARISON REPORT\nWinner: Document ${result.winnerDocument}\nDocument A Score: ${result.documentAScore}/100\nDocument B Score: ${result.documentBScore}/100\n\nCOMPARATIVE ANALYSIS:\n${result.comparisonAnalysis}\n\nDETAILED BREAKDOWN:\n${result.detailedBreakdown}`}
+                  size="sm"
+                />
+                <Button
+                  onClick={downloadReport}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Report
+                </Button>
+              </>
             )}
           </div>
 
