@@ -106,38 +106,56 @@ after(() => {
   storage.getUserSubscription = originalGetUserSubscription;
 });
 
-test("production logged-out oversized multi-section writing starts a 400-word sign-in preview", async () => {
+test("production logged-out oversized multi-section writing starts a 2,000-word sign-in preview", async () => {
   queryResults = [
     { rows: [] },
-    { rows: [{ actions_used: 1, words_reserved: 400 }] },
+    { rows: [{ actions_used: 1, words_reserved: 2000 }] },
   ];
   const req = writingRequest();
 
   const result = await enforce(req);
 
   assert.equal(result.continued, true, "the preview must reach writing job creation");
-  assert.equal(req.body.requestedWordCount, 400);
+  assert.equal(req.body.requestedWordCount, 2000);
   assert.equal(req.body.originalRequestedWordCount, 6999);
   assert.equal(req.body.forceSingleSectionPreview, true);
   assert.equal(req.body.previewNextAction, "sign-in");
   assert.equal(result.state.headers["X-Treatise-Preview"], "true");
 });
 
-test("production signed-in unpaid oversized writing starts a 1,200-word subscription preview", async () => {
+test("production signed-in unpaid oversized writing starts a 2,000-word subscription preview", async () => {
   queryResults = [
     { rows: [] },
-    { rows: [{ actions_used: 1, words_reserved: 1200 }] },
+    { rows: [{ actions_used: 1, words_reserved: 2000 }] },
   ];
   const req = writingRequest({ user: { id: 41, username: "free-user" } });
 
   const result = await enforce(req);
 
   assert.equal(result.continued, true, "the signed-in preview must reach writing job creation");
-  assert.equal(req.body.requestedWordCount, 1200);
+  assert.equal(req.body.requestedWordCount, 2000);
   assert.equal(req.body.originalRequestedWordCount, 6999);
   assert.equal(req.body.forceSingleSectionPreview, true);
   assert.equal(req.body.previewNextAction, "subscribe");
   assert.equal(result.state.headers["X-Treatise-Preview"], "true");
+});
+
+test("production logged-out 2,000-word writing remains a complete request", async () => {
+  queryResults = [
+    { rows: [] },
+    { rows: [{ actions_used: 1, words_reserved: 2000 }] },
+  ];
+  const req = writingRequest({ requestedWordCount: 2000 });
+  req.body.instructions = "Write a 2,000-word document as one complete work.";
+
+  const result = await enforce(req);
+
+  assert.equal(result.continued, true);
+  assert.equal(req.body.requestedWordCount, 2000);
+  assert.equal(req.body.originalRequestedWordCount, undefined);
+  assert.equal(req.body.forceSingleSectionPreview, undefined);
+  assert.equal(req.body.previewNextAction, undefined);
+  assert.equal(result.state.headers["X-Treatise-Preview"], undefined);
 });
 
 test("production subscribers retain the complete request and megaglobal eligibility", async () => {

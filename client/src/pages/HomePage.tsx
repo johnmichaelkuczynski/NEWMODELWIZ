@@ -598,7 +598,15 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     trackEvent("generated_writing_downloaded", { format: "pdf" });
   };
 
-  const waitForWritingJob = async (jobId: number) => {
+  const waitForWritingJob = async (
+    jobId: number,
+    preview?: {
+      active: boolean;
+      targetWords: number;
+      originalRequestedWords: number;
+      nextAction: "sign-in" | "subscribe" | null;
+    },
+  ) => {
     let completed: any = null;
     while (!completed) {
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -616,13 +624,15 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         setWritingProgress("Draft preserved, but megaglobal coherence did not pass. Resume to retry from the saved checkpoint.");
         throw new Error(status.error || "Megaglobal coherence did not pass; the draft was preserved.");
       }
-      setWritingProgress(
-        status.status === "auditing"
+      setWritingProgress(preview?.active
+        ? status.status === "auditing"
+          ? "Free sample drafted. Running optional read-only audits..."
+          : `Generating a ${preview.targetWords.toLocaleString()}-word free sample of the requested ${preview.originalRequestedWords.toLocaleString()}-word work...`
+        : status.status === "auditing"
           ? "Writing complete. Running optional read-only audits..."
           : status.usesLargeScaleCoherence
             ? `Large-scale coherence active: ${status.completedSections} of ${status.totalSections} sections completed`
-            : "Writing within 10% of the requested word count...",
-      );
+            : "Writing within 10% of the requested word count...");
       if (status.status === "complete" || status.status === "paused") completed = status;
     }
     setWritingJobId(completed.id);
@@ -630,8 +640,13 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     setGeneratedWriting(completed.output);
     setWritingAudits(Array.isArray(completed.audits) ? completed.audits : []);
     setIsStoppingWriting(false);
+    const continuation = preview?.nextAction === "subscribe"
+      ? "Subscribe to generate the complete work."
+      : "Sign in to receive a larger free sample.";
     setWritingProgress(
-      completed.stoppedEarly
+      preview?.active
+        ? `Free sample: ${completed.actualWordCount.toLocaleString()} words of the requested ${preview.originalRequestedWords.toLocaleString()}-word work. ${continuation}`
+        : completed.stoppedEarly
         ? `Stopped and saved: ${completed.actualWordCount.toLocaleString()} words`
         : `Complete: ${completed.actualWordCount.toLocaleString()} words, plain text, ${completed.usesLargeScaleCoherence ? "large-scale coherence used" : "standard generation used"}`,
     );
@@ -715,7 +730,12 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       }
       setWritingJobId(data.jobId);
 
-      const completed = await waitForWritingJob(data.jobId);
+      const completed = await waitForWritingJob(data.jobId, {
+        active: data.preview === true,
+        targetWords: data.requestedWordCount,
+        originalRequestedWords: data.originalRequestedWordCount,
+        nextAction: data.previewNextAction,
+      });
       trackEvent("writing_generated", {
         provider: selectedProvider,
         instruction_character_count: writingInstructions.length,

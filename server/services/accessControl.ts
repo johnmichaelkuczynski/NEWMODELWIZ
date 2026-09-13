@@ -4,11 +4,11 @@ import { pool } from "../db";
 import { storage } from "../storage";
 
 const ANONYMOUS_ACTION_LIMIT = 3;
-const ANONYMOUS_WORD_LIMIT = 1200;
-const ANONYMOUS_WRITING_PREVIEW_WORDS = 400;
+const ANONYMOUS_WORD_LIMIT = 6000;
+const ANONYMOUS_WRITING_PREVIEW_WORDS = 2000;
 const SIGNED_IN_ACTION_LIMIT = 10;
-const SIGNED_IN_WORD_LIMIT = 5000;
-const SIGNED_IN_WRITING_PREVIEW_WORDS = 1200;
+const SIGNED_IN_WORD_LIMIT = 20000;
+const SIGNED_IN_WRITING_PREVIEW_WORDS = 2000;
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
 
 type AccessTier = "anonymous" | "free" | "subscriber";
