@@ -3,6 +3,8 @@
  * NO GARBAGE PARAMETERS - ONLY YOUR EXACT SPECIFICATION
  */
 
+import { completeProviderText, type ProviderMessage } from "./aiProviders";
+
 interface PureAnalysisResult {
   formattedReport: string;
   provider: string;
@@ -71,68 +73,13 @@ Give a final score out of 100.`;
 // Generic LLM caller (unchanged)
 async function callLLMProvider(
   provider: 'openai' | 'anthropic' | 'perplexity' | 'deepseek',
-  messages: Array<{role: string, content: string}>
+  messages: ProviderMessage[]
 ): Promise<string> {
   try {
-    if (provider === 'openai') {
-      const OpenAI = (await import('openai')).default;
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: messages as any,
-        temperature: 0.1
-      });
-      
-      return completion.choices[0]?.message?.content || '';
-    } else if (provider === 'anthropic') {
-      const Anthropic = (await import('@anthropic-ai/sdk')).default;
-      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      
-      const completion = await anthropic.messages.create({
-        model: "claude-sonnet-4-5",
-        max_tokens: 4000,
-        messages: messages as any,
-        temperature: 0.1
-      });
-      
-      return completion.content[0]?.type === 'text' ? completion.content[0].text : '';
-    } else if (provider === 'perplexity') {
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "sonar",
-          messages: messages,
-          temperature: 0.1
-        })
-      });
-      
-      const data = await response.json();
-      return data.choices[0]?.message?.content || '';
-    } else if (provider === 'deepseek') {
-      const response = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          messages: messages,
-          temperature: 0.1,
-          max_tokens: 4000
-        })
-      });
-      
-      const data = await response.json();
-      return data.choices[0]?.message?.content || '';
-    }
-    
-    throw new Error(`Unsupported provider: ${provider}`);
+    return await completeProviderText(provider, messages, {
+      temperature: 0.1,
+      maxTokens: 4000,
+    });
   } catch (error) {
     console.error(`Error calling ${provider}:`, error);
     throw error;

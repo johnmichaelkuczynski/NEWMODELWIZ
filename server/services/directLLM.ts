@@ -3,6 +3,8 @@
  * Implements user's 6-month developed evaluation protocol exactly as specified
  */
 
+import { streamProviderText, type ProviderMessage } from "./aiProviders";
+
 interface DirectAnalysisResult {
   formattedReport: string;
   provider: string;
@@ -136,68 +138,14 @@ Give a final score out of 100.`;
 // Generic LLM caller
 async function callLLM(
   provider: 'openai' | 'anthropic' | 'perplexity' | 'deepseek',
-  messages: Array<{role: string, content: string}>
+  messages: ProviderMessage[],
+  onChunk?: (chunk: string) => void,
 ): Promise<string> {
   try {
-    if (provider === 'openai') {
-      const OpenAI = (await import('openai')).default;
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: messages as any,
-        temperature: 0.1
-      });
-      
-      return completion.choices[0]?.message?.content || '';
-    } else if (provider === 'anthropic') {
-      const Anthropic = (await import('@anthropic-ai/sdk')).default;
-      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      
-      const completion = await anthropic.messages.create({
-        model: "claude-sonnet-4-5",
-        max_tokens: 4000,
-        messages: messages as any,
-        temperature: 0.1
-      });
-      
-      return completion.content[0]?.type === 'text' ? completion.content[0].text : '';
-    } else if (provider === 'perplexity') {
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "sonar",
-          messages: messages,
-          temperature: 0.1
-        })
-      });
-      
-      const data = await response.json();
-      return data.choices[0]?.message?.content || '';
-    } else if (provider === 'deepseek') {
-      const response = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          messages: messages,
-          temperature: 0.1,
-          max_tokens: 4000
-        })
-      });
-      
-      const data = await response.json();
-      return data.choices[0]?.message?.content || '';
-    }
-    
-    throw new Error(`Unsupported provider: ${provider}`);
+    return await streamProviderText(provider, messages, onChunk || (() => undefined), {
+      temperature: 0.1,
+      maxTokens: 4000,
+    });
   } catch (error) {
     console.error(`Error calling ${provider}:`, error);
     throw error;
@@ -205,13 +153,17 @@ async function callLLM(
 }
 
 // Execute the exact 3-phase protocol
-async function executeThreePhaseProtocol(text: string, provider: 'openai' | 'anthropic' | 'perplexity' | 'deepseek'): Promise<DirectAnalysisResult> {
+async function executeThreePhaseProtocol(
+  text: string,
+  provider: 'openai' | 'anthropic' | 'perplexity' | 'deepseek',
+  onChunk?: (chunk: string) => void,
+): Promise<DirectAnalysisResult> {
   console.log(`EXECUTING EXACT 3-PHASE PROTOCOL WITH ${provider.toUpperCase()}`);
   
   // PHASE 1: Initial evaluation 
   console.log("PHASE 1: Asking evaluation questions");
   const phase1Prompt = createPhase1Prompt(text);
-  const phase1Response = await callLLM(provider, [{ role: "user", content: phase1Prompt }]);
+  const phase1Response = await callLLM(provider, [{ role: "user", content: phase1Prompt }], onChunk);
   
   // Extract score from Phase 1
   const scoreMatch = phase1Response.match(/(\d+)\/100/);
@@ -227,7 +179,7 @@ async function executeThreePhaseProtocol(text: string, provider: 'openai' | 'ant
       { role: "user", content: phase1Prompt },
       { role: "assistant", content: phase1Response },
       { role: "user", content: phase2Prompt }
-    ]);
+    ], onChunk);
     
     // Check if score changed
     const phase2ScoreMatch = phase2Response.match(/(\d+)\/100/);
@@ -252,26 +204,26 @@ async function executeThreePhaseProtocol(text: string, provider: 'openai' | 'ant
 }
 
 // Direct provider functions using the 3-phase protocol
-export async function directOpenAIAnalyze(text: string): Promise<DirectAnalysisResult> {
+export async function directOpenAIAnalyze(text: string, onChunk?: (chunk: string) => void): Promise<DirectAnalysisResult> {
   console.log("Sending direct request to OpenAI...");
   console.log("Performing comprehensive 3-phase intelligence evaluation...");
-  return await executeThreePhaseProtocol(text, 'openai');
+  return await executeThreePhaseProtocol(text, 'openai', onChunk);
 }
 
-export async function directAnthropicAnalyze(text: string): Promise<DirectAnalysisResult> {
+export async function directAnthropicAnalyze(text: string, onChunk?: (chunk: string) => void): Promise<DirectAnalysisResult> {
   console.log("Sending direct request to Anthropic...");
   console.log("Performing comprehensive 3-phase intelligence evaluation...");
-  return await executeThreePhaseProtocol(text, 'anthropic');
+  return await executeThreePhaseProtocol(text, 'anthropic', onChunk);
 }
 
-export async function directPerplexityAnalyze(text: string): Promise<DirectAnalysisResult> {
+export async function directPerplexityAnalyze(text: string, onChunk?: (chunk: string) => void): Promise<DirectAnalysisResult> {
   console.log("Sending direct request to Perplexity...");  
   console.log("Performing comprehensive 3-phase intelligence evaluation...");
-  return await executeThreePhaseProtocol(text, 'perplexity');
+  return await executeThreePhaseProtocol(text, 'perplexity', onChunk);
 }
 
-export async function directDeepSeekAnalyze(text: string): Promise<DirectAnalysisResult> {
+export async function directDeepSeekAnalyze(text: string, onChunk?: (chunk: string) => void): Promise<DirectAnalysisResult> {
   console.log("Sending direct request to DeepSeek...");
   console.log("Performing comprehensive 3-phase intelligence evaluation...");
-  return await executeThreePhaseProtocol(text, 'deepseek');
+  return await executeThreePhaseProtocol(text, 'deepseek', onChunk);
 }

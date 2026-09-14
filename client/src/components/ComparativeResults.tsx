@@ -7,6 +7,7 @@ import ShareViaEmailModal from "./ShareViaEmailModal";
 import ReportDownloadButton from "./ReportDownloadButton";
 import IntelligentRewriteButton from "./IntelligentRewriteButton";
 import ProgressiveOutput from "./ProgressiveOutput";
+import SendToButton from "./SendToButton";
 
 interface ComparativeResultsProps {
   analysisA: DocumentAnalysis;
@@ -123,6 +124,7 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
         </div>
         <ProgressiveOutput text={comparison.finalJudgment} filename="comparative-final-assessment.txt"
           render={(text) => <p className="text-gray-700 whitespace-pre-wrap">{text}</p>} />
+          <div className="mt-3"><SendToButton text={comparison.finalJudgment} size="sm" /></div>
       </div>
 
       {/* Strengths and Weaknesses Table */}
@@ -216,6 +218,7 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
                    filename="document-a-analysis.txt"
                    render={(text) => <span>{text}</span>}
                  />
+                  <SendToButton text={analysisA.formattedReport || analysisA.analysis || ""} size="sm" />
               </div>
             </div>
           </div>
@@ -228,6 +231,7 @@ const ComparativeResults: React.FC<ComparativeResultsProps> = ({
                    filename="document-b-analysis.txt"
                    render={(text) => <span>{text}</span>}
                  />
+                  <SendToButton text={analysisB.formattedReport || analysisB.analysis || ""} size="sm" />
               </div>
             </div>
           </div>

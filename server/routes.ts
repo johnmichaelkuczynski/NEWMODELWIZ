@@ -8,10 +8,10 @@ import { registerPaymentRoutes } from "./routes/payments";
 import { fileProcessorService } from "./services/fileProcessor";
 import { textChunkerService } from "./services/textChunker";
 import { gptZeroService } from "./services/gptZero";
-import { aiProviderService } from "./services/aiProviders";
-import { type RewriteRequest, type RewriteResponse, writingJobs, writingJobSections } from "@shared/schema";
+import { aiProviderService, streamProviderText as streamAIProviderText } from "./services/aiProviders";
+import { appVisitors, type RewriteRequest, type RewriteResponse, writingJobs, writingJobSections } from "@shared/schema";
 import { db } from "./db";
-import { asc, eq } from "drizzle-orm";
+import { asc, count, eq } from "drizzle-orm";
 import { extractTextFromFile } from "./api/documentParser";
 import { sendSimpleEmail } from "./api/simpleEmailService";
 import { upload as speechUpload, processSpeechToText } from "./api/simpleSpeechToText";
@@ -84,6 +84,42 @@ function cleanMarkup(text: string): string {
     .trim();
 }
 
+function beginNdjson(res: Response) {
+  res.status(200);
+  res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
+  res.setHeader("Cache-Control", "no-cache, no-transform");
+  res.setHeader("Connection", "keep-alive");
+  res.setHeader("X-Accel-Buffering", "no");
+}
+
+function writeNdjson(res: Response, value: unknown) {
+  if (!res.writableEnded) {
+    res.write(`${JSON.stringify(value)}\n`);
+    (res as any).flush?.();
+  }
+}
+
+/**
+ * Preserve the terminal structured object after the operation's provider
+ * callback has already emitted its genuine deltas.
+ */
+async function streamBufferedResult<T>(
+  res: Response,
+  operation: () => Promise<T>,
+): Promise<T | undefined> {
+  if (!res.headersSent) beginNdjson(res);
+  try {
+    const result = await operation();
+    writeNdjson(res, { type: "done", result });
+    res.end();
+    return result;
+  } catch (error: any) {
+    writeNdjson(res, { type: "error", message: error?.message || "AI request failed" });
+    res.end();
+    return undefined;
+  }
+}
+
 type StreamMessage = { role: "system" | "user" | "assistant"; content: string };
 async function streamCaseAssessment(text: string, provider: string, res: any, context?: string) {
   let prompt = `Assess how well this text makes its case. Analyze argument effectiveness, proof quality, claim credibility and provide specific numerical scores.
@@ -116,6 +152,13 @@ Then provide detailed analysis organized into sections:
   }
   
   prompt += `\n\nTEXT TO ASSESS:\n${text}`;
+
+  await streamAIProviderText(provider, [{ role: "user", content: prompt }], chunk => {
+    res.write(chunk);
+    (res as any).flush?.();
+  }, { maxTokens: 4000, temperature: 0.7 });
+  if (!res.writableEnded) res.end();
+  return;
 
   if (provider === 'openai') {
     // ZHI 1: OpenAI streaming
@@ -339,6 +382,13 @@ ${text}
 
 Provide detailed analysis of literary merit, character development, plot structure, and creative intelligence.`;
 
+  await streamAIProviderText(provider, [{ role: "user", content: prompt }], chunk => {
+    res.write(chunk);
+    (res as any).flush?.();
+  }, { maxTokens: 4000, temperature: 0.7 });
+  if (!res.writableEnded) res.end();
+  return;
+
   if (provider === 'openai') {
     // ZHI 1: OpenAI streaming
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -559,6 +609,22 @@ export async function registerRoutes(app: Express): Promise<Express> {
   // Register payment routes
   registerPaymentRoutes(app);
   await initializeAccessControl();
+  app.post("/api/visitor-count", async (req: Request, res: Response) => {
+    const visitorId = typeof req.body?.visitorId === "string" ? req.body.visitorId.trim() : "";
+    if (!/^[a-f0-9-]{36}$/i.test(visitorId)) {
+      return res.status(400).json({ message: "A valid visitor ID is required." });
+    }
+
+    await db.insert(appVisitors)
+      .values({ visitorId, lastSeenAt: new Date() })
+      .onConflictDoUpdate({
+        target: appVisitors.visitorId,
+        set: { lastSeenAt: new Date() },
+      });
+
+    const [result] = await db.select({ total: count() }).from(appVisitors);
+    res.json({ count: Number(result?.total || 0) });
+  });
   app.get("/api/access/status", async (req: Request, res: Response) => {
     res.json(await getAccessStatus(req));
   });
@@ -1000,9 +1066,12 @@ export async function registerRoutes(app: Express): Promise<Express> {
       console.log(`Starting quick ${evaluationType} analysis with ${provider}...`);
       
       const { performQuickAnalysis } = await import('./services/quickAnalysis');
-      const result = await performQuickAnalysis(text, provider, evaluationType);
-      
-      res.json({ success: true, result });
+      await streamBufferedResult(res, async () => {
+        const result = await performQuickAnalysis(text, provider, evaluationType,
+          chunk => writeNdjson(res, { type: "chunk", text: chunk }));
+        return { success: true, result };
+      });
+      return;
       
     } catch (error: any) {
       console.error("Quick analysis error:", error);
@@ -1035,9 +1104,14 @@ export async function registerRoutes(app: Express): Promise<Express> {
       console.log(`Starting quick ${evaluationType} comparison with ${provider}...`);
       
       const { performQuickComparison } = await import('./services/quickAnalysis');
-      const result = await performQuickComparison(documentA, documentB, provider, evaluationType);
-      
-      res.json(result);
+      await streamBufferedResult(res, () => performQuickComparison(
+        documentA,
+        documentB,
+        provider,
+        evaluationType,
+         (document, chunk) => writeNdjson(res, { type: "chunk", document, text: chunk }),
+      ));
+      return;
       
     } catch (error: any) {
       console.error("Quick comparison error:", error);
@@ -1065,17 +1139,16 @@ export async function registerRoutes(app: Express): Promise<Express> {
       console.log(`External knowledge: ${useExternalKnowledge ? 'ENABLED' : 'DISABLED'}`);
       
       const { performIntelligentRewrite } = await import('./services/intelligentRewrite');
-      const result = await performIntelligentRewrite({
-        text: originalText,
-        customInstructions,
-        provider,
-        useExternalKnowledge
+      await streamBufferedResult(res, async () => {
+        const result = await performIntelligentRewrite({
+          text: originalText,
+          customInstructions,
+          provider,
+          useExternalKnowledge
+        }, chunk => writeNdjson(res, { type: "chunk", text: chunk }));
+        return { success: true, result };
       });
-      
-      res.json({
-        success: true,
-        result: result
-      });
+      return;
       
     } catch (error: any) {
       console.error("Intelligent rewrite error:", error);
@@ -1110,25 +1183,29 @@ export async function registerRoutes(app: Express): Promise<Express> {
 
       console.log(`EXACT 4-PHASE ${evaluationType.toUpperCase()} EVALUATION: Analyzing ${content.length} characters with protocol`);
       
-      const evaluation = await executeFourPhaseProtocol(
-        content, 
-        provider as 'openai' | 'anthropic' | 'perplexity' | 'deepseek',
-        evaluationType as 'intelligence' | 'originality' | 'cogency' | 'overall_quality'
-      );
-
-      res.json({
-        success: true,
-        evaluation: {
-          formattedReport: evaluation.formattedReport,
-          overallScore: evaluation.overallScore,
-          provider: evaluation.provider,
-          metadata: {
-            contentLength: content.length,
-            evaluationType: evaluationType,
-            timestamp: new Date().toISOString()
+      await streamBufferedResult(res, async () => {
+        const evaluation = await executeFourPhaseProtocol(
+          content,
+          provider as 'openai' | 'anthropic' | 'perplexity' | 'deepseek',
+          evaluationType as 'intelligence' | 'originality' | 'cogency' | 'overall_quality',
+          'comprehensive',
+          chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+        );
+        return {
+          success: true,
+          evaluation: {
+            formattedReport: evaluation.formattedReport,
+            overallScore: evaluation.overallScore,
+            provider: evaluation.provider,
+            metadata: {
+              contentLength: content.length,
+              evaluationType: evaluationType,
+              timestamp: new Date().toISOString()
+            }
           }
-        }
+        };
       });
+      return;
 
     } catch (error: any) {
       console.error(`Error in ${req.body.evaluationType || 'cognitive'} evaluation:`, error);
@@ -1177,6 +1254,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       if (!document || !document.content) {
         return res.status(400).json({ error: "Document content is required" });
       }
+      beginNdjson(res);
 
       // Import the AI detection method
       const { checkForAI } = await import('./api/gptZero');
@@ -1229,7 +1307,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         
         await executeStreamingComprehensiveProtocol(
           text,
-          actualProvider as 'openai' | 'anthropic' | 'deepseek',
+          actualProvider as 'openai' | 'anthropic' | 'deepseek' | 'perplexity' | 'grok',
           res
         );
         
@@ -1259,6 +1337,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
           provider: provider
         });
       }
+      beginNdjson(res);
       
       // If the user requests a specific single provider
       if (provider.toLowerCase() !== 'all') {
@@ -1276,7 +1355,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
           pureResult = await executeFourPhaseProtocol(
             content,
             actualProvider as 'openai' | 'anthropic' | 'deepseek',
-            'intelligence'
+            'intelligence',
+            'comprehensive',
+            chunk => writeNdjson(res, { type: "chunk", text: chunk }),
           );
           
           // Use PURE result - NO FILTERING - pass through complete unfiltered evaluation
@@ -1302,15 +1383,17 @@ export async function registerRoutes(app: Express): Promise<Express> {
             analysis: pureResult.formattedReport || "Analysis not available"
           };
           
-          return res.json(result);
+          writeNdjson(res, { type: "done", result });
+          return res.end();
         } catch (error: any) {
           console.error(`Error in direct passthrough to ${provider}:`, error);
-          return res.status(200).json({
+          writeNdjson(res, { type: "error", result: {
             id: 0,
             documentId: 0, 
             provider: `${provider} (Error)`,
             formattedReport: `Error analyzing document with pure ${provider} protocol: ${error.message || "Unknown error"}`
-          });
+          }});
+          return res.end();
         }
       } else {
         // For 'all' provider option, analyze with all providers and verify results
@@ -1319,7 +1402,10 @@ export async function registerRoutes(app: Express): Promise<Express> {
           const { analyzeWithAllProviders } = await import('./services/analysisVerifier');
           
           console.log("ANALYZING WITH ALL PROVIDERS AND VERIFICATION");
-          const allResults = await analyzeWithAllProviders(content);
+           const allResults = await analyzeWithAllProviders(
+             content,
+             chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+           );
           
           // Format the response with results from all providers
           const result = {
@@ -1330,19 +1416,25 @@ export async function registerRoutes(app: Express): Promise<Express> {
             analysisResults: allResults
           };
           
-          return res.json(result);
+           writeNdjson(res, { type: "done", result });
+           return res.end();
         } catch (error: any) {
           console.error("Error analyzing with all providers:", error);
-          return res.status(200).json({
+           writeNdjson(res, { type: "error", result: {
             id: 0,
             documentId: 0,
             provider: "All Providers (Error)",
             formattedReport: `Error analyzing document with all providers: ${error.message || "Unknown error"}`
-          });
+           }});
+           return res.end();
         }
       }
     } catch (error: any) {
       console.error("Error analyzing document:", error);
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: `Error analyzing document: ${error.message}` });
+        return res.end();
+      }
       return res.status(500).json({ 
         error: true, 
         message: `Error analyzing document: ${error.message}`
@@ -1361,17 +1453,28 @@ export async function registerRoutes(app: Express): Promise<Express> {
       if (!documentA || !documentB) {
         return res.status(400).json({ error: "Both documents are required for comparison" });
       }
+      beginNdjson(res);
       
       // Import the document comparison service
       const { compareDocuments } = await import('./services/documentComparison');
       
       // Compare documents using the selected provider
       console.log(`COMPARING DOCUMENTS WITH ${provider.toUpperCase()}`);
-      const result = await compareDocuments(documentA, documentB, provider);
-      return res.json(result);
+       const result = await compareDocuments(
+         documentA,
+         documentB,
+         provider,
+         chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+       );
+       writeNdjson(res, { type: "done", result });
+       return res.end();
     } catch (error: any) {
       console.error("Error comparing documents:", error);
-      return res.status(500).json({ 
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Failed to compare documents" });
+        return res.end();
+      }
+      return res.status(500).json({
         error: true, 
         message: error.message || "Failed to compare documents" 
       });
@@ -1386,17 +1489,28 @@ export async function registerRoutes(app: Express): Promise<Express> {
       if (!documentA || !documentB) {
         return res.status(400).json({ error: "Both documents are required for intelligence comparison" });
       }
+      beginNdjson(res);
       
       // Import the PURE comparison service - NO GARBAGE DIMENSIONS
       const { performPureIntelligenceComparison } = await import('./services/pureComparison');
       
       // Compare intelligence using PURE 3-phase protocol - DEEPSEEK DEFAULT
       console.log(`PURE INTELLIGENCE COMPARISON WITH EXACT 3-PHASE PROTOCOL USING ${provider.toUpperCase()}`);
-      const result = await performPureIntelligenceComparison(documentA.content || documentA, documentB.content || documentB, provider);
-      return res.json(result);
+       const result = await performPureIntelligenceComparison(
+         documentA.content || documentA,
+         documentB.content || documentB,
+         provider,
+         chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+       );
+       writeNdjson(res, { type: "done", result });
+       return res.end();
     } catch (error: any) {
       console.error("Error in pure intelligence comparison:", error);
-      return res.status(500).json({ 
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Failed to perform pure intelligence comparison" });
+        return res.end();
+      }
+      return res.status(500).json({
         error: true, 
         message: error.message || "Failed to perform pure intelligence comparison" 
       });
@@ -1457,17 +1571,27 @@ export async function registerRoutes(app: Express): Promise<Express> {
       if (!text) {
         return res.status(400).json({ error: "Text is required" });
       }
+      beginNdjson(res);
       
       // Import the enhancement suggestions service
       const { getEnhancementSuggestions } = await import('./api/enhancementSuggestions');
       
       // Get suggestions using the selected provider
       console.log(`GETTING ENHANCEMENT SUGGESTIONS FROM ${provider.toUpperCase()}`);
-      const suggestions = await getEnhancementSuggestions(text, provider);
-      return res.json(suggestions);
+       const suggestions = await getEnhancementSuggestions(
+         text,
+         provider,
+         chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+       );
+       writeNdjson(res, { type: "done", result: suggestions });
+       return res.end();
     } catch (error: any) {
       console.error("Error getting enhancement suggestions:", error);
-      return res.status(500).json({ 
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Failed to get enhancement suggestions" });
+        return res.end();
+      }
+      return res.status(500).json({
         error: true, 
         message: error.message || "Failed to get enhancement suggestions" 
       });
@@ -1627,11 +1751,26 @@ export async function registerRoutes(app: Express): Promise<Express> {
 
   app.post("/api/direct-model-request", async (req: Request, res: Response) => {
     try {
-      const { instruction, provider = "openai" } = req.body;
+      const { instruction, provider = "openai", models } = req.body;
       
       if (!instruction) {
         return res.status(400).json({ error: "Instruction is required" });
       }
+      if (models !== undefined && (!Array.isArray(models) || models.length === 0 || models.some((model: unknown) => typeof model !== "string"))) {
+        return res.status(400).json({ error: "models must be a non-empty array of provider names" });
+      }
+      const modelAliases: Record<string, string> = {
+        anthropic: "claude",
+        claude: "claude",
+        openai: "openai",
+        perplexity: "perplexity",
+        deepseek: "deepseek",
+      };
+      const requestedModels = models?.map((model: string) => modelAliases[model.toLowerCase()]);
+      if (requestedModels?.some((model: string) => !model) || new Set(requestedModels).size !== requestedModels?.length) {
+        return res.status(400).json({ error: "models contains an unsupported or duplicate provider" });
+      }
+      beginNdjson(res);
       
       // Import the direct model request service
       const { 
@@ -1642,36 +1781,41 @@ export async function registerRoutes(app: Express): Promise<Express> {
         directMultiModelRequest
       } = await import('./api/directModelRequest');
       
-      let result;
-      
-      // Make the request to the specified provider
-      if (provider === "all") {
-        console.log(`DIRECT MULTI-MODEL REQUEST`);
-        result = await directMultiModelRequest(instruction);
-      } else {
-        console.log(`DIRECT ${provider.toUpperCase()} MODEL REQUEST`);
-        
-        switch (provider.toLowerCase()) {
-          case 'anthropic':
-            result = await directClaudeRequest(instruction);
-            break;
-          case 'perplexity':
-            result = await directPerplexityRequest(instruction);
-            break;
-          case 'deepseek':
-            result = await directDeepSeekRequest(instruction);
-            break;
-          case 'openai':
-          default:
-            result = await directOpenAIRequest(instruction);
-            break;
+       const emit = (model: string, chunk: string) => writeNdjson(res, { type: "chunk", model, text: chunk });
+      const result = await (async () => {
+        let result;
+         if (provider === "all" || requestedModels) {
+          console.log(`DIRECT MULTI-MODEL REQUEST`);
+           result = await directMultiModelRequest(instruction, requestedModels, emit);
+        } else {
+          console.log(`DIRECT ${provider.toUpperCase()} MODEL REQUEST`);
+          switch (provider.toLowerCase()) {
+            case 'anthropic':
+               result = await directClaudeRequest(instruction, chunk => emit("claude", chunk));
+              break;
+            case 'perplexity':
+               result = await directPerplexityRequest(instruction, chunk => emit("perplexity", chunk));
+              break;
+            case 'deepseek':
+               result = await directDeepSeekRequest(instruction, chunk => emit("deepseek", chunk));
+              break;
+            case 'openai':
+            default:
+               result = await directOpenAIRequest(instruction, chunk => emit("openai", chunk));
+              break;
+          }
         }
-      }
-      
-      return res.json(result);
+        return result;
+      });
+      writeNdjson(res, { type: "done", result });
+      return res.end();
     } catch (error: any) {
       console.error("Error making direct model request:", error);
-      return res.status(500).json({ 
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Failed to make direct model request" });
+        return res.end();
+      }
+      return res.status(500).json({
         error: true, 
         message: error.message || "Failed to make direct model request" 
       });
@@ -2141,7 +2285,7 @@ ${externalKnowledge}`;
     }
   });
 
-  // Fiction Assessment API endpoint - RETURNS JSON RESULTS
+  // Fiction Assessment API endpoint - NDJSON stream with compatibility result
   app.post('/api/fiction-assessment', async (req, res) => {
     try {
       const { text, provider = 'openai' } = req.body;
@@ -2152,18 +2296,24 @@ ${externalKnowledge}`;
       
       console.log(`Starting fiction assessment with ${provider} for text of length: ${text.length}`);
       
-      // Call the fiction assessment service directly and return JSON
       const { performFictionAssessment } = await import('./services/fictionAssessment');
-      const result = await performFictionAssessment(text, provider);
-      
-      console.log('Fiction Assessment Result:', result);
-      res.json({
-        success: true,
-        result: result
+      await streamBufferedResult(res, async () => {
+        const result = await performFictionAssessment(
+          text,
+          mapZhiToProvider(provider),
+          chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+        );
+        console.log('Fiction Assessment Result:', result);
+        return { success: true, result };
       });
+      return;
       
     } catch (error: any) {
       console.error("Error in fiction assessment streaming:", error);
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error instanceof Error ? error.message : 'Unknown error' });
+        return res.end();
+      }
       res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
@@ -2181,17 +2331,22 @@ ${externalKnowledge}`;
         console.log("COMPREHENSIVE ANALYSIS ERROR - text validation failed:", { text: typeof text, hasText: !!text });
         return res.status(400).json({ error: "Document content is required" });
       }
+      beginNdjson(res);
       
       console.log(`Starting comprehensive cognitive analysis with ${provider} for text of length: ${text.length}`);
       
       const { executeComprehensiveProtocol } = await import('./services/fourPhaseProtocol');
       const actualProvider = mapZhiToProvider(provider);
-      const result = await executeComprehensiveProtocol(text, actualProvider as 'openai' | 'anthropic' | 'perplexity' | 'deepseek');
+       const result = await executeComprehensiveProtocol(
+         text,
+         actualProvider as 'openai' | 'anthropic' | 'perplexity' | 'deepseek',
+         chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+       );
       
       console.log(`COMPREHENSIVE ANALYSIS RESULT PREVIEW: "${(result.analysis || '').substring(0, 200)}..."`);
       console.log(`COMPREHENSIVE ANALYSIS RESULT LENGTH: ${(result.analysis || '').length} characters`);
       
-      res.json({
+      const resultObject = {
         success: true,
         analysis: {
           id: Date.now(),
@@ -2202,10 +2357,16 @@ ${externalKnowledge}`;
           phases: result.phases,
           formattedReport: result.formattedReport
         }
-      });
+      };
+      writeNdjson(res, { type: "done", result: resultObject });
+      return res.end();
     } catch (error: any) {
       console.error("Error in comprehensive cognitive analysis:", error);
-      res.status(500).json({ 
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Comprehensive analysis failed" });
+        return res.end();
+      }
+      res.status(500).json({
         error: true, 
         message: error.message || "Comprehensive analysis failed" 
       });
@@ -2220,37 +2381,43 @@ ${externalKnowledge}`;
       if (!text || typeof text !== 'string') {
         return res.status(400).json({ error: "Text content is required for analysis" });
       }
+      beginNdjson(res);
       
       console.log(`Starting quick cognitive analysis with ${provider} for text of length: ${text.length}`);
       
       const { performQuickAnalysis } = await import('./services/quickAnalysis');
       const actualProvider = mapZhiToProvider(provider);
-      const result = await performQuickAnalysis(text, actualProvider as 'openai' | 'anthropic' | 'perplexity' | 'deepseek');
-      
-      console.log(`ANALYSIS RESULT PREVIEW: "${(result.analysis || '').substring(0, 200)}..."`);
-      console.log(`ANALYSIS RESULT LENGTH: ${(result.analysis || '').length} characters`);
-      
-      res.json({
+      const response = await performQuickAnalysis(
+        text,
+        actualProvider as 'openai' | 'anthropic' | 'perplexity' | 'deepseek',
+        'intelligence',
+        chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+      );
+      console.log(`ANALYSIS RESULT PREVIEW: "${(response.analysis || '').substring(0, 200)}..."`);
+      const result = {
         success: true,
         analysis: {
           id: Date.now(),
-          formattedReport: result.analysis,
-          overallScore: result.intelligence_score,
-          provider: provider,
-          summary: result.analysis,
-          analysis: result.analysis,
-          cognitiveProfile: result.cognitive_profile,
-          keyInsights: result.key_insights
+          formattedReport: response.analysis,
+          overallScore: response.intelligence_score,
+          provider,
+          summary: response.analysis,
+          analysis: response.analysis,
+          cognitiveProfile: response.cognitive_profile,
+          keyInsights: response.key_insights
         },
-        provider: provider,
-        metadata: {
-          contentLength: text.length,
-          timestamp: new Date().toISOString()
-        }
-      });
+        provider,
+        metadata: { contentLength: text.length, timestamp: new Date().toISOString() }
+      };
+      writeNdjson(res, { type: "done", result });
+      return res.end();
       
     } catch (error: any) {
       console.error("Error in quick cognitive analysis:", error);
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error instanceof Error ? error.message : 'Unknown error' });
+        return res.end();
+      }
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -2267,16 +2434,27 @@ ${externalKnowledge}`;
       if (!documentA || !documentB || !provider) {
         return res.status(400).json({ error: "Both documents and provider are required" });
       }
+      beginNdjson(res);
       
       const { performFictionComparison } = await import('./services/fictionComparison');
-      const result = await performFictionComparison(documentA, documentB, provider);
+      const result = await performFictionComparison(
+        documentA,
+        documentB,
+        provider,
+        chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+      );
       
       console.log(`Fiction comparison complete - Winner: Document ${result.winnerDocument}`);
       
-      return res.json(result);
+      writeNdjson(res, { type: "done", result });
+      return res.end();
     } catch (error: any) {
       console.error("Error in fiction comparison:", error);
-      return res.status(500).json({ 
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Failed to perform fiction comparison" });
+        return res.end();
+      }
+      return res.status(500).json({
         error: "Failed to perform fiction comparison",
         message: error.message 
       });
@@ -2295,19 +2473,28 @@ ${externalKnowledge}`;
       }
 
       console.log(`${phase.toUpperCase()} ORIGINALITY EVALUATION WITH ${provider.toUpperCase()}`);
+      beginNdjson(res);
       
       if (phase === 'quick') {
         const { performQuickAnalysis } = await import('./services/quickAnalysis');
-        const result = await performQuickAnalysis(content, provider, 'originality');
-        res.json({ success: true, result });
+        const result = await performQuickAnalysis(
+          content,
+          provider,
+          'originality',
+          chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+        );
+        const response = { success: true, result };
+        writeNdjson(res, { type: "done", result: response });
       } else {
         const { executeFourPhaseProtocol } = await import('./services/fourPhaseProtocol');
         const evaluation = await executeFourPhaseProtocol(
           content, 
           provider as 'openai' | 'anthropic' | 'perplexity' | 'deepseek',
-          'originality'
+          'originality',
+          'comprehensive',
+          chunk => writeNdjson(res, { type: "chunk", text: chunk }),
         );
-        res.json({
+        const response = {
           success: true,
           evaluation: {
             formattedReport: evaluation.formattedReport,
@@ -2319,10 +2506,16 @@ ${externalKnowledge}`;
               timestamp: new Date().toISOString()
             }
           }
-        });
+        };
+        writeNdjson(res, { type: "done", result: response });
       }
+      return res.end();
     } catch (error: any) {
       console.error("Originality evaluation error:", error);
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Originality evaluation failed" });
+        return res.end();
+      }
       res.status(500).json({
         success: false,
         error: "Originality evaluation failed",
@@ -2343,19 +2536,28 @@ ${externalKnowledge}`;
       }
 
       console.log(`${phase.toUpperCase()} COGENCY EVALUATION WITH ${provider.toUpperCase()}`);
+      beginNdjson(res);
       
       if (phase === 'quick') {
         const { performQuickAnalysis } = await import('./services/quickAnalysis');
-        const result = await performQuickAnalysis(content, provider, 'cogency');
-        res.json({ success: true, result });
+        const result = await performQuickAnalysis(
+          content,
+          provider,
+          'cogency',
+          chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+        );
+        const response = { success: true, result };
+        writeNdjson(res, { type: "done", result: response });
       } else {
         const { executeFourPhaseProtocol } = await import('./services/fourPhaseProtocol');
         const evaluation = await executeFourPhaseProtocol(
           content, 
           provider as 'openai' | 'anthropic' | 'perplexity' | 'deepseek',
-          'cogency'
+          'cogency',
+          'comprehensive',
+          chunk => writeNdjson(res, { type: "chunk", text: chunk }),
         );
-        res.json({
+        const response = {
           success: true,
           evaluation: {
             formattedReport: evaluation.formattedReport,
@@ -2367,10 +2569,16 @@ ${externalKnowledge}`;
               timestamp: new Date().toISOString()
             }
           }
-        });
+        };
+        writeNdjson(res, { type: "done", result: response });
       }
+      return res.end();
     } catch (error: any) {
       console.error("Cogency evaluation error:", error);
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Cogency evaluation failed" });
+        return res.end();
+      }
       res.status(500).json({
         success: false,
         error: "Cogency evaluation failed",
@@ -2391,19 +2599,28 @@ ${externalKnowledge}`;
       }
 
       console.log(`${phase.toUpperCase()} OVERALL QUALITY EVALUATION WITH ${provider.toUpperCase()}`);
+      beginNdjson(res);
       
       if (phase === 'quick') {
         const { performQuickAnalysis } = await import('./services/quickAnalysis');
-        const result = await performQuickAnalysis(content, provider, 'overall_quality');
-        res.json({ success: true, result });
+        const result = await performQuickAnalysis(
+          content,
+          provider,
+          'overall_quality',
+          chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+        );
+        const response = { success: true, result };
+        writeNdjson(res, { type: "done", result: response });
       } else {
         const { executeFourPhaseProtocol } = await import('./services/fourPhaseProtocol');
         const evaluation = await executeFourPhaseProtocol(
           content, 
           provider as 'openai' | 'anthropic' | 'perplexity' | 'deepseek',
-          'overall_quality'
+          'overall_quality',
+          'comprehensive',
+          chunk => writeNdjson(res, { type: "chunk", text: chunk }),
         );
-        res.json({
+        const response = {
           success: true,
           evaluation: {
             formattedReport: evaluation.formattedReport,
@@ -2415,10 +2632,16 @@ ${externalKnowledge}`;
               timestamp: new Date().toISOString()
             }
           }
-        });
+        };
+        writeNdjson(res, { type: "done", result: response });
       }
+      return res.end();
     } catch (error: any) {
       console.error("Overall quality evaluation error:", error);
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Overall quality evaluation failed" });
+        return res.end();
+      }
       res.status(500).json({
         success: false,
         error: "Overall quality evaluation failed",
@@ -2975,6 +3198,7 @@ PROVIDE A FINAL VALIDATED SCORE OUT OF 100 IN THE FORMAT: SCORE: X/100
           message: "Box B (human style sample) is required" 
         });
       }
+      beginNdjson(res);
 
       // Analyze input text
       const inputAnalysis = await gptZeroService.analyzeText(boxA);
@@ -2996,13 +3220,13 @@ PROVIDE A FINAL VALIDATED SCORE OUT OF 100 IN THE FORMAT: SCORE: X/100
 
       try {
         // Perform humanization
-        const humanizedText = await aiProviderService.rewrite(provider, {
+         const humanizedText = await aiProviderService.rewriteStream(provider, {
           inputText: boxA,
           styleText: boxB,
           customInstructions,
           selectedPresets: stylePresets,
           mixingMode: "style",
-        });
+         }, chunk => writeNdjson(res, { type: "chunk", text: chunk }));
 
         // Analyze output text
         const outputAnalysis = await gptZeroService.analyzeText(humanizedText);
@@ -3017,7 +3241,7 @@ PROVIDE A FINAL VALIDATED SCORE OUT OF 100 IN THE FORMAT: SCORE: X/100
           status: "completed",
         });
 
-        res.json({
+         const result = {
           success: true,
           result: {
             humanizedText: cleanedHumanizedText,
@@ -3025,7 +3249,9 @@ PROVIDE A FINAL VALIDATED SCORE OUT OF 100 IN THE FORMAT: SCORE: X/100
             humanizedScore: outputAnalysis.aiScore,
             jobId: rewriteJob.id,
           },
-        });
+         };
+         writeNdjson(res, { type: "done", result });
+         return res.end();
       } catch (error) {
         // Update job with error status
         await storage.updateRewriteJob(rewriteJob.id, {
@@ -3035,7 +3261,15 @@ PROVIDE A FINAL VALIDATED SCORE OUT OF 100 IN THE FORMAT: SCORE: X/100
       }
     } catch (error: any) {
       console.error('GPT Bypass Humanizer error:', error);
-      res.status(500).json({ 
+      if (res.headersSent) {
+        writeNdjson(res, {
+          type: "error",
+          message: error.message || "Humanization failed",
+          result: { success: false, message: error.message || "Humanization failed" },
+        });
+        return res.end();
+      }
+      res.status(500).json({
         success: false, 
         message: error.message 
       });
@@ -4347,42 +4581,17 @@ ${hasAnalysis ? `IMPORTANT: Use the prior analysis results intelligently. Weight
 
 The output should be ready to deliver as-is. No meta-commentary. No explanations of what you're doing. Just the final product.`;
 
+      beginNdjson(res);
       let output = "";
-
-      // Use Claude for high-quality synthesis
-      if (process.env.ANTHROPIC_API_KEY) {
-        const Anthropic = (await import('@anthropic-ai/sdk')).default;
-        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-        
-        const response = await anthropic.messages.create({
-          model: "claude-sonnet-4-5",
-          max_tokens: 4000,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userPrompt }]
-        });
-        
-        output = (response.content[0] as any).text;
-      } else if (process.env.OPENAI_API_KEY) {
-        // Fallback to OpenAI
-        const OpenAI = (await import('openai')).default;
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-        
-        const response = await openai.chat.completions.create({
-          model: "gpt-4o",
-          max_tokens: 4000,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt }
-          ]
-        });
-        
-        output = response.choices[0]?.message?.content || "";
-      } else {
-        return res.status(500).json({
-          success: false,
-          message: "No AI provider configured for BOTTOMLINE synthesis"
-        });
-      }
+      output = await streamAIProviderText(
+        mapZhiToProvider(provider),
+        [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+        { maxTokens: 4000, temperature: 0.3 }
+      );
 
       // Build weights summary for header
       let weightsSection = "";
@@ -4407,14 +4616,20 @@ ${hasAnalysis ? `Based on: ${appliedWeights.map(w => w.mode).join(', ')}${weight
 
 ${output}`;
 
-      res.json({
+      const result = {
         success: true,
         output: header
-      });
+      };
+      writeNdjson(res, { type: "done", result });
+      return res.end();
 
     } catch (error: any) {
       console.error("BOTTOMLINE error:", error);
-      res.status(500).json({ 
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "BOTTOMLINE synthesis failed" });
+        return res.end();
+      }
+      res.status(500).json({
         success: false,
         message: error.message || "BOTTOMLINE synthesis failed" 
       });
@@ -4492,42 +4707,16 @@ Format each entry as:
 
 Generate all 25 objections and responses now. Cover a wide range: logical flaws, missing evidence, alternative explanations, practical concerns, emotional resistance, competitive alternatives, implementation challenges, cost/benefit concerns, timing issues, and any audience-specific worries.`;
 
-      let output = "";
-
-      // Use Claude for high-quality objection generation
-      if (process.env.ANTHROPIC_API_KEY) {
-        const Anthropic = (await import('@anthropic-ai/sdk')).default;
-        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-        
-        const response = await anthropic.messages.create({
-          model: "claude-sonnet-4-5",
-          max_tokens: 8000,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userPrompt }]
-        });
-        
-        output = (response.content[0] as any).text;
-      } else if (process.env.OPENAI_API_KEY) {
-        // Fallback to OpenAI
-        const OpenAI = (await import('openai')).default;
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-        
-        const response = await openai.chat.completions.create({
-          model: "gpt-4o",
-          max_tokens: 8000,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt }
-          ]
-        });
-        
-        output = response.choices[0]?.message?.content || "";
-      } else {
-        return res.status(500).json({
-          success: false,
-          message: "No AI provider configured for objections generation"
-        });
-      }
+      beginNdjson(res);
+      const output = await streamAIProviderText(
+        mapZhiToProvider(llmProvider || "zhi2"),
+        [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+        { maxTokens: 8000, temperature: 0.3 }
+      );
 
       // Add header
       const header = `═══════════════════════════════════════════════════
@@ -4542,14 +4731,20 @@ ${output}`;
 
       console.log(`[OBJECTIONS] Generated successfully`);
 
-      res.json({
+      const result = {
         success: true,
         output: header
-      });
+      };
+      writeNdjson(res, { type: "done", result });
+      return res.end();
 
     } catch (error: any) {
       console.error("OBJECTIONS error:", error);
-      res.status(500).json({ 
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Objections generation failed" });
+        return res.end();
+      }
+      res.status(500).json({
         success: false,
         message: error.message || "Objections generation failed" 
       });
@@ -4585,49 +4780,30 @@ ${objectionsOutput}
 
 ${customInstructions?.trim() ? `ADDITIONAL USER INSTRUCTIONS:\n${customInstructions.trim()}\n\n` : ""}Rewrite the source now as one complete, objection-resistant document.`;
 
-      let output = "";
-      if ((llmProvider === "zhi2" || !llmProvider) && process.env.ANTHROPIC_API_KEY) {
-        const Anthropic = (await import("@anthropic-ai/sdk")).default;
-        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-        const response = await anthropic.messages.create({
-          model: "claude-sonnet-4-5",
-          max_tokens: 16000,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userPrompt }],
-        });
-        output = response.content[0]?.type === "text" ? response.content[0].text : "";
-      } else if (process.env.OPENAI_API_KEY) {
-        const OpenAI = (await import("openai")).default;
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-        const response = await openai.chat.completions.create({
-          model: "gpt-4o",
-          max_tokens: 16000,
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: userPrompt },
-          ],
-        });
-        output = response.choices[0]?.message?.content || "";
-      } else if (process.env.ANTHROPIC_API_KEY) {
-        const Anthropic = (await import("@anthropic-ai/sdk")).default;
-        const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-        const response = await anthropic.messages.create({
-          model: "claude-sonnet-4-5",
-          max_tokens: 16000,
-          system: systemPrompt,
-          messages: [{ role: "user", content: userPrompt }],
-        });
-        output = response.content[0]?.type === "text" ? response.content[0].text : "";
-      } else {
-        return res.status(500).json({ success: false, message: "No AI provider is configured" });
-      }
+      beginNdjson(res);
+      const output = await streamAIProviderText(
+        mapZhiToProvider(llmProvider || "zhi2"),
+        [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt }
+        ],
+        chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+        { maxTokens: 16000, temperature: 0.3 }
+      );
 
       if (!output.trim()) {
-        return res.status(502).json({ success: false, message: "The provider returned an empty rewrite" });
+        writeNdjson(res, { type: "error", message: "The provider returned an empty rewrite" });
+        return res.end();
       }
-      return res.json({ success: true, output: output.trim() });
+      const result = { success: true, output: output.trim() };
+      writeNdjson(res, { type: "done", result });
+      return res.end();
     } catch (error: any) {
       console.error("Objection-resistant rewrite error:", error);
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Objection-resistant rewrite failed" });
+        return res.end();
+      }
       return res.status(500).json({
         success: false,
         message: error.message || "Objection-resistant rewrite failed",
@@ -4654,6 +4830,11 @@ ${customInstructions?.trim() ? `ADDITIONAL USER INSTRUCTIONS:\n${customInstructi
           message: `Mode must be one of: ${validModes.join(", ")}`
         });
       }
+      beginNdjson(res);
+      const finish = (result: unknown) => {
+        writeNdjson(res, { type: "done", result });
+        return res.end();
+      };
 
       console.log(`Coherence Meter - Mode: ${mode}, Type: ${coherenceType || 'default'}, Aggressiveness: ${aggressiveness}, Text length: ${text.length}`);
 
@@ -4670,9 +4851,9 @@ ${customInstructions?.trim() ? `ADDITIONAL USER INSTRUCTIONS:\n${customInstructi
 
       // MATH COHERENCE - structural coherence only, NOT truth
       if (mode === "math-coherence") {
-        const result = await analyzeMathCoherence(text);
+        const result = await analyzeMathCoherence(text, chunk => writeNdjson(res, { type: "chunk", text: chunk }));
         
-        res.json({
+        finish({
           success: true,
           isMathCoherence: true,
           analysis: result.analysis,
@@ -4683,9 +4864,9 @@ ${customInstructions?.trim() ? `ADDITIONAL USER INSTRUCTIONS:\n${customInstructi
       }
       // MATH COGENCY - checks if theorem is TRUE and proof is valid  
       else if (mode === "math-cogency") {
-        const result = await analyzeMathProofValidity(text);
+        const result = await analyzeMathProofValidity(text, chunk => writeNdjson(res, { type: "chunk", text: chunk }));
         
-        res.json({
+        finish({
           success: true,
           isMathCogency: true,
           analysis: result.analysis,
@@ -4698,9 +4879,13 @@ ${customInstructions?.trim() ? `ADDITIONAL USER INSTRUCTIONS:\n${customInstructi
       }
       // MATH MAX COHERENCE - improve structural coherence only, preserve theorem
       else if (mode === "math-max-coherence") {
-        const result = await rewriteMathMaxCoherence(text, aggressiveness as "conservative" | "moderate" | "aggressive");
+        const result = await rewriteMathMaxCoherence(
+          text,
+          aggressiveness as "conservative" | "moderate" | "aggressive",
+          chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+        );
         
-        res.json({
+        finish({
           success: true,
           isMathMaxCoherence: true,
           rewrite: result.rewrittenProof,
@@ -4710,9 +4895,9 @@ ${customInstructions?.trim() ? `ADDITIONAL USER INSTRUCTIONS:\n${customInstructi
       }
       // MATH MAXIMIZE TRUTH - correct proofs or find adjacent truths
       else if (mode === "math-maximize-truth") {
-        const result = await rewriteMathMaximizeTruth(text);
+        const result = await rewriteMathMaximizeTruth(text, chunk => writeNdjson(res, { type: "chunk", text: chunk }));
         
-        res.json({
+        finish({
           success: true,
           isMathMaximizeTruth: true,
           correctedProof: result.correctedProof,
@@ -4768,9 +4953,9 @@ Respond with ONLY the coherence type (e.g., "logical-consistency" or "scientific
         
         // Use specialized analyzer for scientific-explanatory coherence
         if (appliedCoherenceType === "scientific-explanatory") {
-          const result = await analyzeScientificExplanatoryCoherence(text);
+          const result = await analyzeScientificExplanatoryCoherence(text, chunk => writeNdjson(res, { type: "chunk", text: chunk }));
           
-          res.json({
+          finish({
             success: true,
             analysis: result.fullAnalysis,
             score: result.overallScore,
@@ -4782,9 +4967,9 @@ Respond with ONLY the coherence type (e.g., "logical-consistency" or "scientific
             wasAutoDetected: coherenceType === "auto-detect"
           });
         } else {
-          const result = await analyzeCoherence(text);
+          const result = await analyzeCoherence(text, chunk => writeNdjson(res, { type: "chunk", text: chunk }));
           
-          res.json({
+          finish({
             success: true,
             analysis: result.analysis,
             score: result.score,
@@ -4838,9 +5023,13 @@ Respond with ONLY the coherence type (e.g., "logical-consistency" or "scientific
         
         // Use specialized scientific rewrite for scientific-explanatory coherence type
         if (appliedCoherenceType === "scientific-explanatory") {
-          const result = await rewriteScientificExplanatory(text, aggressiveness as "conservative" | "moderate" | "aggressive");
+          const result = await rewriteScientificExplanatory(
+            text,
+            aggressiveness as "conservative" | "moderate" | "aggressive",
+            chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+          );
           
-          res.json({
+          finish({
             success: true,
             rewrite: result.rewrittenText,
             changes: result.changes,
@@ -4851,9 +5040,13 @@ Respond with ONLY the coherence type (e.g., "logical-consistency" or "scientific
             wasAutoDetected: coherenceType === "auto-detect"
           });
         } else {
-          const result = await rewriteForCoherence(text, aggressiveness as "conservative" | "moderate" | "aggressive");
+          const result = await rewriteForCoherence(
+            text,
+            aggressiveness as "conservative" | "moderate" | "aggressive",
+            chunk => writeNdjson(res, { type: "chunk", text: chunk }),
+          );
           
-          res.json({
+          finish({
             success: true,
             rewrite: result.rewrittenText,
             changes: result.changes,
@@ -4864,6 +5057,10 @@ Respond with ONLY the coherence type (e.g., "logical-consistency" or "scientific
       }
     } catch (error: any) {
       console.error("Coherence Meter error:", error);
+      if (res.headersSent) {
+        writeNdjson(res, { type: "error", message: error.message || "Coherence analysis/rewrite failed" });
+        return res.end();
+      }
       res.status(500).json({
         success: false,
         message: error.message || "Coherence analysis/rewrite failed"
@@ -5381,82 +5578,5 @@ async function streamProviderText(
   onChunk: (chunk: string) => void,
   options: { maxTokens?: number; temperature?: number } = {},
 ): Promise<string> {
-  const maxTokens = options.maxTokens ?? 4096;
-  const temperature = options.temperature ?? 0.7;
-  let output = "";
-  const emit = (chunk: string) => {
-    if (!chunk) return;
-    output += chunk;
-    onChunk(chunk);
-  };
-
-  if (provider === "anthropic" || provider === "zhi2") {
-    const Anthropic = (await import("@anthropic-ai/sdk")).default;
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const system = messages.find(message => message.role === "system")?.content;
-    const stream = await client.messages.stream({
-      model: "claude-sonnet-4-5",
-      max_tokens: maxTokens,
-      temperature,
-      ...(system ? { system } : {}),
-      messages: messages.filter(message => message.role !== "system") as any,
-    });
-    stream.on("text", emit);
-    await stream.finalMessage();
-    return output;
-  }
-
-  const configs: Record<string, { url: string; key?: string; model: string }> = {
-    openai: { url: "https://api.openai.com/v1/chat/completions", key: process.env.OPENAI_API_KEY, model: "gpt-4o" },
-    zhi1: { url: "https://api.openai.com/v1/chat/completions", key: process.env.OPENAI_API_KEY, model: "gpt-4o" },
-    deepseek: { url: "https://api.deepseek.com/chat/completions", key: process.env.DEEPSEEK_API_KEY, model: "deepseek-chat" },
-    zhi3: { url: "https://api.deepseek.com/chat/completions", key: process.env.DEEPSEEK_API_KEY, model: "deepseek-chat" },
-    perplexity: { url: "https://api.perplexity.ai/chat/completions", key: process.env.PERPLEXITY_API_KEY, model: "sonar-pro" },
-    zhi4: { url: "https://api.perplexity.ai/chat/completions", key: process.env.PERPLEXITY_API_KEY, model: "sonar-pro" },
-    grok: { url: "https://api.x.ai/v1/chat/completions", key: process.env.GROK_API_KEY, model: "grok-3" },
-    zhi5: { url: "https://api.x.ai/v1/chat/completions", key: process.env.GROK_API_KEY, model: "grok-3" },
-  };
-  const config = configs[provider];
-  if (!config?.key) throw new Error(`${provider} is not configured`);
-  const response = await fetch(config.url, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${config.key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ model: config.model, messages, stream: true, max_tokens: maxTokens, temperature }),
-  });
-  if (!response.ok || !response.body) throw new Error(`${provider} API error ${response.status}: ${await response.text()}`);
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = "";
-  while (true) {
-    const { done, value } = await reader.read();
-    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
-    const lines = buffer.split("\n");
-    buffer = lines.pop() || "";
-    for (const line of lines) {
-      if (!line.startsWith("data: ")) continue;
-      const data = line.slice(6).trim();
-      if (!data || data === "[DONE]") continue;
-      try {
-        emit(JSON.parse(data).choices?.[0]?.delta?.content || "");
-      } catch {}
-    }
-    if (done) break;
-  }
-  return output;
-}
-
-function beginNdjson(res: Response) {
-  res.status(200);
-  res.setHeader("Content-Type", "application/x-ndjson; charset=utf-8");
-  res.setHeader("Cache-Control", "no-cache, no-transform");
-  res.setHeader("X-Accel-Buffering", "no");
-  (res as any).flushHeaders?.();
-}
-
-function writeNdjson(res: Response, value: unknown) {
-  if (!res.writableEnded) {
-    res.write(`${JSON.stringify(value)}\n`);
-    (res as any).flush?.();
-  }
+  return streamAIProviderText(provider, messages, onChunk, options);
 }

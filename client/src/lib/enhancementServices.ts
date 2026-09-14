@@ -1,4 +1,5 @@
 import { EnhancementSuggestion, GoogleSearchResult } from '@/lib/types';
+import { readNdjsonResult } from '@/lib/streaming';
 
 /**
  * Get enhancement suggestions from AI for a text
@@ -18,8 +19,8 @@ export async function getEnhancementSuggestions(text: string, provider: string):
       throw new Error(error.message || 'Failed to get enhancement suggestions');
     }
 
-    const data = await response.json();
-    return data.suggestions || [];
+    const data = await readNdjsonResult<any>(response);
+    return Array.isArray(data) ? data : data?.suggestions || data?.result || [];
   } catch (error) {
     console.error('Error getting enhancement suggestions:', error);
     throw error;

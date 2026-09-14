@@ -6,7 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
+import { readNdjsonResult } from '@/lib/streaming';
 import { RotateCw, Bot, Info, ExternalLink } from 'lucide-react';
+import SendToButton from '@/components/SendToButton';
 
 interface DirectAIRequestProps {
   defaultInstructions?: string;
@@ -58,7 +60,7 @@ const DirectAIRequest: React.FC<DirectAIRequestProps> = ({
     }
 
     // Get list of models to query
-    const models = [];
+    const models: string[] = [];
     if (queryOpenAI) models.push("openai");
     if (queryClaude) models.push("claude");
     if (queryPerplexity) models.push("perplexity");
@@ -73,6 +75,8 @@ const DirectAIRequest: React.FC<DirectAIRequestProps> = ({
     }
 
     setIsLoading(true);
+    setResults({});
+    setActiveTab(models[0]);
 
     try {
       // Make direct model request
@@ -80,7 +84,8 @@ const DirectAIRequest: React.FC<DirectAIRequestProps> = ({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          instructions,
+          instruction: instructions,
+          provider: "all",
           models
         })
       });
@@ -89,25 +94,37 @@ const DirectAIRequest: React.FC<DirectAIRequestProps> = ({
         throw new Error(`API error: ${response.status}`);
       }
 
-      const data = await response.json();
+      const data = await readNdjsonResult<any>(response, (chunk, message) => {
+        const model = typeof message.model === "string" ? message.model : undefined;
+        if (!model || !models.includes(model)) return;
+        setResults(previous => ({
+          ...previous,
+          [model]: {
+            ...(previous[model] || {}),
+            content: `${previous[model]?.content || ""}${chunk}`,
+            provider: previous[model]?.provider || model,
+          },
+        }));
+      });
+      const directResults = data?.results || data?.result || data;
 
-      if (data.success) {
-        setResults(data.results);
+      if (directResults && typeof directResults === "object") {
+        setResults(directResults);
         
         // Set active tab to first available result
-        const firstModel = Object.keys(data.results)[0];
+        const firstModel = Object.keys(directResults)[0];
         if (firstModel) {
           setActiveTab(firstModel);
         }
 
         // Notify parent component if callback provided
         if (onResponseReceived) {
-          onResponseReceived(data.results);
+          onResponseReceived(directResults);
         }
 
         toast({
           title: "Research complete",
-          description: `Received responses from ${Object.keys(data.results).length} AI models`
+          description: `Received responses from ${Object.keys(directResults).length} AI models`
         });
       } else {
         throw new Error(data.message || "Failed to get AI responses");
@@ -247,6 +264,7 @@ const DirectAIRequest: React.FC<DirectAIRequestProps> = ({
                         <div className="whitespace-pre-wrap text-sm">
                           {results[model]?.content || "No content available"}
                         </div>
+                         <SendToButton text={results[model]?.content || ""} size="sm" />
                         
                         {model === 'perplexity' && results[model]?.citations && results[model].citations.length > 0 && (
                           <div className="mt-4">

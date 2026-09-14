@@ -2,6 +2,13 @@ import { and, asc, eq, gte } from "drizzle-orm";
 import { db } from "../db";
 import { writingJobs, writingJobSections } from "@shared/schema";
 import { normalizeMathNotation, preserveRequestedMathNotation } from "@shared/mathNotation";
+import {
+  AdaptiveWritingPacer,
+  createThrottledCheckpoint,
+  streamAnthropicMessages,
+  streamOpenAICompatible,
+  type ProviderStreamOptions,
+} from "./providerStreaming";
 
 type WritingProvider = "zhi1" | "zhi2" | "zhi3" | "zhi4" | "zhi5";
 
@@ -249,18 +256,26 @@ function calculateSectionTargets(instructions: string, totalWords: number, secti
   return targets;
 }
 
-async function callProvider(provider: WritingProvider, system: string, prompt: string, maxTokens = 5000, temperature = 0.65): Promise<string> {
+async function callProvider(
+  provider: WritingProvider,
+  system: string,
+  prompt: string,
+  maxTokens = 5000,
+  temperature = 0.65,
+  options: ProviderStreamOptions = {},
+): Promise<string> {
   if (provider === "zhi2") {
     const Anthropic = (await import("@anthropic-ai/sdk")).default;
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: maxTokens,
-      temperature,
+    return streamAnthropicMessages(
+      client,
+      "claude-sonnet-4-5",
       system,
-      messages: [{ role: "user", content: prompt }],
-    });
-    return response.content[0]?.type === "text" ? response.content[0].text : "";
+      prompt,
+      maxTokens,
+      temperature,
+      options,
+    );
   }
 
   const providerConfig = {
@@ -287,25 +302,16 @@ async function callProvider(provider: WritingProvider, system: string, prompt: s
   }[provider === "zhi1" ? "zhi1" : provider];
 
   if (!providerConfig?.key) throw new Error(`${provider} is not configured`);
-  const response = await fetch(providerConfig.url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${providerConfig.key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: providerConfig.model,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: prompt },
-      ],
-      temperature,
-      max_tokens: maxTokens,
-    }),
-  });
-  const data: any = await response.json();
-  if (!response.ok) throw new Error(data?.error?.message || `Provider returned HTTP ${response.status}`);
-  return data.choices?.[0]?.message?.content || "";
+  return streamOpenAICompatible(
+    providerConfig.url,
+    providerConfig.key,
+    providerConfig.model,
+    system,
+    prompt,
+    maxTokens,
+    temperature,
+    options,
+  );
 }
 
 function providerIsConfigured(provider: WritingProvider): boolean {
@@ -347,31 +353,23 @@ async function fillToTarget(
   context: string,
   hardMinimum = false,
   liveProgress?: (content: string) => Promise<boolean>,
-  pauseBetweenChunksMs = 0,
+  pacer = new AdaptiveWritingPacer(),
   acceptNovelShortfall = false,
+  wordCountOffset = 0,
 ): Promise<string> {
   let text = removeMarkdown(initial);
-  const minimumWords = hardMinimum ? targetWords : Math.ceil(targetWords * 0.9);
+  pacer.initialize(wordCountOffset + countWords(text));
+  const minimumWords = targetWords;
   const maximumWords = Math.floor(targetWords * 1.1);
-  const novelShortfallFloor = Math.ceil(targetWords * 0.72);
-  if (acceptNovelShortfall && countWords(text) >= novelShortfallFloor && countWords(text) < minimumWords) {
-    return formatIntoParagraphs(text);
-  }
   const maximumContinuationAttempts = Math.ceil(targetWords / 350) + 4;
-  let nextContinuationPauseAt = (Math.floor(countWords(text) / 1000) + 1) * 1000;
   for (let attempt = 0; countWords(text) < minimumWords && attempt < maximumContinuationAttempts; attempt++) {
     if (liveProgress && await liveProgress(text)) {
       throw new Error("WRITING_STOPPED_BY_USER");
     }
-    if (pauseBetweenChunksMs > 0 && countWords(text) >= nextContinuationPauseAt) {
-      await new Promise(resolve => setTimeout(resolve, pauseBetweenChunksMs));
-      nextContinuationPauseAt += 1000;
-      if (liveProgress && await liveProgress(text)) {
-        throw new Error("WRITING_STOPPED_BY_USER");
-      }
-    }
+    await pacer.waitIfDue(wordCountOffset + countWords(text));
     const deficit = minimumWords - countWords(text);
     const continuationWords = Math.min(500, deficit + 40);
+    let streamedContinuation = "";
     const continuation = await callProvider(
       provider,
       `Continue the same assigned section in plain text only. Never use Markdown symbols. Return only new continuation prose. Do not restart the section, introduce its subject again, restate its controlling thesis, repeat an example, summarize work already performed, announce a later section, or write a second local conclusion. The first sentence must attach directly to the current argument position. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
@@ -386,16 +384,25 @@ ${boundedCurrentSectionEvidence(text)}
 CURRENT ARGUMENT POSITION:
 ${text.split(/\s+/).slice(-500).join(" ")}`,
       Math.min(1800, Math.ceil((continuationWords + 200) * 1.8)),
+      0.65,
+      {
+        pacer,
+        wordCountOffset: wordCountOffset + countWords(text),
+        onText: async partial => {
+          streamedContinuation = partial;
+          if (liveProgress) {
+            const liveText = appendNovelContinuation(text, partial);
+            if (await liveProgress(liveText)) throw new Error("WRITING_STOPPED_BY_USER");
+          }
+        },
+      },
     );
-    text = appendNovelContinuation(text, continuation);
+    text = appendNovelContinuation(text, streamedContinuation || continuation);
   }
   if (liveProgress && await liveProgress(text)) {
     throw new Error("WRITING_STOPPED_BY_USER");
   }
   if (countWords(text) < minimumWords) {
-    if (acceptNovelShortfall && countWords(text) >= novelShortfallFloor) {
-      return formatIntoParagraphs(text);
-    }
     throw new Error(`Provider stopped at ${countWords(text)} words; minimum acceptable length is ${minimumWords}`);
   }
   return countWords(text) > maximumWords
@@ -950,6 +957,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
   let inProgressContent = "";
   const completedOutputParts: string[] = [];
   const auditFailures = new Map<number, { section: string; report: string }>();
+  const pacing = new AdaptiveWritingPacer();
   const existingSections = await db.select().from(writingJobSections)
     .where(eq(writingJobSections.jobId, jobId))
     .orderBy(asc(writingJobSections.sectionIndex));
@@ -961,6 +969,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
     validateSectionCheckpoints(completedSavedSections, job.completedSections, "Saved writing continuity");
     const completedCount = job.completedSections;
     completedOutputParts.push(...completedSavedSections.map(section => section.content));
+    pacing.initialize(countWords(completedOutputParts.join("\n\n")));
     const completedDeltas = savedSections
       .filter(section => section.sectionIndex < job.completedSections && section.continuitySummary)
       .map(section => section.continuitySummary as string);
@@ -1007,7 +1016,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
         : guidedDirective;
       const workTitle = chapterNumber === 1 ? extractWorkTitle(job.instructions) : null;
       const globalStandard = extractGlobalStandard(job.instructions);
-      const sectionMinimum = hardMinimum ? targetWords : Math.ceil(targetWords * 0.9);
+       const sectionMinimum = targetWords;
       const streamsInChunks = job.requestedWordCount > 1500;
       const initialChunkWords = streamsInChunks ? Math.min(500, targetWords) : targetWords;
       const structuralInstruction = chapterNumber
@@ -1023,6 +1032,38 @@ export async function processWritingJob(jobId: number): Promise<void> {
         ? `IMMUTABLE GLOBAL SKELETON:\n${blueprint}\n\nCURRENT CHAPTER DIRECTIVE:\n${guidedDirective}\n\nBINDING SECTION EXECUTION CONTRACT:\n${executionContract}\n\nCUMULATIVE ARGUMENT LEDGER:\n${priorContext}\n\nRemain inside the current chapter. Continue from CURRENT ARGUMENT POSITION and satisfy REQUIRED NEXT HANDOFF. Do not announce transitions or mention any chapter unless the current directive explicitly requires that reference. ${MEGAGLOBAL_COHERENCE}`
         : `IMMUTABLE GLOBAL SKELETON:\n${blueprint}\n\nCUMULATIVE ARGUMENT LEDGER:\n${priorContext}\n\nCURRENT SECTION DIRECTIVE:\n${guidedDirective}\n\nBINDING SECTION EXECUTION CONTRACT:\n${executionContract}\n\n${MEGAGLOBAL_COHERENCE}`;
        const partial = savedSections.find(section => section.sectionIndex === index && index >= job.completedSections);
+        const persistSectionProgress = async (currentSection: string): Promise<boolean> => {
+         const existingPartial = await db.select({ id: writingJobSections.id, sectionIndex: writingJobSections.sectionIndex })
+           .from(writingJobSections)
+           .where(eq(writingJobSections.jobId, jobId));
+         const sectionRow = existingPartial.find(row => row.sectionIndex === index);
+         if (sectionRow) {
+           await db.update(writingJobSections).set({ content: currentSection })
+             .where(eq(writingJobSections.id, sectionRow.id));
+         } else {
+           await db.insert(writingJobSections).values({
+             jobId, sectionIndex: index, targetWordCount: targetWords, content: currentSection,
+             continuitySummary: null,
+           });
+         }
+         const liveOutput = preserveRequestedMathNotation(
+           normalizeMathNotation(removeMarkdown([...completedOutputParts, currentSection].filter(Boolean).join("\n\n"))),
+           job.instructions,
+         );
+         await db.update(writingJobs).set({
+           output: liveOutput,
+           updatedAt: new Date(),
+         }).where(eq(writingJobs.id, jobId));
+         const [currentJob] = await db.select({
+           stopRequested: writingJobs.stopRequested,
+         }).from(writingJobs).where(eq(writingJobs.id, jobId));
+          return Boolean(currentJob?.stopRequested);
+       };
+        const checkpoint = createThrottledCheckpoint(persistSectionProgress);
+        const publishLiveProgress = async (currentSection: string): Promise<boolean> => {
+          inProgressContent = currentSection;
+          return checkpoint.update(currentSection);
+        };
        const draft = partial?.content || await callProvider(
         provider,
         `Write polished prose in plain text only. Use readable paragraphs separated by blank lines. Do not use Markdown: no hashes, asterisks, code fences, blockquotes, link syntax, or bullet markers. LaTeX underscores inside mathematical expressions are allowed. Return only the requested prose section. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
@@ -1039,38 +1080,19 @@ ${priorContext}
 
 BINDING SECTION EXECUTION CONTRACT:
 ${executionContract}`,
-        Math.min(1800, Math.ceil((initialChunkWords + 250) * 1.8)),
+         Math.min(1800, Math.ceil((initialChunkWords + 250) * 1.8)),
+         0.65,
+         {
+           pacer: pacing,
+           wordCountOffset: countWords(completedOutputParts.join("\n\n")),
+           onText: async streamed => {
+             if (await publishLiveProgress(streamed)) throw new Error("WRITING_STOPPED_BY_USER");
+           },
+         },
       );
-       const preparedDraft = removeRepetitiveSummaryParagraphs(draft, globalStandard);
+       await checkpoint.flush();
+        const preparedDraft = removeRepetitiveSummaryParagraphs(draft, globalStandard);
        if (partial) inProgressContent = partial.content;
-      const publishLiveProgress = async (currentSection: string): Promise<boolean> => {
-        inProgressContent = currentSection;
-         const existingPartial = await db.select({ id: writingJobSections.id, sectionIndex: writingJobSections.sectionIndex })
-           .from(writingJobSections)
-           .where(eq(writingJobSections.jobId, jobId));
-         const sectionRow = existingPartial.find(row => row.sectionIndex === index);
-         if (sectionRow) {
-           await db.update(writingJobSections).set({ content: currentSection })
-             .where(eq(writingJobSections.id, sectionRow.id));
-         } else {
-           await db.insert(writingJobSections).values({
-             jobId, sectionIndex: index, targetWordCount: targetWords, content: currentSection,
-             continuitySummary: null,
-           });
-         }
-        const liveOutput = preserveRequestedMathNotation(
-          normalizeMathNotation(removeMarkdown([...completedOutputParts, currentSection].filter(Boolean).join("\n\n"))),
-          job.instructions,
-        );
-        await db.update(writingJobs).set({
-          output: liveOutput,
-          updatedAt: new Date(),
-        }).where(eq(writingJobs.id, jobId));
-        const [currentJob] = await db.select({
-          stopRequested: writingJobs.stopRequested,
-        }).from(writingJobs).where(eq(writingJobs.id, jobId));
-        return Boolean(currentJob?.stopRequested);
-      };
        let content = await fillToTarget(
         provider,
         preparedDraft,
@@ -1078,15 +1100,18 @@ ${executionContract}`,
         fillContext,
         hardMinimum,
         publishLiveProgress,
-         streamsInChunks ? 10000 : 0,
+          pacing,
           job.usesLargeScaleCoherence,
+          countWords(completedOutputParts.join("\n\n")),
       );
+       await checkpoint.flush();
       if (chapterNumber) {
         content = enforceAssignedPresentation(content, index, chapterNumber, workTitle);
         content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
         content = removeRepetitiveSummaryParagraphs(content, globalStandard);
         if (countWords(content) < sectionMinimum) {
-          content = await fillToTarget(provider, content, targetWords, fillContext, hardMinimum, undefined, 0, job.usesLargeScaleCoherence);
+           content = await fillToTarget(provider, content, targetWords, fillContext, hardMinimum, publishLiveProgress, pacing, job.usesLargeScaleCoherence, countWords(completedOutputParts.join("\n\n")));
+          await checkpoint.flush();
           content = enforceAssignedPresentation(content, index, chapterNumber, workTitle);
           content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
           content = removeRepetitiveSummaryParagraphs(content, globalStandard);
@@ -1132,10 +1157,12 @@ ${executionContract}`,
               targetWords,
               `${fillContext}\n\nA coherence repair removed redundant prose. Add only genuinely new work assigned to this section; do not restore any removed claim, example, explanation, or conclusion.`,
               hardMinimum,
-              undefined,
-              0,
+              publishLiveProgress,
+               pacing,
               true,
+              countWords(completedOutputParts.join("\n\n")),
             );
+            await checkpoint.flush();
             if (chapterNumber) {
               content = enforceAssignedPresentation(content, index, chapterNumber, workTitle);
               content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
@@ -1273,9 +1300,7 @@ ${executionContract}`,
           normalizeMathNotation(removeMarkdown(repaired)),
           directive,
         );
-        const repairedMinimum = hardMinimum
-          ? section.targetWordCount
-          : Math.ceil(section.targetWordCount * 0.9);
+        const repairedMinimum = section.targetWordCount;
         if (countWords(repaired) < repairedMinimum) {
           repaired = await fillToTarget(
             provider,
@@ -1284,8 +1309,9 @@ ${executionContract}`,
             `IMMUTABLE GLOBAL SKELETON:\n${blueprint}\n\nEARLIER SECTION DELTAS:\n${completedDeltas.slice(0, sectionIndex).join("\n\n")}\n\nAdd only new work unique to this section. Do not restore the redundancy removed by the consistency stitch. ${MEGAGLOBAL_COHERENCE}`,
             hardMinimum,
             undefined,
-            0,
+             pacing,
             true,
+            countWords(sections.filter(item => item.sectionIndex < sectionIndex).map(item => item.content).join("\n\n")),
           );
           if (chapterNumber) {
             repaired = enforceAssignedPresentation(repaired, sectionIndex, chapterNumber, title);
@@ -1325,8 +1351,9 @@ ${executionContract}`,
               `IMMUTABLE GLOBAL SKELETON:\n${blueprint}\n\nEARLIER SECTION DELTAS:\n${completedDeltas.slice(0, sectionIndex).join("\n\n")}\n\nSupply only the section's still-missing unique deductions or applications. ${MEGAGLOBAL_COHERENCE}`,
               hardMinimum,
               undefined,
-              0,
+             pacing,
               true,
+              countWords(sections.filter(item => item.sectionIndex < sectionIndex).map(item => item.content).join("\n\n")),
             );
           }
           if (chapterNumber) {

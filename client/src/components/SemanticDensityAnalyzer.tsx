@@ -9,6 +9,7 @@ import { Download, BarChart3, TrendingUp, Brain, FileText, Target } from "lucide
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useToast } from "@/hooks/use-toast";
+import SendToButton from "@/components/SendToButton";
 
 interface TextUnit {
   id: string;
@@ -257,6 +258,7 @@ const SemanticDensityAnalyzer: React.FC<SemanticDensityAnalyzerProps> = ({ text 
               >
                 Re-analyze
               </Button>
+              <SendToButton text={currentUnits.map(unit => unit.content).join("\n\n")} size="sm" />
               <Button 
                 onClick={() => exportToPDF(activeView)} 
                 variant="outline"

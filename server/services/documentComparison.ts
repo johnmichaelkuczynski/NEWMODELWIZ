@@ -1,4 +1,5 @@
 type LLMProvider = "openai" | "anthropic" | "perplexity" | "deepseek";
+import { streamProviderText } from "./aiProviders";
 
 export interface DocumentComparisonResult {
   winnerDocument: 'A' | 'B';
@@ -82,14 +83,15 @@ DOCUMENT A:
 export async function compareDocuments(
   documentA: string,
   documentB: string,
-  provider: LLMProvider = 'openai'
+  provider: LLMProvider = 'openai',
+  onChunk?: (chunk: string) => void,
 ): Promise<DocumentComparisonResult> {
   // First, get absolute scores for each document individually
   const { performCaseAssessment } = await import('./caseAssessment');
   
   console.log('Getting absolute scores for both documents...');
-  const scoreA = await performCaseAssessment(documentA, provider);
-  const scoreB = await performCaseAssessment(documentB, provider);
+  const scoreA = await performCaseAssessment(documentA, provider, undefined, onChunk);
+  const scoreB = await performCaseAssessment(documentB, provider, undefined, onChunk);
   
   console.log(`Document A absolute score: ${scoreA.overallCaseScore}`);
   console.log(`Document B absolute score: ${scoreB.overallCaseScore}`);
@@ -99,81 +101,9 @@ export async function compareDocuments(
     `\n\nIMPORTANT: Document A has been independently assessed at ${scoreA.overallCaseScore}/100 and Document B at ${scoreB.overallCaseScore}/100. Use these exact scores in your comparison - do not deviate from them.\n\n` +
     "DOCUMENT A:\n" + documentA + "\n\nDOCUMENT B:\n" + documentB;
   
-  // Call the LLM directly without using the analysis functions
-  let response: string;
-  
-  if (provider === 'openai') {
-    const OpenAI = (await import('openai')).default;
-    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-    
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o",
-      messages: [
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.2,
-      max_tokens: 8000
-    });
-    
-    response = completion.choices[0].message.content || "No response available";
-  } else if (provider === 'anthropic') {
-    const Anthropic = (await import('@anthropic-ai/sdk')).default;
-    const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    
-    const completion = await anthropic.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: 8000,
-      messages: [
-        { role: "user", content: prompt }
-      ]
-    });
-    
-    response = completion.content[0].type === 'text' ? completion.content[0].text : "No response available";
-  } else if (provider === 'deepseek') {
-    const fetch = (await import('node-fetch')).default;
-    
-    const apiResponse = await fetch('https://api.deepseek.com/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.2,
-        max_tokens: 4000
-      })
-    });
-    
-    const data = await apiResponse.json() as any;
-    response = data.choices?.[0]?.message?.content || "No response available";
-  } else if (provider === 'perplexity') {
-    const fetch = (await import('node-fetch')).default;
-    
-    const apiResponse = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: 'sonar',
-        messages: [
-          { role: 'user', content: prompt }
-        ],
-        temperature: 0.2,
-        max_tokens: 4000
-      })
-    });
-    
-    const data = await apiResponse.json() as any;
-    response = data.choices?.[0]?.message?.content || "No response available";
-  } else {
-    throw new Error(`Unsupported provider: ${provider}`);
-  }
+  const response = await streamProviderText(provider, [
+    { role: "user", content: prompt },
+  ], onChunk || (() => undefined), { temperature: 0.2, maxTokens: 8000 });
   
   console.log('Raw comparison response:', response.substring(0, 500) + '...');
   return parseComparisonResponse(response, scoreA.overallCaseScore, scoreB.overallCaseScore);

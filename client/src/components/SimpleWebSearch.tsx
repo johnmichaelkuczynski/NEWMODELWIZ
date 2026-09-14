@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Search, ExternalLink, ArrowDown } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { readNdjsonStream } from "@/components/WordCountStatus";
+import { readNdjsonStream } from "@/lib/streaming";
+import SendToButton from "@/components/SendToButton";
 
 interface WebSearchResult {
   title: string;
@@ -231,6 +232,7 @@ const SimpleWebSearch: React.FC = () => {
           </div>
           <div className="bg-white p-3 rounded border border-gray-200 max-h-80 overflow-y-auto">
             <p className="whitespace-pre-wrap">{rewrittenText}</p>
+           <div className="mt-3"><SendToButton text={rewrittenText} size="sm" /></div>
           </div>
         </div>
       )}

@@ -11,7 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { FileDown, Search, Loader2, ArrowLeft, ExternalLink, RefreshCw, FileText, Bot, BrainCircuit, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 import { useToast } from "@/hooks/use-toast";
-import WordCountStatus, { readNdjsonStream } from "@/components/WordCountStatus";
+import WordCountStatus from "@/components/WordCountStatus";
+import { readNdjsonStream } from "@/lib/streaming";
+import SendToButton from "@/components/SendToButton";
+import { acceptPendingOutput, readPendingOutput } from "@/lib/outputRouting";
 
 interface SearchResult {
   title: string;
@@ -49,6 +52,13 @@ const WebSearchPage: React.FC = () => {
   
   // Keep count of selected items for display
   const selectedCount = searchResults.filter(r => r.selected).length;
+  useEffect(() => {
+    const pending = readPendingOutput("Web Search/Rewrite");
+    if (pending?.text) {
+      setSearchQuery(pending.text);
+      acceptPendingOutput();
+    }
+  }, []);
   
   // Toggle selection of a search result
   const toggleResultSelection = (index: number) => {
@@ -697,6 +707,7 @@ Your task is to create a comprehensive synthesis of the provided content accordi
                   <div className="bg-white border rounded-md p-4 max-h-[500px] overflow-y-auto">
                      <WordCountStatus text={rewrittenContent} className="mb-3" />
                     <pre className="whitespace-pre-wrap text-sm">{rewrittenContent}</pre>
+                     <div className="mt-3"><SendToButton text={rewrittenContent} size="sm" /></div>
                   </div>
                 </div>
               )}

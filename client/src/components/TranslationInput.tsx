@@ -14,7 +14,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import WordCountStatus, { readNdjsonStream } from "@/components/WordCountStatus";
+import WordCountStatus from "@/components/WordCountStatus";
+import { readNdjsonStream } from "@/lib/streaming";
+import SendToButton from "@/components/SendToButton";
+import { acceptPendingOutput, readPendingOutput } from "@/lib/outputRouting";
 
 // Language options for translation
 const languageOptions = [
@@ -50,6 +53,19 @@ export function TranslationInput() {
   const [hasCopied, setHasCopied] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const downloadLinkRef = useRef<HTMLAnchorElement>(null);
+  useEffect(() => {
+    const receive = (event: Event) => {
+      const text = (event as CustomEvent<string>).detail;
+      if (text?.trim()) setInputContent(text);
+    };
+    window.addEventListener("treatise:translation-input", receive);
+    const pending = readPendingOutput("Translation");
+    if (pending?.text) {
+      setInputContent(pending.text);
+      acceptPendingOutput();
+    }
+    return () => window.removeEventListener("treatise:translation-input", receive);
+  }, []);
   
   // Calculate word and character count for input text
   useEffect(() => {
@@ -380,6 +396,7 @@ export function TranslationInput() {
                       </>
                     )}
                   </Button>
+                  <SendToButton text={translatedContent} size="sm" />
                   <Button 
                     variant="outline" 
                     size="sm" 

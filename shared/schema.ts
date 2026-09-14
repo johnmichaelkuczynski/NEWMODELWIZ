@@ -16,6 +16,13 @@ export const users = pgTable("users", {
   lastActiveAt: timestamp("last_active_at").defaultNow().notNull(),
 });
 
+export const appVisitors = pgTable("app_visitors", {
+  id: serial("id").primaryKey(),
+  visitorId: text("visitor_id").notNull().unique(),
+  firstSeenAt: timestamp("first_seen_at").defaultNow().notNull(),
+  lastSeenAt: timestamp("last_seen_at").defaultNow().notNull(),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,

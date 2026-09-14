@@ -49,13 +49,10 @@ const PRESET_TEXT: Record<string,string> = {
   "Hedge once": "Use exactly one hedge: probably/roughly/more or less.",
   "Drop intensifiers": "Remove 'very/clearly/obviously/significantly'.",
   "Low-heat voice": "Prefer plain verbs; avoid showy synonyms.",
-  "One aside": "Allow one short parenthetical or em-dash aside; strictly factual.",
   "Concrete benchmark": "Replace one vague scale with a testable one (e.g., 'enough to X').",
   "Swap generic example": "If the source has an example, make it slightly more specific; else skip.",
   "Metric nudge": "Replace 'more/better' with a minimal, source-safe comparator (e.g., 'more than last case').",
-  "Asymmetric emphasis": "Linger on the main claim; compress secondary points sharply.",
   "Cull repeats": "Delete duplicated sentences/ideas; keep the strongest instance.",
-  "Topic snap": "Allow one abrupt focus change; no recap.",
   "No lists": "Output as continuous prose; remove bullets/numbering.",
   "No meta": "No prefaces/apologies/phrases like 'as requested'.",
   "Exact nouns": "Replace ambiguous pronouns with exact nouns.",
@@ -137,6 +134,163 @@ export interface RewriteParams {
   mixingMode?: 'style' | 'content' | 'both';
 }
 
+export type ProviderMessage = {
+  role: "system" | "user" | "assistant";
+  content: string;
+};
+
+export type StreamProviderOptions = {
+  maxTokens?: number;
+  temperature?: number;
+  responseFormat?: { type: "text" | "json_object" };
+  onEvent?: (event: any) => void;
+};
+
+type StreamProvider = "openai" | "anthropic" | "perplexity" | "deepseek" | "grok";
+
+const PROVIDER_ALIASES: Record<string, StreamProvider> = {
+  openai: "openai",
+  zhi1: "openai",
+  anthropic: "anthropic",
+  claude: "anthropic",
+  zhi2: "anthropic",
+  deepseek: "deepseek",
+  zhi3: "deepseek",
+  perplexity: "perplexity",
+  zhi4: "perplexity",
+  grok: "grok",
+  zhi5: "grok",
+};
+
+/**
+ * Stream text from a provider and return the accumulated text.
+ *
+ * This is the server-side provider boundary. Consumers that need a buffered
+ * compatibility response can simply omit onChunk (or use
+ * completeProviderText), but the provider request is still made with
+ * streaming enabled and deltas are accumulated as they arrive.
+ */
+export async function streamProviderText(
+  providerName: string,
+  messages: ProviderMessage[],
+  onChunk: (chunk: string) => void = () => undefined,
+  options: StreamProviderOptions = {},
+): Promise<string> {
+  const provider = PROVIDER_ALIASES[providerName.toLowerCase()];
+  if (!provider) throw new Error(`Unsupported provider: ${providerName}`);
+
+  const maxTokens = options.maxTokens ?? 4000;
+  const temperature = options.temperature ?? 0.7;
+  let output = "";
+  const emit = (chunk: string) => {
+    if (!chunk) return;
+    output += chunk;
+    onChunk(chunk);
+  };
+
+  if (provider === "openai") {
+    const stream = await openai.chat.completions.create({
+      model: DEFAULT_OPENAI_MODEL,
+      messages: messages as any,
+      temperature,
+      max_tokens: maxTokens,
+      ...(options.responseFormat ? { response_format: options.responseFormat } : {}),
+      stream: true,
+    });
+    for await (const event of stream) emit(event.choices[0]?.delta?.content || "");
+    return output;
+  }
+
+  if (provider === "anthropic") {
+    const system = messages.find(message => message.role === "system")?.content;
+    const stream = await anthropic.messages.stream({
+      model: DEFAULT_ANTHROPIC_MODEL,
+      max_tokens: maxTokens,
+      temperature,
+      ...(system ? { system } : {}),
+      messages: messages.filter(message => message.role !== "system") as any,
+    });
+    stream.on("text", emit);
+    await stream.finalMessage();
+    return output;
+  }
+
+  const configs: Record<Exclude<StreamProvider, "openai" | "anthropic">, {
+    url: string;
+    key?: string;
+    model: string;
+  }> = {
+    perplexity: {
+      url: "https://api.perplexity.ai/chat/completions",
+      key: process.env.PERPLEXITY_API_KEY || process.env.PERPLEXITY_API_KEY_ENV_VAR,
+      model: "sonar",
+    },
+    deepseek: {
+      url: "https://api.deepseek.com/chat/completions",
+      key: process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY_ENV_VAR,
+      model: "deepseek-chat",
+    },
+    grok: {
+      url: "https://api.x.ai/v1/chat/completions",
+      key: process.env.GROK_API_KEY || process.env.GROK_API_KEY_ENV_VAR,
+      model: "grok-3",
+    },
+  };
+  const config = configs[provider];
+  if (!config.key) throw new Error(`${provider} is not configured`);
+
+  const response = await fetch(config.url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${config.key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: config.model,
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+      ...(options.responseFormat ? { response_format: options.responseFormat } : {}),
+      stream: true,
+    }),
+  });
+  if (!response.ok || !response.body) {
+    throw new Error(`${provider} API error: ${response.status} ${await response.text()}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  const processLine = (line: string) => {
+    if (!line.startsWith("data: ")) return;
+    const data = line.slice(6).trim();
+    if (!data || data === "[DONE]") return;
+    try {
+      const event = JSON.parse(data);
+      options.onEvent?.(event);
+      emit(event.choices?.[0]?.delta?.content || "");
+    } catch {
+      // Providers occasionally send non-JSON SSE comments; ignore those.
+    }
+  };
+  while (true) {
+    const { done, value } = await reader.read();
+    buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+    lines.forEach(processLine);
+    if (done) break;
+  }
+  if (buffer) processLine(buffer);
+  return output;
+}
+
+/** Buffered compatibility wrapper backed by the streaming provider boundary. */
+export function completeProviderText(
+  provider: string,
+  messages: ProviderMessage[],
+  options: StreamProviderOptions = {},
+): Promise<string> {
+  return streamProviderText(provider, messages, () => undefined, options);
+}
+
 export class AIProviderService {
   async rewriteStream(
     provider: string,
@@ -151,66 +305,7 @@ export class AIProviderService {
       onChunk(text);
     };
 
-    if (provider === "openai") {
-      const stream = await openai.chat.completions.create({
-        model: DEFAULT_OPENAI_MODEL,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        max_tokens: 4000,
-        stream: true,
-      });
-      for await (const event of stream) emit(event.choices[0]?.delta?.content || "");
-      return this.cleanMarkup(output);
-    }
-
-    if (provider === "anthropic") {
-      const stream = await anthropic.messages.stream({
-        model: DEFAULT_ANTHROPIC_MODEL,
-        messages: [{ role: "user", content: prompt }],
-        max_tokens: 4000,
-        temperature: 0.7,
-      });
-      stream.on("text", emit);
-      await stream.finalMessage();
-      return this.cleanMarkup(output);
-    }
-
-    const config = provider === "perplexity"
-      ? { url: "https://api.perplexity.ai/chat/completions", key: process.env.PERPLEXITY_API_KEY || process.env.PERPLEXITY_API_KEY_ENV_VAR, model: "sonar-pro" }
-      : provider === "deepseek"
-        ? { url: "https://api.deepseek.com/chat/completions", key: process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY_ENV_VAR, model: "deepseek-chat" }
-        : null;
-    if (!config?.key) throw new Error(`Unsupported or unconfigured provider: ${provider}`);
-    const response = await fetch(config.url, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${config.key}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: config.model,
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.7,
-        max_tokens: 4000,
-        stream: true,
-      }),
-    });
-    if (!response.ok || !response.body) throw new Error(`${provider} API error: ${response.status} ${await response.text()}`);
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = "";
-    while (true) {
-      const { done, value } = await reader.read();
-      buffer += decoder.decode(value || new Uint8Array(), { stream: !done });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-      for (const line of lines) {
-        if (!line.startsWith("data: ")) continue;
-        const data = line.slice(6).trim();
-        if (!data || data === "[DONE]") continue;
-        try {
-          emit(JSON.parse(data).choices?.[0]?.delta?.content || "");
-        } catch {}
-      }
-      if (done) break;
-    }
+    output = await streamProviderText(provider, [{ role: "user", content: prompt }], emit);
     return this.cleanMarkup(output);
   }
 
@@ -227,17 +322,12 @@ export class AIProviderService {
     
     try {
       console.log("🔥 About to make OpenAI API call...");
-      const response = await openai.chat.completions.create({
-        model: DEFAULT_OPENAI_MODEL,
-        messages: [
-          { role: "user", content: prompt }
-        ],
+      const content = await completeProviderText("openai", [{ role: "user", content: prompt }], {
         temperature: 0.7,
-        max_tokens: 4000,
+        maxTokens: 4000,
       });
-
-      console.log("🔥 OpenAI response received, length:", response.choices[0].message.content?.length || 0);
-      return this.cleanMarkup(response.choices[0].message.content || "");
+      console.log("🔥 OpenAI response received, length:", content.length);
+      return this.cleanMarkup(content);
     } catch (error: any) {
       console.error("🔥 OpenAI API ERROR:", error);
       throw new Error(`OpenAI API error: ${error.message}`);
@@ -257,17 +347,12 @@ export class AIProviderService {
     
     try {
       console.log("🔥 About to make Anthropic API call...");
-      const response = await anthropic.messages.create({
-        model: DEFAULT_ANTHROPIC_MODEL,
-        messages: [
-          { role: "user", content: prompt }
-        ],
-        max_tokens: 4000,
+      const content = await completeProviderText("anthropic", [{ role: "user", content: prompt }], {
         temperature: 0.7,
+        maxTokens: 4000,
       });
-
-      console.log("🔥 Anthropic response received, length:", response.content[0].text?.length || 0);
-      return this.cleanMarkup(response.content[0].text || "");
+      console.log("🔥 Anthropic response received, length:", content.length);
+      return this.cleanMarkup(content);
     } catch (error: any) {
       console.error("🔥 ANTHROPIC API ERROR:", error);
       throw new Error(`Anthropic API error: ${error.message}`);
@@ -284,30 +369,12 @@ export class AIProviderService {
     });
     
     try {
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY || process.env.PERPLEXITY_API_KEY_ENV_VAR || "default_key"}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: "llama-3.1-sonar-small-128k-online",
-          messages: [
-            { role: "user", content: prompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 4000,
-          stream: false,
-        }),
+      const content = await completeProviderText("perplexity", [{ role: "user", content: prompt }], {
+        temperature: 0.7,
+        maxTokens: 4000,
       });
-
-      if (!response.ok) {
-        throw new Error(`Perplexity API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return this.cleanMarkup(data.choices[0].message.content || "");
-    } catch (error) {
+      return this.cleanMarkup(content);
+    } catch (error: any) {
       throw new Error(`Perplexity API error: ${error.message}`);
     }
   }
@@ -322,30 +389,12 @@ export class AIProviderService {
     });
     
     try {
-      const response = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY || process.env.DEEPSEEK_API_KEY_ENV_VAR || "default_key"}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          messages: [
-            { role: "user", content: prompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 4000,
-          stream: false,
-        }),
+      const content = await completeProviderText("deepseek", [{ role: "user", content: prompt }], {
+        temperature: 0.7,
+        maxTokens: 4000,
       });
-
-      if (!response.ok) {
-        throw new Error(`DeepSeek API error: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      return this.cleanMarkup(data.choices[0].message.content || "");
-    } catch (error) {
+      return this.cleanMarkup(content);
+    } catch (error: any) {
       throw new Error(`DeepSeek API error: ${error.message}`);
     }
   }

@@ -1,5 +1,5 @@
 import { executeFourPhaseProtocol } from './fourPhaseProtocol';
-import fetch from 'node-fetch';
+import { streamProviderText } from './aiProviders';
 
 type LLMProvider = 'openai' | 'anthropic' | 'perplexity' | 'deepseek' | 'grok';
 
@@ -95,7 +95,10 @@ function isFiction(text: string): boolean {
   return (hasDialogue || hasNarrative) && lacksAcademic;
 }
 
-export async function performIntelligentRewrite(request: IntelligentRewriteRequest): Promise<IntelligentRewriteResult> {
+export async function performIntelligentRewrite(
+  request: IntelligentRewriteRequest,
+  onChunk?: (chunk: string) => void,
+): Promise<IntelligentRewriteResult> {
   const { text, customInstructions, styleSample, provider: rawProvider, useExternalKnowledge } = request;
   const provider = mapZhiToProvider(rawProvider) as LLMProvider;
   
@@ -182,85 +185,12 @@ COMPLETE ${isTextFiction ? 'STORY' : 'ESSAY'}:`;
 
   let rewrittenText: string;
   try {
-    // Use the same LLM call pattern as other services
-    if (provider === 'openai') {
-      const OpenAI = (await import('openai')).default;
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [{ role: "user", content: basePrompt }],
-        temperature: 0.3,
-        max_tokens: 8000
-      });
-      
-      rewrittenText = completion.choices[0]?.message?.content || '';
-    } else if (provider === 'anthropic') {
-      const Anthropic = (await import('@anthropic-ai/sdk')).default;
-      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-      
-      const completion = await anthropic.messages.create({
-        model: "claude-sonnet-4-5",
-        max_tokens: 8000,
-        messages: [{ role: "user", content: basePrompt }],
-        temperature: 0.3
-      });
-      
-      rewrittenText = completion.content[0]?.type === 'text' ? completion.content[0].text : '';
-    } else if (provider === 'perplexity') {
-      const response = await fetch('https://api.perplexity.ai/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "sonar",
-          messages: [{ role: "user", content: basePrompt }],
-          temperature: 0.3,
-          max_tokens: 8000
-        })
-      });
-      
-      const data: any = await response.json();
-      rewrittenText = data.choices[0]?.message?.content || '';
-    } else if (provider === 'deepseek') {
-      const response = await fetch('https://api.deepseek.com/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "deepseek-chat",
-          messages: [{ role: "user", content: basePrompt }],
-          temperature: 0.3,
-          max_tokens: 8000
-        })
-      });
-      
-      const data: any = await response.json();
-      rewrittenText = data.choices[0]?.message?.content || '';
-    } else if (provider === 'grok') {
-      const response = await fetch('https://api.x.ai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.GROK_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          model: "grok-3",
-          messages: [{ role: "user", content: basePrompt }],
-          temperature: 0.3,
-          max_tokens: 8000
-        })
-      });
-      
-      const data: any = await response.json();
-      rewrittenText = data.choices[0]?.message?.content || '';
-    } else {
-      throw new Error(`Unsupported provider: ${provider}`);
-    }
+    rewrittenText = await streamProviderText(
+      provider,
+      [{ role: "user", content: basePrompt }],
+      onChunk || (() => undefined),
+      { temperature: 0.3, maxTokens: 8000 },
+    );
     
     // Strip out AI commentary if it slipped through
     rewrittenText = rewrittenText

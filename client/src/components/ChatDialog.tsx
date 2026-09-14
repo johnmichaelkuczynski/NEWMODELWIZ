@@ -10,7 +10,9 @@ import { Send, Upload, Download, Mail, FileText, Paperclip, ArrowUpToLine, Datab
 import { MathRenderer } from './MathRenderer';
 import CopyButton from '@/components/CopyButton';
 import SendToButton from '@/components/SendToButton';
-import WordCountStatus, { readNdjsonStream } from '@/components/WordCountStatus';
+import WordCountStatus from '@/components/WordCountStatus';
+import { readNdjsonStream } from '@/lib/streaming';
+import { OUTPUT_EVENT } from '@/lib/outputRouting';
 
 interface ChatMessage {
   id: string;
@@ -92,8 +94,8 @@ export const ChatDialog: React.FC<ChatDialogProps> = ({
         input?.focus();
       }, 0);
     };
-    window.addEventListener("treatise:send-output", receiveOutput);
-    return () => window.removeEventListener("treatise:send-output", receiveOutput);
+    window.addEventListener(OUTPUT_EVENT, receiveOutput);
+    return () => window.removeEventListener(OUTPUT_EVENT, receiveOutput);
   }, []);
 
   // Add streaming chunk to chat

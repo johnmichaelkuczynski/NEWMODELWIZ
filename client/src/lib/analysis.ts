@@ -1,5 +1,5 @@
 import { apiRequest } from "./queryClient";
-import { readNdjsonStream } from "@/components/WordCountStatus";
+import { readNdjsonResult, readNdjsonStream } from "@/lib/streaming";
 import { 
   DocumentInput, 
   AIDetectionResult, 
@@ -50,7 +50,7 @@ export async function analyzeDocument(
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            content: document.content,
+            text: document.content,
             provider,
             requireProgress: isLargeDocument
           })
@@ -64,7 +64,8 @@ export async function analyzeDocument(
           throw new Error(`API Error: ${response.status} - ${errorText.substring(0, 200)}`);
         }
         
-        return await response.json();
+        const result = await readNdjsonResult<any>(response);
+        return result?.analysis || result;
       } catch (error) {
         clearInterval(progressTimer);
         console.error("Error analyzing document:", error);
@@ -101,7 +102,7 @@ export async function analyzeDocument(
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            content: document.content,
+            text: document.content,
             provider
           })
         });
@@ -111,7 +112,8 @@ export async function analyzeDocument(
           throw new Error(`API Error: ${response.status} - ${errorText.substring(0, 200)}`);
         }
         
-        return await response.json();
+        const result = await readNdjsonResult<any>(response);
+        return result?.analysis || result;
       } catch (error) {
         console.error("Error analyzing document:", error);
         
@@ -183,7 +185,11 @@ export async function compareDocuments(
       documentB,
       provider
     });
-    return await response.json();
+    return (await readNdjsonResult<any>(response)) as {
+      analysisA: DocumentAnalysis;
+      analysisB: DocumentAnalysis;
+      comparison: DocumentComparison;
+    };
   } catch (error) {
     console.error("Error comparing documents:", error);
     throw error;

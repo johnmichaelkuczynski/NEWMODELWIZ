@@ -1,11 +1,4 @@
-import OpenAI from "openai";
-import Anthropic from '@anthropic-ai/sdk';
-import fetch from 'node-fetch';
-import { cleanAIResponse } from '../lib/textUtils';
-
-// Initialize the API clients
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import { streamProviderText } from './aiProviders';
 
 export interface FictionAssessmentResult {
   worldCoherence: number;
@@ -111,104 +104,20 @@ function parseFictionAssessmentResponse(response: string): FictionAssessmentResu
   };
 }
 
-async function makeOpenAIFictionRequest(prompt: string): Promise<string> {
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      { role: "system", content: "You MUST output ONLY numerical scores in the exact format requested. DO NOT write prose, essays, or analysis. Output ONLY: SECTION NAME: [number]/100" },
-      { role: "user", content: prompt }
-    ],
-    temperature: 0.1
-  });
-  
-  return response.choices[0].message.content || "";
-}
-
-async function makeAnthropicFictionRequest(prompt: string): Promise<string> {
-  const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-5",
-    max_tokens: 4000,
-    messages: [{ role: "user", content: prompt }],
-    temperature: 0.2
-  });
-  
-  return response.content[0].type === 'text' ? response.content[0].text : "";
-}
-
-async function makePerplexityFictionRequest(prompt: string): Promise<string> {
-  const response = await fetch('https://api.perplexity.ai/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "sonar",
-      messages: [
-        { role: "system", content: "You are an expert fiction critic and literary analyst." },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.2
-    })
-  });
-  
-  if (!response.ok) {
-    throw new Error(`Perplexity API error: ${response.status}`);
-  }
-  
-  const data: any = await response.json();
-  return data.choices?.[0]?.message?.content || "";
-}
-
-async function makeDeepSeekFictionRequest(prompt: string): Promise<string> {
-  const response = await fetch('https://api.deepseek.com/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`
-    },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      messages: [
-        { role: "system", content: "You are an expert fiction critic and literary analyst." },
-        { role: "user", content: prompt }
-      ],
-      temperature: 0.2
-    })
-  });
-  
-  if (!response.ok) {
-    throw new Error(`DeepSeek API error: ${response.status}`);
-  }
-  
-  const data: any = await response.json();
-  return data.choices?.[0]?.message?.content || "";
-}
-
-export async function performFictionAssessment(text: string, provider: string): Promise<FictionAssessmentResult> {
+export async function performFictionAssessment(
+  text: string,
+  provider: string,
+  onChunk?: (chunk: string) => void,
+): Promise<FictionAssessmentResult> {
   const prompt = FICTION_ASSESSMENT_PROMPT + "\n\n" + text;
   
   console.log(`Starting fiction assessment with ${provider} for text of length: ${text.length}`);
   
   try {
-    let response: string;
-    
-    switch (provider) {
-      case 'openai':
-        response = await makeOpenAIFictionRequest(prompt);
-        break;
-      case 'anthropic':
-        response = await makeAnthropicFictionRequest(prompt);
-        break;
-      case 'perplexity':
-        response = await makePerplexityFictionRequest(prompt);
-        break;
-      case 'deepseek':
-        response = await makeDeepSeekFictionRequest(prompt);
-        break;
-      default:
-        throw new Error(`Unsupported provider: ${provider}`);
-    }
+    const response = await streamProviderText(provider, [
+      { role: "system", content: "You MUST output ONLY numerical scores in the exact format requested. DO NOT write prose, essays, or analysis. Output ONLY: SECTION NAME: [number]/100" },
+      { role: "user", content: prompt },
+    ], onChunk || (() => undefined), { maxTokens: 4000, temperature: 0.2 });
     
     const result = parseFictionAssessmentResponse(response);
     console.log(`Fiction assessment complete - Overall score: ${result.overallFictionScore}/100`);

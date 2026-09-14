@@ -6,7 +6,10 @@ import cognitiveProfiler from './cognitiveProfiler';
  * @param textToAnalyze The text to analyze
  * @returns Object containing verified analyses from all three providers
  */
-export async function analyzeWithAllProviders(textToAnalyze: string): Promise<any[]> {
+export async function analyzeWithAllProviders(
+  textToAnalyze: string,
+  onChunk?: (chunk: string) => void,
+): Promise<any[]> {
   const results = [];
   
   try {
@@ -23,7 +26,7 @@ export async function analyzeWithAllProviders(textToAnalyze: string): Promise<an
     console.log("Adding OpenAI analysis...");
     let openaiReport;
     try {
-      openaiReport = await directOpenAIAnalyze(textToAnalyze);
+      openaiReport = await directOpenAIAnalyze(textToAnalyze, onChunk);
       // Add the score from our cognitive profiler
       openaiReport.formattedReport = `Intelligence Score: ${openaiScore}/100\n\n` + openaiReport.formattedReport;
       results.push(openaiReport);
@@ -39,7 +42,7 @@ export async function analyzeWithAllProviders(textToAnalyze: string): Promise<an
     console.log("Adding Anthropic analysis...");
     let anthropicReport;
     try {
-      anthropicReport = await directAnthropicAnalyze(textToAnalyze);
+      anthropicReport = await directAnthropicAnalyze(textToAnalyze, onChunk);
       // Add the score from our cognitive profiler
       anthropicReport.formattedReport = `Intelligence Score: ${claudeScore}/100\n\n` + anthropicReport.formattedReport;
       results.push(anthropicReport);
@@ -55,7 +58,7 @@ export async function analyzeWithAllProviders(textToAnalyze: string): Promise<an
     console.log("Adding Perplexity analysis...");
     let perplexityReport;
     try {
-      perplexityReport = await directPerplexityAnalyze(textToAnalyze);
+      perplexityReport = await directPerplexityAnalyze(textToAnalyze, onChunk);
       // Add the score from our cognitive profiler
       perplexityReport.formattedReport = `Intelligence Score: ${perplexityScore}/100\n\n` + perplexityReport.formattedReport;
       results.push(perplexityReport);

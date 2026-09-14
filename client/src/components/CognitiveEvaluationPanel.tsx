@@ -8,6 +8,8 @@ import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Brain, TrendingUp, Network, Zap, Eye, Settings } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import { readNdjsonResult } from '@/lib/streaming';
+import SendToButton from '@/components/SendToButton';
 
 interface CognitiveMarkers {
   semanticCompression: {
@@ -93,6 +95,7 @@ export default function CognitiveEvaluationPanel() {
   const [evaluation, setEvaluation] = useState<CognitiveEvaluation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [streamingOutput, setStreamingOutput] = useState("");
 
   const handleEvaluate = async () => {
     if (!text.trim()) {
@@ -102,6 +105,7 @@ export default function CognitiveEvaluationPanel() {
 
     setLoading(true);
     setError(null);
+    setStreamingOutput("");
 
     try {
       const response = await fetch('/api/cognitive-evaluate', {
@@ -116,7 +120,10 @@ export default function CognitiveEvaluationPanel() {
         })
       });
 
-      const data = await response.json();
+      const streamed = await readNdjsonResult<any>(response, chunk => {
+        setStreamingOutput(previous => previous + chunk);
+      });
+      const data = streamed?.result || streamed;
 
       if (data.success) {
         setEvaluation(data.evaluation);
@@ -198,6 +205,11 @@ export default function CognitiveEvaluationPanel() {
               {error}
             </div>
           )}
+          {loading && streamingOutput && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm whitespace-pre-wrap">
+              {streamingOutput}
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -252,6 +264,7 @@ export default function CognitiveEvaluationPanel() {
                   {evaluation.analysis}
                 </div>
               </div>
+               <SendToButton text={evaluation.analysis} size="sm" />
             </CardContent>
           </Card>
 

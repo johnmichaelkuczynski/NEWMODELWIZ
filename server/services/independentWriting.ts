@@ -2,6 +2,13 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "../db";
 import { writingJobs, writingJobSections } from "@shared/schema";
 import { normalizeMathNotation, preserveRequestedMathNotation } from "@shared/mathNotation";
+import {
+  AdaptiveWritingPacer,
+  createThrottledCheckpoint,
+  streamAnthropicMessages,
+  streamOpenAICompatible,
+  type ProviderStreamOptions,
+} from "./providerStreaming";
 
 export type IndependentProvider = "zhi1" | "zhi2" | "zhi3" | "zhi4" | "zhi5";
 
@@ -116,18 +123,25 @@ function removeExactDuplicateParagraphs(text: string): string {
     .join("\n\n");
 }
 
-async function model(provider: IndependentProvider, system: string, prompt: string, maxTokens: number): Promise<string> {
+async function model(
+  provider: IndependentProvider,
+  system: string,
+  prompt: string,
+  maxTokens: number,
+  options: ProviderStreamOptions = {},
+): Promise<string> {
   if (provider === "zhi2") {
     const Anthropic = (await import("@anthropic-ai/sdk")).default;
     const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const response = await client.messages.create({
-      model: "claude-sonnet-4-5",
-      max_tokens: maxTokens,
-      temperature: 0.65,
+    return streamAnthropicMessages(
+      client,
+      "claude-sonnet-4-5",
       system,
-      messages: [{ role: "user", content: prompt }],
-    });
-    return response.content[0]?.type === "text" ? response.content[0].text : "";
+      prompt,
+      maxTokens,
+      0.65,
+      options,
+    );
   }
   const config = {
     zhi1: ["https://api.openai.com/v1/chat/completions", process.env.OPENAI_API_KEY, "gpt-4o"],
@@ -136,19 +150,16 @@ async function model(provider: IndependentProvider, system: string, prompt: stri
     zhi5: ["https://api.x.ai/v1/chat/completions", process.env.GROK_API_KEY, "grok-3"],
   }[provider] as [string, string | undefined, string];
   if (!config?.[1]) throw new Error(`${provider} is not configured`);
-  const response = await fetch(config[0], {
-    method: "POST",
-    headers: { Authorization: `Bearer ${config[1]}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: config[2],
-      messages: [{ role: "system", content: system }, { role: "user", content: prompt }],
-      max_tokens: maxTokens,
-      temperature: 0.65,
-    }),
-  });
-  if (!response.ok) throw new Error(`${provider} request failed (${response.status})`);
-  const data = await response.json() as any;
-  return data.choices?.[0]?.message?.content || "";
+  return streamOpenAICompatible(
+    config[0],
+    config[1],
+    config[2],
+    system,
+    prompt,
+    maxTokens,
+    0.65,
+    options,
+  );
 }
 
 async function stopRequested(jobId: number): Promise<boolean> {
@@ -227,6 +238,7 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
   const targets = sectionTargets(job.requestedWordCount, job.totalSections);
   const completed: string[] = [];
   let current = "";
+  const pacing = new AdaptiveWritingPacer();
   let firstSentence: string | null = null;
   const existingSections = await db.select().from(writingJobSections)
     .where(eq(writingJobSections.jobId, jobId))
@@ -235,6 +247,7 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
   try {
     const completedCount = existingSections.filter(section => section.sectionIndex < job.completedSections).length;
     completed.push(...existingSections.filter(section => section.sectionIndex < job.completedSections).map(section => section.content));
+    pacing.initialize(words(completed.join("\n\n")));
     if (!isResume) {
       await db.delete(writingJobSections).where(eq(writingJobSections.jobId, jobId));
       await db.update(writingJobs).set({
@@ -268,20 +281,6 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
       const requiresFinalTheorem = Boolean(
         number === chapters && /final paragraph[\s\S]{0,180}\btheorem\b/i.test(job.instructions),
       );
-      const initialTarget = job.requestedWordCount > 1500
-        ? Math.min(500, target)
-        : Math.max(50, Math.floor(target * 0.84));
-      const partial = existingSections.find(section => section.sectionIndex === index && index >= job.completedSections);
-      current = partial?.content || plain(await model(
-        provider,
-        CORE_RULES,
-        `${identity}\nWrite ${initialTarget} to ${Math.ceil(initialTarget * 1.08)} words${initialTarget < target ? " and stop at a natural paragraph boundary without concluding the section" : ""}. Respect that range. Follow the current directive exactly. Do not import another chapter's task.\n\nCOMPLETE ASSIGNMENT AND SEPARATE SOURCE:\n${completeContext}\n\nCURRENT DIRECTIVE:\n${directive}${correction}\n\nPRIOR ESTABLISHED CONTINUITY:\n${ledger || "None."}\n\nINDEPENDENT PLAN:\n${plan}`,
-        Math.min(1800, Math.ceil((initialTarget + 200) * 1.8)),
-      ));
-      if (number) current = normalizeChapterStructure(current, number, title);
-      current = removeExactDuplicateParagraphs(current);
-      current = normalizeSingleFinalTheorem(current, requiresFinalTheorem);
-      await publish(jobId, completed, current);
       const savePartial = async () => {
         const rows = await db.select({ id: writingJobSections.id, sectionIndex: writingJobSections.sectionIndex })
           .from(writingJobSections).where(eq(writingJobSections.jobId, jobId));
@@ -294,26 +293,61 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
           });
         }
       };
+      const persistProgress = async (section: string): Promise<boolean> => {
+        current = section;
+        await publish(jobId, completed, current);
+        await savePartial();
+        return stopRequested(jobId);
+      };
+      const checkpoint = createThrottledCheckpoint(persistProgress);
+      const initialTarget = job.requestedWordCount > 1500
+        ? Math.min(500, target)
+        : Math.max(50, Math.floor(target * 0.84));
+      const partial = existingSections.find(section => section.sectionIndex === index && index >= job.completedSections);
+      current = partial?.content || plain(await model(
+        provider,
+        CORE_RULES,
+        `${identity}\nWrite ${initialTarget} to ${Math.ceil(initialTarget * 1.08)} words${initialTarget < target ? " and stop at a natural paragraph boundary without concluding the section" : ""}. Respect that range. Follow the current directive exactly. Do not import another chapter's task.\n\nCOMPLETE ASSIGNMENT AND SEPARATE SOURCE:\n${completeContext}\n\nCURRENT DIRECTIVE:\n${directive}${correction}\n\nPRIOR ESTABLISHED CONTINUITY:\n${ledger || "None."}\n\nINDEPENDENT PLAN:\n${plan}`,
+        Math.min(1800, Math.ceil((initialTarget + 200) * 1.8)),
+        {
+          pacer: pacing,
+          wordCountOffset: words(completed.join("\n\n")),
+          onText: async streamed => {
+            current = plain(streamed);
+            if (await checkpoint.update(current)) throw new Error("INDEPENDENT_WRITING_STOPPED");
+          },
+        },
+      ));
+      if (!partial && await checkpoint.flush()) throw new Error("INDEPENDENT_WRITING_STOPPED");
+      if (number) current = normalizeChapterStructure(current, number, title);
+      current = removeExactDuplicateParagraphs(current);
+      current = normalizeSingleFinalTheorem(current, requiresFinalTheorem);
+      await publish(jobId, completed, current);
 
-      const minimum = /(?:minimum of|at least|no fewer than)\s*\d/i.test(job.instructions)
-        ? target : Math.ceil(target * 0.9);
-      let nextPauseAt = (Math.floor(words(current) / 1000) + 1) * 1000;
+      const minimum = target;
       while (words(current) < minimum) {
         if (job.requestedWordCount > 1500) {
-          if (words(current) >= nextPauseAt) {
-            await new Promise(resolve => setTimeout(resolve, 10000));
-            nextPauseAt += 1000;
-          }
+          await pacing.waitIfDue(words([...completed, current].join("\n\n")));
           if (await stopRequested(jobId)) throw new Error("INDEPENDENT_WRITING_STOPPED");
         }
         const amount = Math.min(500, minimum - words(current) + 30);
+        const priorCurrent = current;
         const continuation = plain(await model(
           provider,
           CORE_RULES,
           `Continue only the current section by approximately ${amount} words. Do not repeat prior prose.${words(current) + amount >= minimum ? " Complete the section naturally while satisfying every structural requirement below." : " Do not conclude yet."}\n\nSTRUCTURAL REQUIREMENTS:\n${identity}\n\nCURRENT DIRECTIVE:\n${directive}${correction}\n\nPRIOR CONTINUITY:\n${ledger}\n\nCURRENT SECTION END:\n${current.split(/\s+/).slice(-600).join(" ")}`,
           Math.min(1800, Math.ceil((amount + 200) * 1.8)),
+          {
+            pacer: pacing,
+            wordCountOffset: words([...completed, priorCurrent].join("\n\n")),
+            onText: async streamed => {
+              current = plain(`${priorCurrent}\n\n${streamed}`);
+              if (await checkpoint.update(current)) throw new Error("INDEPENDENT_WRITING_STOPPED");
+            },
+          },
         ));
-        current = plain(`${current}\n\n${continuation}`);
+        if (await checkpoint.flush()) throw new Error("INDEPENDENT_WRITING_STOPPED");
+        current = plain(`${priorCurrent}\n\n${continuation}`);
         if (number) current = normalizeChapterStructure(current, number, title);
         current = removeExactDuplicateParagraphs(current);
         current = normalizeSingleFinalTheorem(current, requiresFinalTheorem);

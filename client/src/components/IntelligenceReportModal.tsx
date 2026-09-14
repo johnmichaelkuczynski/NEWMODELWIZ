@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Brain, TrendingUp, Target, Zap, Eye, Lightbulb, FileText } from 'lucide-react';
 import { DocumentAnalysis } from '@/lib/types';
 import { cleanAIResponse } from '@/lib/textUtils';
+import SendToButton from '@/components/SendToButton';
 
 // Provider name mapping
 const getProviderDisplayName = (provider: string): string => {
@@ -580,6 +581,7 @@ const IntelligenceReportModal: React.FC<IntelligenceReportModalProps> = ({ isOpe
                 <Brain className="w-4 h-4 mr-2" />
                 Analyzed by {getProviderDisplayName(provider)}
               </Badge>
+              <SendToButton text={cleanedReport} size="sm" />
             </div>
           </div>
         </ScrollArea>

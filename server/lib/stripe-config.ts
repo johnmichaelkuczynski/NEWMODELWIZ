@@ -47,6 +47,13 @@ export const CREDIT_PACKAGES = {
 export type Provider = keyof typeof CREDIT_PACKAGES;
 export type PriceTier = keyof typeof CREDIT_PACKAGES.openai;
 
+const PERMANENT_OWNER_EMAIL = "johnmichaelkuczynski@gmail.com";
+
+export function isPermanentOwnerEmail(email: string | null | undefined): boolean {
+  return typeof email === "string"
+    && email.trim().toLowerCase() === PERMANENT_OWNER_EMAIL;
+}
+
 // Public access is unlimited while account-based access is disabled.
 export function hasUnlimitedCredits(username: string | undefined): boolean {
   if (!username) return false;
