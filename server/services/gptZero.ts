@@ -28,8 +28,9 @@ export class GPTZeroService {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`GPTZero API error: ${response.status} ${response.statusText} - ${errorText}`);
+        // Provider error bodies can echo request credentials. Never log or
+        // rethrow those bodies.
+        throw new Error(`GPTZero API error: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();

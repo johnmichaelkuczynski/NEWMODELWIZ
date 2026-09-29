@@ -47,9 +47,10 @@ async function callClaude(system: string, prompt: string, maxTokens: number): Pr
   return message.content[0]?.type === "text" ? message.content[0].text : "";
 }
 
-export async function createCoherenceAnalysisJob(text: string, coherenceType: string) {
+export async function createCoherenceAnalysisJob(text: string, coherenceType: string, userId?: number) {
   const chunks = splitText(text);
   const [job] = await db.insert(writingJobs).values({
+    userId,
     instructions: text,
     provider: "coherence-anthropic",
     requestedWordCount: text.trim().split(/\s+/).length,
@@ -79,6 +80,7 @@ export async function getCoherenceAnalysisJob(jobId: number) {
   const checkpoints = sections.map(section => parseCheckpoint(section.continuitySummary));
   return {
     id: job.id,
+    userId: job.userId,
     status: job.status,
     stage: job.status,
     wordCount: job.requestedWordCount,

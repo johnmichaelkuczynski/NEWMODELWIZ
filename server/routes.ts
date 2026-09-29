@@ -16,7 +16,6 @@ import { extractTextFromFile } from "./api/documentParser";
 import { sendSimpleEmail } from "./api/simpleEmailService";
 import { upload as speechUpload, processSpeechToText } from "./api/simpleSpeechToText";
 import { createCoherenceAnalysisJob, getCoherenceAnalysisJob, runCoherenceAnalysisJob } from "./services/coherenceAnalysisJobs";
-import { enforcePaidAiAccess, getAccessStatus, initializeAccessControl } from "./services/accessControl";
 
 
 // Configure multer for file uploads
@@ -606,9 +605,11 @@ Provide detailed analysis of literary merit, character development, plot structu
 export async function registerRoutes(app: Express): Promise<Express> {
   setupAuth(app);
   
-  // Register payment routes
+  // Preserve billing management for existing customers, but do not start new charges.
+  app.post(["/api/payments/subscribe", "/api/payments/checkout"], (_req, res) => {
+    res.status(410).json({ message: "New purchases and subscriptions are unavailable." });
+  });
   registerPaymentRoutes(app);
-  await initializeAccessControl();
   app.post("/api/visitor-count", async (req: Request, res: Response) => {
     const visitorId = typeof req.body?.visitorId === "string" ? req.body.visitorId.trim() : "";
     if (!/^[a-f0-9-]{36}$/i.test(visitorId)) {
@@ -625,10 +626,6 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const [result] = await db.select({ total: count() }).from(appVisitors);
     res.json({ count: Number(result?.total || 0) });
   });
-  app.get("/api/access/status", async (req: Request, res: Response) => {
-    res.json(await getAccessStatus(req));
-  });
-  app.use("/api", enforcePaidAiAccess);
   
   // API health check endpoint
   app.get("/api/check-api", async (_req: Request, res: Response) => {
@@ -700,7 +697,6 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const optionalKeys: [string, string][] = [
       ["MATHPIX_APP_ID", "Mathpix OCR (optional)"],
       ["SENDGRID_API_KEY", "SendGrid email (optional)"],
-      ["STRIPE_SECRET_KEY", "Stripe payments (optional)"],
     ];
     for (const [key, label] of optionalKeys) {
       checks.push({
@@ -5096,7 +5092,7 @@ Respond with ONLY the coherence type (e.g., "logical-consistency" or "scientific
       return res.status(400).json({ success: false, message: "Text is required" });
     }
     try {
-      const job = await createCoherenceAnalysisJob(text, coherenceType);
+      const job = await createCoherenceAnalysisJob(text, coherenceType, req.user?.id);
       res.status(202).json({ success: true, jobId: job.id, totalChunks: job.totalSections });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message || "Could not create coherence analysis job" });
@@ -5107,8 +5103,12 @@ Respond with ONLY the coherence type (e.g., "logical-consistency" or "scientific
     const jobId = Number(req.params.id);
     const job = await getCoherenceAnalysisJob(jobId);
     if (!job) return res.status(404).json({ success: false, message: "Coherence analysis job not found" });
+    if (job.userId && req.user?.id !== job.userId) {
+      return res.status(403).json({ success: false, message: "This analysis belongs to another visitor" });
+    }
+    const { userId: _ownerId, ...safeJob } = job;
     if (!["complete", "failed"].includes(job.status)) void runCoherenceAnalysisJob(jobId);
-    res.json({ success: true, ...job });
+    res.json({ success: true, ...safeJob });
   });
 
   app.post("/api/coherence-global-stream", async (req: Request, res: Response) => {

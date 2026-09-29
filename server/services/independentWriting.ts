@@ -228,7 +228,7 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
       status: "paused",
       stopRequested: true,
       stoppedEarly: true,
-      error: "Sign in with Google before continuing database-backed large-scale writing.",
+      error: "Database-backed large-scale writing is unavailable for guest jobs.",
       updatedAt: new Date(),
     }).where(eq(writingJobs.id, jobId));
     throw new Error("Database-backed large-scale writing requires a signed-in user owner.");

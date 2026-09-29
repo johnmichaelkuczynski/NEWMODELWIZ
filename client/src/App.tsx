@@ -11,14 +11,12 @@ import WebSearchPage from "@/pages/WebSearchPage";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import NotFound from "@/pages/not-found";
 import DiagnosticPage from "@/pages/DiagnosticPage";
-import { BrainCircuit, Brain, Mail, Trash2, Activity, LogIn, LogOut, Users } from "lucide-react";
+import { BrainCircuit, Brain, Mail, Trash2, Activity, Users } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CreditBalance } from "@/components/CreditBalance";
 import { PENDING_OUTPUT_KEY } from "@/lib/outputRouting";
 import zhiLogo from "@assets/zhi_logoc_1788019705241.png";
 import { trackEvent } from "@/lib/analytics";
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
 
 function clearPage() {
   const keysToRemove: string[] = [];
@@ -36,7 +34,6 @@ function clearPage() {
 
 function Navigation() {
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
-  const { user, isLoading, logout, isLoggingOut } = useAuth();
 
   useEffect(() => {
     const storageKey = "neurotext-visitor-id";
@@ -58,14 +55,6 @@ function Navigation() {
       .then(data => setVisitorCount(Number(data.count)))
       .catch(() => setVisitorCount(null));
   }, []);
-
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    if (url.searchParams.get("auth") !== "success") return;
-    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    url.searchParams.delete("auth");
-    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
-  }, [user]);
 
   return (
     <nav className="bg-primary text-primary-foreground py-4">
@@ -129,10 +118,6 @@ function Navigation() {
           </ul>
           
           <div className="flex items-center gap-3">
-            <div className="bg-primary-foreground/10 px-3 py-1.5 rounded-md">
-              <CreditBalance />
-            </div>
-            
             <Button 
               variant="ghost" 
               size="sm"
@@ -144,51 +129,9 @@ function Navigation() {
               Clear Page
             </Button>
 
-            {!isLoading && (
-              user ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={logout}
-                  disabled={isLoggingOut}
-                  className="text-primary-foreground hover:bg-primary-foreground/10"
-                  data-testid="button-google-logout"
-                >
-                  <LogOut className="h-4 w-4 mr-1" />
-                  {isLoggingOut ? "Signing out..." : "Sign out"}
-                </Button>
-              ) : (
-                <Button
-                  asChild
-                  variant="secondary"
-                  size="sm"
-                  data-testid="button-google-login"
-                >
-                  <a
-                    href="/api/auth/google"
-                    onClick={() => trackEvent("google_login_started", { location: "header" })}
-                  >
-                    <LogIn className="h-4 w-4 mr-1" />
-                    Sign in with Google
-                  </a>
-                </Button>
-              )
-            )}
-            
           </div>
         </div>
       </div>
-        {!isLoading && user && (
-          <div className="container mx-auto mt-2 flex justify-end">
-            <div
-              className="rounded-md bg-primary-foreground/15 px-3 py-1 text-sm font-semibold"
-              data-testid="signed-in-user"
-            >
-              Signed in as {user.email || user.username}
-            </div>
-          </div>
-        )}
-      
     </nav>
   );
 }
@@ -213,12 +156,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+      </TooltipProvider>
     </QueryClientProvider>
   );
 }

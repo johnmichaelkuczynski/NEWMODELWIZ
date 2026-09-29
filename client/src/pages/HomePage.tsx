@@ -629,7 +629,7 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       active: boolean;
       targetWords: number;
       originalRequestedWords: number;
-      nextAction: "sign-in" | "subscribe" | null;
+      nextAction: "subscribe" | null;
     },
   ) => {
     let completed: any = null;
@@ -666,8 +666,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     setWritingAudits(Array.isArray(completed.audits) ? completed.audits : []);
     setIsStoppingWriting(false);
     const continuation = preview?.nextAction === "subscribe"
-      ? "Subscribe to generate the complete work."
-      : "Sign in to receive a larger free sample.";
+      ? "The full request is temporarily unavailable on the current server."
+      : "The remaining length exceeds the guest allowance.";
     setWritingProgress(
       preview?.active
         ? `Free sample: ${completed.actualWordCount.toLocaleString()} words of the requested ${preview.originalRequestedWords.toLocaleString()}-word work. ${continuation}`
@@ -722,17 +722,17 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       });
       const data = await safeJson(response);
       if (!response.ok || !data?.jobId) {
-        if (data?.code === "SIGN_IN_REQUIRED") {
-          const message = data?.message || "Sign in with Google to receive additional free writing.";
+        if (data?.code === "SIGN_IN_REQUIRED" || data?.code === "GUEST_LIMIT_REACHED") {
+          const message = "This request exceeds the available guest allowance.";
           setWritingProgress(message);
           toast({
-            title: "Continue with Google",
+            title: "Guest limit reached",
             description: message,
           });
           return;
         }
         if (data?.code === "SUBSCRIPTION_REQUIRED") {
-          const message = data?.message || "Subscribe for unlimited writing and analysis.";
+          const message = "The current server is still enforcing an outdated usage restriction.";
           setWritingProgress(message);
           toast({
             title: "Continue Writing",
@@ -745,8 +745,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
 
       if (data.preview) {
         const continuation = data.previewNextAction === "subscribe"
-          ? "Subscribe to generate the complete work."
-          : "Sign in to receive a larger free preview.";
+          ? "The full request is temporarily unavailable on the current server."
+          : "The remaining length exceeds the guest allowance.";
         setWritingProgress(
           `Generating a ${data.requestedWordCount.toLocaleString()}-word preview now. ${continuation}`,
         );
@@ -776,8 +776,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
             : "Writing Complete",
         description: data.preview
           ? data.previewNextAction === "subscribe"
-            ? `Your ${completed.requestedWordCount.toLocaleString()}-word signed-in preview appears below. Subscribe to create the complete ${data.originalRequestedWordCount.toLocaleString()}-word work.`
-            : `Your ${completed.requestedWordCount.toLocaleString()}-word preview appears below. Sign in to receive a larger preview of the requested ${data.originalRequestedWordCount.toLocaleString()}-word work.`
+            ? `Your ${completed.requestedWordCount.toLocaleString()}-word preview appears below. The full ${data.originalRequestedWordCount.toLocaleString()}-word request is temporarily unavailable on the current server.`
+            : `Your ${completed.requestedWordCount.toLocaleString()}-word preview appears below. The complete ${data.originalRequestedWordCount.toLocaleString()}-word work exceeds the guest allowance.`
           : completed.stoppedEarly
           ? "Everything generated before you stopped has been saved below."
           : "The requested work appears directly below your instructions.",

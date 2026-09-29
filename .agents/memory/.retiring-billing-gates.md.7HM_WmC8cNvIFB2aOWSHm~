@@ -1,0 +1,10 @@
+---
+name: Retiring billing gates
+description: Distinguish removal of new checkout and paywall enforcement from cancellation of existing recurring charges.
+---
+
+Disabling purchase routes and subscription checks must not be mistaken for ending active charges. Keep the existing billing-management and webhook paths available while subscriptions remain active, unless a separately authorized transition replaces them.
+
+**Why:** Existing subscriptions can continue renewing at the payment provider even when every AI feature becomes free. Removing the customer's cancellation path first leaves them paying without a clear way to stop.
+
+**How to apply:** For any future retirement of paid features, verify the live provider subscriptions, obtain an explicit cancellation-timing decision, and preserve historical billing records. Do not infer live subscription counts from the development database.
