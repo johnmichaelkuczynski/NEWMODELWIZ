@@ -2,6 +2,7 @@ import { asc, eq } from "drizzle-orm";
 import { db } from "../db";
 import { writingJobs, writingJobSections } from "@shared/schema";
 import { normalizeMathNotation, preserveRequestedMathNotation } from "@shared/mathNotation";
+import { expandedWordTarget } from "./sourceExpansion";
 import {
   AdaptiveWritingPacer,
   createThrottledCheckpoint,
@@ -185,14 +186,17 @@ export async function createIndependentWritingJob(input: {
   auditGuidance?: string;
   forceSingleSection?: boolean;
 }) {
+  const requestedWordCount = input.forceSingleSection
+    ? input.requestedWordCount
+    : expandedWordTarget(input.requestedWordCount, input.sourceDocument);
   const chapters = input.forceSingleSection ? null : chapterCount(input.instructions);
-  const totalSections = chapters || (input.requestedWordCount > 2000 ? Math.ceil(input.requestedWordCount / 1200) : 1);
+  const totalSections = chapters || (requestedWordCount > 2000 ? Math.ceil(requestedWordCount / 1200) : 1);
   const [job] = await db.insert(writingJobs).values({
     userId: input.userId,
     instructions: input.instructions,
     sourceDocument: input.sourceDocument || null,
     provider: input.provider,
-    requestedWordCount: input.requestedWordCount,
+    requestedWordCount,
     auditGuidance: input.auditGuidance || null,
     usesLargeScaleCoherence: totalSections > 1,
     totalSections,
@@ -223,6 +227,10 @@ export const countIndependentWords = words;
 export async function processIndependentWritingJob(jobId: number): Promise<void> {
   const [job] = await db.select().from(writingJobs).where(eq(writingJobs.id, jobId));
   if (!job) throw new Error("Writing job not found");
+  if (job.sourceDocument?.trim()) {
+    const { processWritingJob } = await import("./longFormWriting");
+    return processWritingJob(jobId);
+  }
   if (job.usesLargeScaleCoherence && !job.userId) {
     await db.update(writingJobs).set({
       status: "paused",
