@@ -2,12 +2,11 @@ import type { NextFunction, Request, Response } from "express";
 import { createHash, randomUUID } from "crypto";
 import { pool } from "../db";
 import { storage } from "../storage";
-import { isPermanentOwnerEmail } from "../lib/stripe-config";
 
-const ANONYMOUS_ACTION_LIMIT = 5;
+const ANONYMOUS_ACTION_LIMIT = 3;
 const ANONYMOUS_WORD_LIMIT = 6000;
 const ANONYMOUS_WRITING_PREVIEW_WORDS = 2000;
-const SIGNED_IN_ACTION_LIMIT = 20;
+const SIGNED_IN_ACTION_LIMIT = 10;
 const SIGNED_IN_WORD_LIMIT = 20000;
 const SIGNED_IN_WRITING_PREVIEW_WORDS = 2000;
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
@@ -95,13 +94,6 @@ async function accessTier(req: Request): Promise<{ tier: AccessTier; identityKey
       subscribed: true,
     };
   }
-  if (isPermanentOwnerEmail(req.user.email)) {
-    return {
-      tier: "subscriber",
-      identityKey: `user:${req.user.id}`,
-      subscribed: true,
-    };
-  }
   const user = await storage.getUser(req.user.id);
   const legacy = user ? await storage.getUserSubscription(user.id, user.email) : null;
   const status = user?.subscriptionStatus || legacy?.status || null;
@@ -170,8 +162,8 @@ function quotaResponse(
   return res.status(anonymous ? 401 : 402).json({
     code: anonymous ? "SIGN_IN_REQUIRED" : "SUBSCRIPTION_REQUIRED",
     message: anonymous
-      ? "You have used your five free operations, or this request exceeds the remaining free size allowance. Sign in with Google to receive 20 additional free operations."
-      : "You have used your 20 signed-in free operations, or this request exceeds the remaining free size allowance. Subscribe to continue writing and analysis.",
+      ? "This request exceeds your remaining free preview. Sign in with Google to receive additional free usage."
+      : "This request exceeds your remaining signed-in free usage. Subscribe for unlimited writing and analysis.",
     nextAction: anonymous ? "sign-in" : "subscribe",
     usage: {
       tier,

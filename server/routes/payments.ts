@@ -1,12 +1,5 @@
 import type { Express, Request, Response } from "express";
-import {
-  stripe,
-  CREDIT_PACKAGES,
-  type Provider,
-  type PriceTier,
-  hasUnlimitedCredits,
-  isPermanentOwnerEmail,
-} from "../lib/stripe-config";
+import { stripe, CREDIT_PACKAGES, type Provider, type PriceTier, hasUnlimitedCredits } from "../lib/stripe-config";
 import { storage } from "../storage";
 import { z } from "zod";
 import type Stripe from "stripe";
@@ -84,16 +77,9 @@ async function reconcileCustomerSubscription(customerId: string) {
 export function registerPaymentRoutes(app: Express) {
   app.post("/api/payments/subscribe", async (req: Request, res: Response) => {
     try {
-      const configuredPriceId = process.env.STRIPE_PRICE_ID;
-      if (!stripe || !configuredPriceId) {
+      if (!stripe || !process.env.STRIPE_PRICE_ID) {
         return res.status(503).json({ message: "Stripe subscription is not configured" });
       }
-      const requestedPriceId =
-        typeof req.body?.priceId === "string" ? req.body.priceId.trim() : "";
-      if (requestedPriceId && requestedPriceId !== configuredPriceId) {
-        return res.status(400).json({ message: "Invalid subscription price" });
-      }
-      const selectedPriceId = configuredPriceId;
       const stripeClient = stripe;
 
       const user = getSignedInUser(req, res);
@@ -150,14 +136,13 @@ export function registerPaymentRoutes(app: Express) {
           (candidate) =>
             candidate.mode === "subscription" &&
             candidate.metadata?.purchaseType === "model-wiz-subscription" &&
-            candidate.metadata?.priceId === selectedPriceId &&
             Boolean(candidate.url),
         );
         if (existingSession) return existingSession;
 
         return stripeClient.checkout.sessions.create({
           mode: "subscription",
-          line_items: [{ price: selectedPriceId, quantity: 1 }],
+          line_items: [{ price: process.env.STRIPE_PRICE_ID!, quantity: 1 }],
           success_url: `${baseUrl}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
           cancel_url: `${baseUrl}/?payment=cancelled`,
           client_reference_id: String(currentUser.id),
@@ -165,13 +150,11 @@ export function registerPaymentRoutes(app: Express) {
           metadata: {
             userId: String(currentUser.id),
             purchaseType: "model-wiz-subscription",
-            priceId: selectedPriceId,
           },
           subscription_data: {
             metadata: {
               userId: String(currentUser.id),
               purchaseType: "model-wiz-subscription",
-              priceId: selectedPriceId,
             },
           },
         });
@@ -198,17 +181,6 @@ export function registerPaymentRoutes(app: Express) {
       });
     }
     const user = req.user;
-    if (isPermanentOwnerEmail(user.email)) {
-      return res.json({
-        status: "owner",
-        active: true,
-        canManage: false,
-        canSubscribe: false,
-        currentPeriodEnd: null,
-        unlimited: true,
-        owner: true,
-      });
-    }
     if (
       process.env.NODE_ENV === "development"
       && user.username === "dev_johnmichaelkuczynski"
@@ -243,14 +215,6 @@ export function registerPaymentRoutes(app: Express) {
   app.get("/api/payments/subscription-status", async (req: Request, res: Response) => {
     if (!req.user) {
       return res.json({ subscribed: false, status: "none" });
-    }
-    if (isPermanentOwnerEmail(req.user.email)) {
-      return res.json({
-        subscribed: true,
-        status: "owner",
-        unlimited: true,
-        owner: true,
-      });
     }
 
     const currentUser = await storage.getUser(req.user.id);
@@ -493,8 +457,6 @@ export function registerPaymentRoutes(app: Express) {
 
       // Check for unlimited credits
       if (
-        isPermanentOwnerEmail(user.email)
-        ||
         (process.env.NODE_ENV === "development" && user.username === "dev_johnmichaelkuczynski")
         ||
         hasUnlimitedCredits(user.username)

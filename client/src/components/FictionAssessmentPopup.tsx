@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,7 +10,6 @@ import { apiRequest } from '@/lib/queryClient';
 import { Textarea } from '@/components/ui/textarea';
 import jsPDF from 'jspdf';
 import SendToButton from "./SendToButton";
-import { readNdjsonResult } from '@/lib/streaming';
 
 interface FictionAssessmentResult {
   worldCoherence: number;
@@ -25,18 +24,13 @@ interface FictionAssessmentResult {
 interface FictionAssessmentPopupProps {
   isOpen: boolean;
   onClose: () => void;
-  initialText?: string;
 }
 
-export function FictionAssessmentPopup({ isOpen, onClose, initialText = "" }: FictionAssessmentPopupProps) {
-  const [fictionText, setFictionText] = useState(initialText);
-  useEffect(() => {
-    if (isOpen && initialText) setFictionText(initialText);
-  }, [isOpen, initialText]);
+export function FictionAssessmentPopup({ isOpen, onClose }: FictionAssessmentPopupProps) {
+  const [fictionText, setFictionText] = useState("");
   const [selectedProvider, setSelectedProvider] = useState("openai");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<FictionAssessmentResult | null>(null);
-  const [streamingAssessment, setStreamingAssessment] = useState("");
 
   const handleAssessment = async () => {
     if (!fictionText.trim()) {
@@ -46,7 +40,6 @@ export function FictionAssessmentPopup({ isOpen, onClose, initialText = "" }: Fi
 
     setIsLoading(true);
     setResult(null);
-    setStreamingAssessment("");
 
     try {
       const response = await fetch('/api/fiction-assessment', {
@@ -64,15 +57,12 @@ export function FictionAssessmentPopup({ isOpen, onClose, initialText = "" }: Fi
         throw new Error('Fiction assessment failed');
       }
 
-      const streamed = await readNdjsonResult<any>(response, chunk => {
-        setStreamingAssessment(previous => previous + chunk);
-      });
-      const data = streamed?.result || streamed;
+      const data = await response.json();
       console.log('Fiction Assessment API Response:', data);
       
       // Handle the response properly
-      if (streamed?.success && data) {
-        setResult(data);
+      if (data.success && data.result) {
+        setResult(data.result);
       } else if (data && (data.worldCoherence !== undefined || data.overallFictionScore !== undefined)) {
         setResult(data);
       } else {
@@ -249,11 +239,6 @@ ${fictionText}`;
           </div>
 
           {/* Results Section */}
-          {isLoading && streamingAssessment && (
-            <div className="p-4 rounded-lg border border-blue-200 bg-blue-50 whitespace-pre-wrap">
-              {streamingAssessment}
-            </div>
-          )}
           {result && (
             <div className="space-y-6 border-t pt-6">
               <div className="flex items-center justify-between">

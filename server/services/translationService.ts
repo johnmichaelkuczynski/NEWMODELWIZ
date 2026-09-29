@@ -1,4 +1,10 @@
-import { completeProviderText } from "./aiProviders";
+import OpenAI from "openai";
+import Anthropic from '@anthropic-ai/sdk';
+import fetch from 'node-fetch';
+
+// Initialize API clients
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 interface TranslationOptions {
   targetLanguage: string;
@@ -75,14 +81,16 @@ async function translateWithOpenAI(
   sourceLanguage: string
 ): Promise<TranslationResult> {
   try {
-    const translatedText = await completeProviderText(
-      "openai",
-      [
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
         { role: "system", content: "You are a professional translator with expertise in preserving intellectual quality across languages." },
-        { role: "user", content: prompt },
+        { role: "user", content: prompt }
       ],
-      { temperature: 0.2 },
-    );
+      temperature: 0.2
+    });
+    
+    const translatedText = response.choices[0].message.content || '';
     
     return {
       originalText,
@@ -113,10 +121,17 @@ async function translateWithAnthropic(
   sourceLanguage: string
 ): Promise<TranslationResult> {
   try {
-    const translatedText = await completeProviderText("anthropic", [
-        { role: "system", content: "You are a professional translator with expertise in preserving intellectual quality across languages." },
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-5",
+      max_tokens: 4000,
+      temperature: 0.2,
+      system: "You are a professional translator with expertise in preserving intellectual quality across languages.",
+      messages: [
         { role: "user", content: prompt }
-      ], { temperature: 0.2, maxTokens: 4000 });
+      ]
+    });
+    
+    const translatedText = response.content[0].type === 'text' ? response.content[0].text : '';
     
     return {
       originalText,
@@ -147,13 +162,38 @@ async function translateWithPerplexity(
   sourceLanguage: string
 ): Promise<TranslationResult> {
   try {
-    const translatedText = await completeProviderText("perplexity", [
-      {
-        role: "system",
-        content: "You are a professional translator with expertise in preserving intellectual quality across languages."
+    const apiKey = process.env.PERPLEXITY_API_KEY;
+    if (!apiKey) {
+      throw new Error("PERPLEXITY_API_KEY not found in environment variables");
+    }
+    
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
       },
-      { role: "user", content: prompt }
-    ], { temperature: 0.2, maxTokens: 3000 });
+      body: JSON.stringify({
+        model: "sonar",
+        messages: [
+          { 
+            role: "system", 
+            content: "You are a professional translator with expertise in preserving intellectual quality across languages." 
+          },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.2,
+        max_tokens: 3000
+      })
+    });
+    
+    const data = await response.json() as any;
+    
+    if (!response.ok) {
+      throw new Error(data?.error?.message || "Perplexity API error");
+    }
+    
+    const translatedText = data.choices[0].message.content || '';
     
     return {
       originalText,

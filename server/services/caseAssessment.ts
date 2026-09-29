@@ -1,7 +1,6 @@
 import OpenAI from "openai";
 import Anthropic from '@anthropic-ai/sdk';
 import fetch from 'node-fetch';
-import { streamProviderText } from './aiProviders';
 
 // Map ZHI names to actual provider names
 function mapZhiToProvider(zhiName: string): 'openai' | 'anthropic' | 'perplexity' | 'deepseek' {
@@ -307,8 +306,7 @@ async function makeDeepSeekRequest(prompt: string): Promise<string> {
 export async function performCaseAssessment(
   text: string,
   provider: 'openai' | 'anthropic' | 'perplexity' | 'deepseek' | string,
-  context?: string,
-  onChunk?: (chunk: string) => void,
+  context?: string
 ): Promise<CaseAssessmentResult> {
   // Map zhi names to actual providers
   const actualProvider = mapZhiToProvider(provider);
@@ -322,11 +320,26 @@ export async function performCaseAssessment(
   
   prompt += `\n\n${text}`;
   
+  let response: string;
+  
   try {
-    const response = await streamProviderText(actualProvider, [
-      { role: "system", content: "You are an expert academic evaluator." },
-      { role: "user", content: prompt },
-    ], onChunk || (() => undefined), { temperature: 0.2, maxTokens: 4000 });
+    switch (actualProvider) {
+      case 'openai':
+        response = await makeOpenAIRequest(prompt);
+        break;
+      case 'anthropic':
+        response = await makeAnthropicRequest(prompt);
+        break;
+      case 'perplexity':
+        response = await makePerplexityRequest(prompt);
+        break;
+      case 'deepseek':
+        response = await makeDeepSeekRequest(prompt);
+        break;
+      default:
+        throw new Error(`Unsupported provider: ${actualProvider}`);
+    }
+    
     return parseCaseAssessmentResponse(response);
   } catch (error) {
     console.error(`Case assessment failed with ${actualProvider}:`, error);

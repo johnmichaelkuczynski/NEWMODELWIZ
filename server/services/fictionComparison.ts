@@ -1,5 +1,3 @@
-import { streamProviderText } from "./aiProviders";
-
 export interface FictionComparisonResult {
   winnerDocument: 'A' | 'B';
   documentAScore: number;
@@ -109,18 +107,10 @@ function parseFictionComparisonResponse(response: string): FictionComparisonResu
   };
 }
 
-async function makeFictionComparisonRequest(
-  prompt: string,
-  provider: string,
-  onChunk?: (chunk: string) => void,
-): Promise<string> {
+async function makeFictionComparisonRequest(prompt: string, provider: string): Promise<string> {
   const systemMessage = "You are an expert fiction critic and literary analyst specializing in comparative analysis.";
   
-  return streamProviderText(provider, [
-    { role: "system", content: systemMessage },
-    { role: "user", content: prompt },
-  ], onChunk || (() => undefined), { temperature: 0.2, maxTokens: 4000 });
-  /* switch (provider) {
+  switch (provider) {
     case 'openai':
       const OpenAI = (await import("openai")).default;
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -195,21 +185,20 @@ async function makeFictionComparisonRequest(
 
     default:
       throw new Error(`Unsupported provider: ${provider}`);
-  } */
+  }
 }
 
 export async function performFictionComparison(
   documentA: string, 
   documentB: string, 
-  provider: string,
-  onChunk?: (chunk: string) => void,
+  provider: string
 ): Promise<FictionComparisonResult> {
   const prompt = FICTION_COMPARISON_PROMPT + "\n\n" + documentA + "\n\nDocument B:\n\n" + documentB;
   
   console.log(`COMPARING FICTION WITH ${provider.toUpperCase()}`);
   
   try {
-    const response = await makeFictionComparisonRequest(prompt, provider, onChunk);
+    const response = await makeFictionComparisonRequest(prompt, provider);
     const result = parseFictionComparisonResponse(response);
     
     console.log('Parsed fiction comparison result:', {

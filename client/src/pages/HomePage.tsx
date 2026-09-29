@@ -28,7 +28,7 @@ import { AnalysisMode, DocumentInput as DocumentInputType, AIDetectionResult, Do
 import { useToast } from "@/hooks/use-toast";
 import CopyButton from "@/components/CopyButton";
 import ProgressiveOutput from "@/components/ProgressiveOutput";
-import WordCountStatus from "@/components/WordCountStatus";
+import WordCountStatus, { readNdjsonStream } from "@/components/WordCountStatus";
 import SendToButton from "@/components/SendToButton";
 import { MathRenderer } from "@/components/MathRenderer";
 import { trackEvent } from "@/lib/analytics";
@@ -36,8 +36,6 @@ import { Document as WordDocument, Packer, Paragraph as WordParagraph } from "do
 import { jsPDF } from "jspdf";
 import unicodePdfFontUrl from "@/assets/DejaVuSans.ttf?url";
 import { normalizeMathNotation } from "@shared/mathNotation";
-import { readNdjsonResult, readNdjsonStream, readTextStream } from "@/lib/streaming";
-import { OUTPUT_EVENT, readPendingOutput, acceptPendingOutput, OutputPayload } from "@/lib/outputRouting";
 
 async function safeJson(response: Response): Promise<any> {
   try {
@@ -107,7 +105,6 @@ const HomePage: React.FC = () => {
 
   // State for showing results section
   const [showResults, setShowResults] = useState(false);
-  const [showIntelligenceTool, setShowIntelligenceTool] = useState(false);
 
   // State for AI detection
   const [aiDetectionModalOpen, setAIDetectionModalOpen] = useState(false);
@@ -294,19 +291,17 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
 
   useEffect(() => {
     const routeOutput = (event: Event) => {
-      const { destination, text } = (event as CustomEvent<OutputPayload>).detail || {};
+      const { destination, text } = (event as CustomEvent<{ destination: string; text: string }>).detail || {};
       if (!text?.trim()) return;
       let targetTestId = "";
       switch (destination) {
         case "Writing":
-          setWritingSourceDocument(text);
-          setWritingInstructions("");
+          setWritingInstructions(text);
           targetTestId = "textarea-writing-instructions";
           break;
         case "Intelligence Analysis":
           setDocumentA({ content: text });
-           setShowIntelligenceTool(true);
-           targetTestId = "textInputA";
+          targetTestId = "document-input-a";
           break;
         case "Humanizer":
           setBoxA(text);
@@ -339,31 +334,21 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
           break;
         case "Case Assessment":
           setDocumentA({ content: text });
-           setShowIntelligenceTool(true);
-           targetTestId = "textInputA";
+          targetTestId = "button-case-assessment";
           break;
         case "Fiction Assessment":
           setDocumentA({ content: text });
-           setFictionPopupOpen(true);
           targetTestId = "button-fiction-assessment";
           break;
       }
       window.setTimeout(() => {
-        const target = (
-          document.querySelector(`[data-testid="${targetTestId}"]`)
-          || document.getElementById(targetTestId)
-        ) as HTMLElement | null;
+        const target = document.querySelector(`[data-testid="${targetTestId}"]`) as HTMLElement | null;
         target?.scrollIntoView({ behavior: "smooth", block: "center" });
         target?.focus?.();
       }, 0);
     };
-    window.addEventListener(OUTPUT_EVENT, routeOutput);
-    const pending = readPendingOutput();
-    if (pending && !["Translation", "Web Search/Rewrite"].includes(pending.destination)) {
-      routeOutput(new CustomEvent(OUTPUT_EVENT, { detail: pending }));
-      acceptPendingOutput();
-    }
-    return () => window.removeEventListener(OUTPUT_EVENT, routeOutput);
+    window.addEventListener("treatise:send-output", routeOutput);
+    return () => window.removeEventListener("treatise:send-output", routeOutput);
   }, []);
   
   useEffect(() => {
@@ -953,13 +938,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         throw new Error(errorData.message || 'Humanization failed');
       }
 
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setBoxC(previous => previous + chunk);
-      });
-      if (!data?.success || !data.result) {
-        throw new Error(data?.message || "Humanization did not return a completed result.");
-      }
-      if (data.result) {
+      const data = await response.json();
+      if (data.success && data.result) {
         setBoxC(data.result.humanizedText);
         
         // Automatically evaluate humanized text
@@ -996,8 +976,6 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     }
 
     setIsReRewriteLoading(true);
-    setBoxC("");
-    setBoxCScore(null);
 
     try {
       const response = await fetch('/api/gpt-bypass-humanizer', {
@@ -1017,13 +995,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         throw new Error(errorData.message || 'Re-rewrite failed');
       }
 
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setBoxC(previous => previous + chunk);
-      });
-      if (!data?.success || !data.result) {
-        throw new Error(data?.message || "Re-rewrite did not return a completed result.");
-      }
-      if (data.result) {
+      const data = await response.json();
+      if (data.success && data.result) {
         setBoxC(data.result.humanizedText);
         
         // Automatically evaluate re-rewritten text
@@ -1369,10 +1342,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         }),
       });
 
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setBottomlineOutput(previous => previous + chunk);
-      });
-      if (!data?.success || !data?.output) {
+      const data = await safeJson(response);
+      if (!response.ok || !data?.success || !data?.output) {
         throw new Error(data?.message || 'BOTTOMLINE synthesis failed');
       }
       {
@@ -1435,10 +1406,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         }),
       });
 
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setObjectionsOutput(previous => previous + chunk);
-      });
-      if (!data?.success || !data?.output) {
+      const data = await safeJson(response);
+      if (!response.ok || !data?.success || !data?.output) {
         throw new Error(data?.message || 'Objections generation failed');
       }
       setObjectionsOutput(data.output);
@@ -1473,10 +1442,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
           llmProvider: validatorLLMProvider,
         }),
       });
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setObjectionResistantOutput(previous => previous + chunk);
-      });
-      if (!data?.success || !data?.output) {
+      const data = await safeJson(response);
+      if (!response.ok || !data?.success || !data?.output) {
         throw new Error(data?.message || "Unable to rewrite the document");
       }
       setObjectionResistantOutput(data.output);
@@ -1609,10 +1576,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         }),
       });
 
-      const bottomlineData = await readNdjsonResult<any>(bottomlineResponse, chunk => {
-        setBottomlineOutput(previous => previous + chunk);
-      });
-      if (!bottomlineData?.success || !bottomlineData?.output) {
+      const bottomlineData = await safeJson(bottomlineResponse);
+      if (!bottomlineResponse.ok || !bottomlineData?.success || !bottomlineData?.output) {
         throw new Error(bottomlineData?.message || 'BOTTOMLINE synthesis failed');
       }
 
@@ -1638,10 +1603,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         }),
       });
 
-      const objectionsData = await readNdjsonResult<any>(objectionsResponse, chunk => {
-        setObjectionsOutput(previous => previous + chunk);
-      });
-      if (!objectionsData?.success || !objectionsData?.output) {
+      const objectionsData = await safeJson(objectionsResponse);
+      if (!objectionsResponse.ok || !objectionsData?.success || !objectionsData?.output) {
         throw new Error(objectionsData?.message || 'Objections generation failed');
       }
 
@@ -1686,10 +1649,8 @@ ${objectionsData.output}`;
         }),
       });
 
-      const refinedData = await readNdjsonResult<any>(refinedResponse, chunk => {
-        setFullSuiteRefinedOutput(previous => previous + chunk);
-      });
-      if (refinedData?.success && refinedData?.output) {
+      const refinedData = await safeJson(refinedResponse);
+      if (refinedResponse.ok && refinedData?.success && refinedData?.output) {
         setFullSuiteRefinedOutput(refinedData.output);
         console.log("[FULL SUITE] Stage 4 complete: Refined rewrite generated");
       } else {
@@ -1852,38 +1813,35 @@ ${objectionsData.output}`;
         throw new Error(errorData.message || 'Analysis failed');
       }
 
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setCoherenceAnalysis(previous => previous + chunk);
-      });
-      const result = data?.result || data;
-      if (result?.success) {
-        setCoherenceAnalysis(result.analysis);
-        setCoherenceScore(result.score);
-        setCoherenceAssessment(result.assessment);
+      const data = await response.json();
+      if (data.success) {
+        setCoherenceAnalysis(data.analysis);
+        setCoherenceScore(data.score);
+        setCoherenceAssessment(data.assessment);
         
         // Handle mathematical proof dual assessment (coherence + validity)
-        if (result.isMathematical) {
+        if (data.isMathematical) {
           setCoherenceIsMathematical(true);
           setCoherenceIsScientific(false);
           setCoherenceLogicalScore(null);
           setCoherenceScientificScore(null);
           // Set validity analysis data
-          setMathValidityAnalysis(result.validityAnalysis);
-          setMathValidityScore(result.validityScore);
-          setMathValidityVerdict(result.validityVerdict);
-          setMathValiditySubscores(result.validitySubscores);
-          setMathValidityFlaws(result.flaws || []);
-          setMathValidityCounterexamples(result.counterexamples || []);
+          setMathValidityAnalysis(data.validityAnalysis);
+          setMathValidityScore(data.validityScore);
+          setMathValidityVerdict(data.validityVerdict);
+          setMathValiditySubscores(data.validitySubscores);
+          setMathValidityFlaws(data.flaws || []);
+          setMathValidityCounterexamples(data.counterexamples || []);
           toast({
             title: "Mathematical Proof Analysis Complete!",
-            description: `Coherence: ${result.coherenceScore}/10 | Validity: ${result.validityScore}/10 (${result.validityVerdict})`,
+            description: `Coherence: ${data.coherenceScore}/10 | Validity: ${data.validityScore}/10 (${data.validityVerdict})`,
           });
-        } else if (result.isScientificExplanatory) {
+        } else if (data.isScientificExplanatory) {
           // Handle scientific-explanatory dual assessment
           setCoherenceIsMathematical(false);
           setCoherenceIsScientific(true);
-          setCoherenceLogicalScore(result.logicalConsistency);
-          setCoherenceScientificScore(result.scientificAccuracy);
+          setCoherenceLogicalScore(data.logicalConsistency);
+          setCoherenceScientificScore(data.scientificAccuracy);
           // Clear validity data
           setMathValidityAnalysis("");
           setMathValidityScore(null);
@@ -1893,14 +1851,14 @@ ${objectionsData.output}`;
           setMathValidityCounterexamples([]);
           
           // Capture detected coherence type if auto-detected
-          if (result.wasAutoDetected && result.detectedCoherenceType) {
-            setDetectedCoherenceType(result.detectedCoherenceType);
+          if (data.wasAutoDetected && data.detectedCoherenceType) {
+            setDetectedCoherenceType(data.detectedCoherenceType);
           }
           
-          const autoDetectMsg = result.wasAutoDetected ? ' (Auto-Detected: Scientific-Explanatory)' : '';
+          const autoDetectMsg = data.wasAutoDetected ? ' (Auto-Detected: Scientific-Explanatory)' : '';
           toast({
             title: "Scientific-Explanatory Analysis Complete!",
-            description: `Overall: ${result.score}/10 | Logical: ${result.logicalConsistency.score}/10 | Scientific: ${result.scientificAccuracy.score}/10${autoDetectMsg}`,
+            description: `Overall: ${data.score}/10 | Logical: ${data.logicalConsistency.score}/10 | Scientific: ${data.scientificAccuracy.score}/10${autoDetectMsg}`,
           });
         } else {
           setCoherenceIsMathematical(false);
@@ -1916,16 +1874,16 @@ ${objectionsData.output}`;
           setMathValidityCounterexamples([]);
           
           // Capture detected coherence type if auto-detected
-          if (result.wasAutoDetected && result.detectedCoherenceType) {
-            setDetectedCoherenceType(result.detectedCoherenceType);
+          if (data.wasAutoDetected && data.detectedCoherenceType) {
+            setDetectedCoherenceType(data.detectedCoherenceType);
           }
           
-          const autoDetectMsg = result.wasAutoDetected && result.detectedCoherenceType
-            ? ` (Applied: ${result.detectedCoherenceType.replace(/-/g, ' ')})`
+          const autoDetectMsg = data.wasAutoDetected && data.detectedCoherenceType 
+            ? ` (Applied: ${data.detectedCoherenceType.replace(/-/g, ' ')})` 
             : '';
           toast({
             title: "Coherence Analysis Complete!",
-            description: `Score: ${result.score}/10 - ${result.assessment}${autoDetectMsg}`,
+            description: `Score: ${data.score}/10 - ${data.assessment}${autoDetectMsg}`,
           });
         }
       }
@@ -1991,35 +1949,32 @@ ${objectionsData.output}`;
         throw new Error(errorData.message || 'Rewrite failed');
       }
 
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setCoherenceRewrite(previous => previous + chunk);
-      });
-      const result = data?.result || data;
-      if (result?.success) {
-        setCoherenceRewrite(result.rewrite);
-        setCoherenceChanges(result.changes);
+      const data = await response.json();
+      if (data.success) {
+        setCoherenceRewrite(data.rewrite);
+        setCoherenceChanges(data.changes);
         
         // Capture detected coherence type if auto-detected
-        if (result.wasAutoDetected && result.detectedCoherenceType) {
-          setDetectedCoherenceType(result.detectedCoherenceType);
+        if (data.wasAutoDetected && data.detectedCoherenceType) {
+          setDetectedCoherenceType(data.detectedCoherenceType);
         }
         
         // Handle scientific-explanatory specific data
-        if (result.isScientificExplanatory) {
+        if (data.isScientificExplanatory) {
           setCoherenceIsScientific(true);
-          setCoherenceCorrectionsApplied(result.correctionsApplied || []);
-          setCoherenceRewriteAccuracyScore(result.scientificAccuracyScore || null);
+          setCoherenceCorrectionsApplied(data.correctionsApplied || []);
+          setCoherenceRewriteAccuracyScore(data.scientificAccuracyScore || null);
         }
         
-        const appliedType = result.wasAutoDetected && result.detectedCoherenceType
-          ? result.detectedCoherenceType.replace(/-/g, ' ')
+        const appliedType = data.wasAutoDetected && data.detectedCoherenceType 
+          ? data.detectedCoherenceType.replace(/-/g, ' ')
           : coherenceType.replace(/-/g, ' ');
         
         toast({
-          title: result.isScientificExplanatory ? "Scientific Accuracy Rewrite Complete!" : "Coherence Rewrite Complete!",
-          description: result.isScientificExplanatory
-            ? `Text rewritten for scientific accuracy (Score: ${result.scientificAccuracyScore}/10)${result.wasAutoDetected ? ' (Auto-Detected)' : ''}`
-            : `Text rewritten to maximize ${appliedType} coherence${result.wasAutoDetected ? ' (Auto-Detected)' : ''}`,
+          title: data.isScientificExplanatory ? "Scientific Accuracy Rewrite Complete!" : "Coherence Rewrite Complete!",
+          description: data.isScientificExplanatory 
+            ? `Text rewritten for scientific accuracy (Score: ${data.scientificAccuracyScore}/10)${data.wasAutoDetected ? ' (Auto-Detected)' : ''}`
+            : `Text rewritten to maximize ${appliedType} coherence${data.wasAutoDetected ? ' (Auto-Detected)' : ''}`,
         });
       }
     } catch (error: any) {
@@ -2057,14 +2012,11 @@ ${objectionsData.output}`;
         const errorData = await response.json();
         throw new Error(errorData.message || 'Analysis failed');
       }
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setCoherenceAnalysis(previous => previous + chunk);
-      });
-      const result = data?.result || data;
-      if (result?.success) {
-        setCoherenceAnalysis(result.analysis);
-        setCoherenceScore(result.score);
-        setCoherenceAssessment(result.assessment);
+      const data = await response.json();
+      if (data.success) {
+        setCoherenceAnalysis(data.analysis);
+        setCoherenceScore(data.score);
+        setCoherenceAssessment(data.assessment);
         // Clear cogency data when doing coherence analysis
         setMathValidityAnalysis("");
         setMathValidityScore(null);
@@ -2072,7 +2024,7 @@ ${objectionsData.output}`;
         setMathValiditySubscores(null);
         setMathValidityFlaws([]);
         setMathValidityCounterexamples([]);
-        toast({ title: "Math Coherence Analysis Complete!", description: `Score: ${result.score}/10 - ${result.assessment}` });
+        toast({ title: "Math Coherence Analysis Complete!", description: `Score: ${data.score}/10 - ${data.assessment}` });
       }
     } catch (error: any) {
       console.error('Math coherence error:', error);
@@ -2102,20 +2054,17 @@ ${objectionsData.output}`;
         const errorData = await response.json();
         throw new Error(errorData.message || 'Analysis failed');
       }
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setMathValidityAnalysis(previous => previous + chunk);
-      });
-      const result = data?.result || data;
-      if (result?.success) {
-        setMathValidityAnalysis(result.analysis);
-        setMathValidityScore(result.score);
-        setMathValidityVerdict(result.verdict);
-        setMathValiditySubscores(result.subscores);
-        setMathValidityFlaws(result.flaws || []);
-        setMathValidityCounterexamples(result.counterexamples || []);
+      const data = await response.json();
+      if (data.success) {
+        setMathValidityAnalysis(data.analysis);
+        setMathValidityScore(data.score);
+        setMathValidityVerdict(data.verdict);
+        setMathValiditySubscores(data.subscores);
+        setMathValidityFlaws(data.flaws || []);
+        setMathValidityCounterexamples(data.counterexamples || []);
         toast({ 
           title: "Math Cogency Analysis Complete!", 
-          description: `Score: ${result.score}/10 - ${result.verdict}`
+          description: `Score: ${data.score}/10 - ${data.verdict}` 
         });
       }
     } catch (error: any) {
@@ -2151,15 +2100,12 @@ ${objectionsData.output}`;
         const errorData = await response.json();
         throw new Error(errorData.message || 'Rewrite failed');
       }
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setCoherenceRewrite(previous => previous + chunk);
-      });
-      const result = data?.result || data;
-      if (result?.success) {
-        setCoherenceRewrite(result.rewrite);
-        setCoherenceChanges(result.changes);
-        setCoherenceRewriteAccuracyScore(result.coherenceScore);
-        toast({ title: "Max Coherence Rewrite Complete!", description: `Coherence Score: ${result.coherenceScore}/10` });
+      const data = await response.json();
+      if (data.success) {
+        setCoherenceRewrite(data.rewrite);
+        setCoherenceChanges(data.changes);
+        setCoherenceRewriteAccuracyScore(data.coherenceScore);
+        toast({ title: "Max Coherence Rewrite Complete!", description: `Coherence Score: ${data.coherenceScore}/10` });
       }
     } catch (error: any) {
       console.error('Math max coherence error:', error);
@@ -2196,27 +2142,24 @@ ${objectionsData.output}`;
         const errorData = await response.json();
         throw new Error(errorData.message || 'Math proof correction failed');
       }
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setMathProofCorrectedProof(previous => previous + chunk);
-      });
-      const result = data?.result || data;
-      if (result?.success) {
-        setMathProofCorrectedProof(result.correctedProof);
-        setMathProofTheoremStatus(result.theoremStatus);
-        setMathProofOriginalTheorem(result.originalTheorem);
-        setMathProofCorrectedTheorem(result.correctedTheorem);
-        setMathProofStrategy(result.proofStrategy);
-        setMathProofKeyCorrections(result.keyCorrections || []);
-        setMathProofValidityScore(result.validityScore);
+      const data = await response.json();
+      if (data.success) {
+        setMathProofCorrectedProof(data.correctedProof);
+        setMathProofTheoremStatus(data.theoremStatus);
+        setMathProofOriginalTheorem(data.originalTheorem);
+        setMathProofCorrectedTheorem(data.correctedTheorem);
+        setMathProofStrategy(data.proofStrategy);
+        setMathProofKeyCorrections(data.keyCorrections || []);
+        setMathProofValidityScore(data.validityScore);
         setMathProofIsCorrected(true);
         
-        const statusMessage = result.theoremStatus === "TRUE"
+        const statusMessage = data.theoremStatus === "TRUE" 
           ? "Theorem is TRUE - Proof corrected"
-          : result.theoremStatus === "FALSE"
+          : data.theoremStatus === "FALSE"
           ? "Theorem is FALSE - Similar true theorem proved instead"
           : "Theorem is PARTIALLY TRUE - Corrected with proper conditions";
         
-        toast({ title: "Math Proof Correction Complete!", description: `${statusMessage} (Validity: ${result.validityScore}/10)` });
+        toast({ title: "Math Proof Correction Complete!", description: `${statusMessage} (Validity: ${data.validityScore}/10)` });
       }
     } catch (error: any) {
       console.error('Math maximize truth error:', error);
@@ -2337,26 +2280,19 @@ ${objectionsData.output}`;
             throw new Error(errorData.message || `${mode} failed for section ${i + 1}`);
           }
 
-          const data = await readNdjsonResult<any>(response, chunk => {
+          const data = await safeJson(response);
+          if (data.success) {
             if (mode === "analyze") {
-              setCoherenceAnalysis(previous => previous + chunk);
-            } else {
-              setCoherenceRewrite(previous => previous + chunk);
-            }
-          });
-          const result = data?.result || data;
-          if (result?.success) {
-            if (mode === "analyze") {
-              combinedAnalysis += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSECTION ${i + 1} of ${selectedChunkObjects.length}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${result.analysis}`;
+              combinedAnalysis += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSECTION ${i + 1} of ${selectedChunkObjects.length}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.analysis}`;
               setCoherenceAnalysis(combinedAnalysis.trim());
             } else {
-              combinedRewrite += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSECTION ${i + 1} of ${selectedChunkObjects.length}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${result.rewrite}`;
-              combinedChanges += `\n\n━━━━ SECTION ${i + 1} ━━━━\n${result.changes}`;
+              combinedRewrite += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nSECTION ${i + 1} of ${selectedChunkObjects.length}\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n${data.rewrite}`;
+              combinedChanges += `\n\n━━━━ SECTION ${i + 1} ━━━━\n${data.changes}`;
               setCoherenceRewrite(combinedRewrite.trim());
               setCoherenceChanges(combinedChanges.trim());
             }
           } else {
-            throw new Error(result?.message || `${mode} failed for section ${i + 1}`);
+            throw new Error(data?.message || `${mode} failed for section ${i + 1}`);
           }
           nextUnfinishedIndex = i + 1;
         }
@@ -2451,17 +2387,31 @@ ${objectionsData.output}`;
         throw new Error('No response body');
       }
 
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      
       console.log('Starting to read stream...');
-      await readTextStream(response, chunk => {
+      
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          console.log('Stream ended');
+          setIsStreaming(false);
+          break;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
         console.log('Received chunk:', chunk);
-        setStreamingContent(prev => {
-          const newContent = prev + chunk;
-          console.log('Updated content length:', newContent.length);
-          return newContent;
-        });
-      });
-      console.log('Stream ended');
-      setIsStreaming(false);
+        
+        if (chunk) {
+          setStreamingContent(prev => {
+            const newContent = prev + chunk;
+            console.log('Updated content length:', newContent.length);
+            return newContent;
+          });
+        }
+      }
       
     } catch (error) {
       console.error('Streaming error:', error);
@@ -2597,13 +2547,19 @@ ${objectionsData.output}`;
         throw new Error(`Case assessment failed: ${response.statusText}`);
       }
 
+      // REAL-TIME STREAMING: Read response token by token
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
       let fullResponse = '';
-      // REAL-TIME STREAMING: Read response token by token. The shared reader
-      // flushes the final unterminated chunk before parsing the result.
-      await readTextStream(response, chunk => {
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
         fullResponse += chunk;
         setStreamingContent(fullResponse); // Show each token as it arrives
-      });
+      }
 
       // Parse the case assessment response to extract scores
       const parseScores = (text: string) => {
@@ -2737,11 +2693,8 @@ ${objectionsData.output}`;
         throw new Error(`Document comparison failed: ${response.statusText}`);
       }
 
-      setStreamingContent("");
-      const data = await readNdjsonResult<any>(response, chunk => {
-        setStreamingContent(previous => previous + chunk);
-      });
-      setComparisonResult(data?.result || data);
+      const data = await response.json();
+      setComparisonResult(data);
       setComparisonModalOpen(true);
       
     } catch (error) {
@@ -2802,12 +2755,18 @@ ${objectionsData.output}`;
       }
 
       // REAL-TIME STREAMING: Read response token by token
+      const reader = response.body!.getReader();
+      const decoder = new TextDecoder();
       let fullResponse = '';
-      const streamedResult = await readNdjsonResult<any>(response, chunk => {
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
         fullResponse += chunk;
         setStreamingContent(fullResponse); // Show each token as it arrives
-      });
-      const finalResult = streamedResult?.result || streamedResult;
+      }
 
       // Parse the fiction assessment response to extract scores
       const parseFictionScores = (text: string) => {
@@ -2828,9 +2787,7 @@ ${objectionsData.output}`;
         };
       };
 
-      const fictionAssessmentData = finalResult?.detailedAssessment
-        ? { ...finalResult, detailedAssessment: finalResult.detailedAssessment }
-        : parseFictionScores(fullResponse);
+      const fictionAssessmentData = parseFictionScores(fullResponse);
       setFictionAssessmentResult(fictionAssessmentData);
       setCurrentFictionDocument(documentId);
       
@@ -2894,16 +2851,11 @@ ${objectionsData.output}`;
         throw new Error(`Rewrite failed: ${response.statusText}`);
       }
 
-      let streamedRewrite = "";
-      const data = await readNdjsonResult<any>(response, chunk => {
-        streamedRewrite += chunk;
-        setRewriteResult(streamedRewrite);
-      });
-      const rewriteData = data?.result || data;
-      setRewriteResult(rewriteData?.rewrittenText || streamedRewrite || "No rewrite result returned");
+      const data = await response.json();
+      setRewriteResult(data.result?.rewrittenText || data.rewrittenText || "No rewrite result returned");
       
       // Store the complete result data and show results modal
-      setRewriteResultData(rewriteData);
+      setRewriteResultData(data.result);
       setRewriteResultsModalOpen(true);
       
     } catch (error) {
@@ -3034,8 +2986,6 @@ Generated on: ${new Date().toLocaleString()}`;
         const provider = selectedProvider === "all" ? "zhi1" : selectedProvider;
         if (analysisType === "quick") {
           // Quick analysis - regular API call
-          setIsStreaming(true);
-          setStreamingContent("");
           const response = await fetch('/api/cognitive-quick', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -3046,14 +2996,8 @@ Generated on: ${new Date().toLocaleString()}`;
             throw new Error(`Analysis failed: ${response.statusText}`);
           }
 
-          let quickText = "";
-          const data = await readNdjsonResult<any>(response, textChunk => {
-            quickText += textChunk;
-            setStreamingContent(quickText);
-          });
-          const quickAnalysis = data?.analysis || data?.result;
-          setAnalysisA(quickAnalysis);
-          setIsStreaming(false);
+          const data = await response.json();
+          setAnalysisA(data.analysis || data.result);
         } else {
           // Reset any previous streaming state
           setIsStreaming(false);
@@ -3072,22 +3016,32 @@ Generated on: ${new Date().toLocaleString()}`;
             throw new Error(`Streaming failed: ${response.statusText}`);
           }
 
+          const reader = response.body?.getReader();
+          const decoder = new TextDecoder();
           let fullContent = '';
 
-          if (response.body) {
-            await readTextStream(response, chunk => {
+          if (reader) {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              const chunk = decoder.decode(value, { stream: true });
               fullContent += chunk;
               setStreamingContent(fullContent);
-            });
+            }
             
-            const scoreMatch = fullContent.match(/FINAL SCORE:\s*(\d+)\/100/i) ||
+            // Extract actual score from streamed content
+            const scoreMatch = fullContent.match(/FINAL SCORE:\s*(\d+)\/100/i) || 
                               fullContent.match(/Final Score:\s*(\d+)\/100/i) ||
                               fullContent.match(/Score:\s*(\d+)\/100/i);
+            const actualScore = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+            
+            // Convert streaming content to analysis format
             setAnalysisA({
               id: Date.now(),
               formattedReport: fullContent,
-              overallScore: scoreMatch ? parseInt(scoreMatch[1]) : 0,
-              provider
+              overallScore: actualScore, // Use actual AI-generated score
+              provider: provider
             });
           }
           
@@ -3103,7 +3057,6 @@ Generated on: ${new Date().toLocaleString()}`;
         
       } catch (error) {
         console.error("Error analyzing document:", error);
-        setIsStreaming(false);
         trackEvent("analysis_failed", {
           mode,
           analysis_type: analysisType,
@@ -3124,8 +3077,6 @@ Generated on: ${new Date().toLocaleString()}`;
       // Two-document mode: use existing comparison logic for now
       if (analysisType === "quick") {
         const provider = selectedProvider === "all" ? "zhi1" : selectedProvider;
-        setIsStreaming(true);
-        setStreamingContent("");
         
         const response = await fetch('/api/quick-compare', {
           method: 'POST',
@@ -3141,22 +3092,10 @@ Generated on: ${new Date().toLocaleString()}`;
           throw new Error(`Quick comparison failed: ${response.statusText}`);
         }
 
-        let quickComparisonA = "";
-        let quickComparisonB = "";
-        const data = await readNdjsonResult<any>(response, (textChunk, message) => {
-          if (message.document === "A") {
-            quickComparisonA += textChunk;
-          } else if (message.document === "B") {
-            quickComparisonB += textChunk;
-          }
-          setStreamingContent(
-            `DOCUMENT A:\n${quickComparisonA}\n\nDOCUMENT B:\n${quickComparisonB}`,
-          );
-        });
-        setAnalysisA(data?.analysisA);
-        setAnalysisB(data?.analysisB);
-        setComparison(data?.comparison);
-        setIsStreaming(false);
+        const data = await response.json();
+        setAnalysisA(data.analysisA);
+        setAnalysisB(data.analysisB);
+        setComparison(data.comparison);
       } else {
         // Use the comprehensive comparison (existing logic)
         console.log(`Comparing with ${selectedProvider}...`);
@@ -3177,7 +3116,6 @@ Generated on: ${new Date().toLocaleString()}`;
       });
     } catch (error) {
       console.error("Error comparing documents:", error);
-      setIsStreaming(false);
       trackEvent("analysis_failed", {
         mode,
         analysis_type: analysisType,
@@ -3509,7 +3447,6 @@ Generated on: ${new Date().toLocaleString()}`;
                           filename={`writing-audit-${index + 1}.txt`}
                           className="mt-1 text-sm leading-6"
                         />
-                        <SendToButton text={audit.report} size="sm" className="mt-2" />
                       </div>
                     ))}
                   </div>
@@ -3541,8 +3478,8 @@ Generated on: ${new Date().toLocaleString()}`;
         </div>
       </div>
 
-      {/* INTELLIGENCE ANALYSIS TOOL - revealed when routed to or explicitly selected */}
-      <div className={showIntelligenceTool ? "" : "hidden"}>
+      {/* INTELLIGENCE ANALYSIS TOOL - HIDDEN BY USER REQUEST */}
+      <div className="hidden">
       {/* Header */}
       <header className="mb-8">
         <div className="flex items-start justify-between gap-4">
@@ -5364,7 +5301,6 @@ Generated on: ${new Date().toLocaleString()}`;
                              <pre className="whitespace-pre-wrap font-mono text-sm text-gray-800 dark:text-gray-200">{visibleText}</pre>
                            )}
                          />
-                         <SendToButton text={result.output || ""} size="sm" className="mt-3" />
                        </div>
                     ) : (
                       <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded border border-red-200 dark:border-red-700">
@@ -7024,12 +6960,9 @@ Generated on: ${new Date().toLocaleString()}`;
               {/* Changes Made */}
               {coherenceChanges && (
                 <div className="mt-6">
-                  <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                    <h4 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100">
-                      {coherenceIsScientific ? "Scientific Accuracy Changes" : "Changes Made"}
-                    </h4>
-                    <SendToButton text={coherenceChanges} />
-                  </div>
+                  <h4 className="text-lg font-semibold text-indigo-900 dark:text-indigo-100 mb-3">
+                    {coherenceIsScientific ? "Scientific Accuracy Changes" : "Changes Made"}
+                  </h4>
                    <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 rounded-lg border border-indigo-200 dark:border-indigo-700">
                      <ProgressiveOutput text={coherenceChanges} filename={`coherence-changes-${coherenceType}.txt`} />
                    </div>
@@ -7600,7 +7533,6 @@ Generated on: ${new Date().toLocaleString()}`;
       <FictionAssessmentPopup 
         isOpen={fictionPopupOpen}
         onClose={() => setFictionPopupOpen(false)}
-        initialText={documentA.content}
       />
     </div>
   );

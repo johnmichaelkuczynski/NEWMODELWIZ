@@ -11,7 +11,7 @@ import WebSearchPage from "@/pages/WebSearchPage";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import NotFound from "@/pages/not-found";
 import DiagnosticPage from "@/pages/DiagnosticPage";
-import { BrainCircuit, Brain, Mail, Trash2, Activity, LogIn, LogOut, Users } from "lucide-react";
+import { BrainCircuit, Brain, Mail, Trash2, Activity, LogIn, LogOut } from "lucide-react";
 import { useEffect, useState, createContext, useContext } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -69,29 +69,7 @@ function ResetConfirmDialog({ open, onOpenChange }: { open: boolean; onOpenChang
 
 function Navigation() {
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const { user, isLoading, logout, isLoggingOut } = useAuth();
-
-  useEffect(() => {
-    const storageKey = "neurotext-visitor-id";
-    let visitorId = window.localStorage.getItem(storageKey);
-    if (!visitorId) {
-      visitorId = window.crypto.randomUUID();
-      window.localStorage.setItem(storageKey, visitorId);
-    }
-
-    fetch("/api/visitor-count", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ visitorId }),
-    })
-      .then(response => {
-        if (!response.ok) throw new Error("Visitor count unavailable");
-        return response.json();
-      })
-      .then(data => setVisitorCount(Number(data.count)))
-      .catch(() => setVisitorCount(null));
-  }, []);
 
   useEffect(() => {
     const url = new URL(window.location.href);
@@ -105,17 +83,6 @@ function Navigation() {
     <nav className="bg-primary text-primary-foreground py-4">
       <div className="container mx-auto flex justify-between items-center">
         <div className="flex items-center gap-6">
-          <div
-            className="flex shrink-0 items-center gap-1.5 rounded-md bg-primary-foreground/10 px-2.5 py-1.5 text-sm"
-            aria-label={visitorCount === null ? "Visitor count loading" : `${visitorCount.toLocaleString()} visitors`}
-            data-testid="visitor-counter"
-          >
-            <Users className="h-4 w-4" />
-            <span className="font-semibold tabular-nums">
-              {visitorCount === null ? "—" : visitorCount.toLocaleString()}
-            </span>
-            <span className="hidden xl:inline">visitors</span>
-          </div>
           <div className="flex items-center gap-3">
             <a
               href="https://zhisystems.ai/"
@@ -236,8 +203,6 @@ function Router({ resetKey }: { resetKey: number }) {
         <Route path="/" component={HomePage} />
         <Route path="/analytics" component={AnalyticsPage} />
         <Route path="/diagnostic" component={DiagnosticPage} />
-         <Route path="/translation" component={TranslationPage} />
-         <Route path="/web-search" component={WebSearchPage} />
 
         <Route component={NotFound} />
       </Switch>

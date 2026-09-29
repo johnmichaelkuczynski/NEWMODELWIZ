@@ -1,9 +1,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Send, ArrowRight, MessageSquare, Zap, Brain, FileEdit, BookOpen, Target, Shield, Calculator, Languages, Search } from "lucide-react";
+import { Send, ArrowRight, MessageSquare, Zap, Brain, FileEdit, BookOpen, Target, Shield, Calculator } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { dispatchOutput, OUTPUT_DESTINATIONS, OutputDestination } from "@/lib/outputRouting";
 
 interface SendToButtonProps {
   text: string;
@@ -18,27 +17,42 @@ interface SendToButtonProps {
 
 export const SendToButton: React.FC<SendToButtonProps> = ({ 
   text, 
+  onSendToHumanizer,
+  onSendToIntelligence,
+  onSendToChat,
+  onSendToValidator,
   variant = "outline", 
   size = "sm",
   className = ""
 }) => {
   const { toast } = useToast();
 
-  const handleSendTo = (destination: OutputDestination) => {
-    dispatchOutput(destination, text, "SendToButton");
+  const handleSendTo = (destination: string, callback?: (text: string) => void) => {
+    if (callback) {
+      callback(text);
+    }
+    window.dispatchEvent(new CustomEvent("treatise:send-output", {
+      detail: { destination, text },
+    }));
     toast({
       title: `Sent to ${destination}`,
       description: `The output is now ready as input for ${destination}.`
     });
   };
 
-  const icons: Record<OutputDestination, React.ElementType> = {
-    Writing: FileEdit, "Intelligence Analysis": Brain, Humanizer: Zap,
-    "Text Model Validator": BookOpen, BOTTOMLINE: Target, Objections: Shield,
-    "Whole-Document Coherence": ArrowRight, "Mathematical Analysis": Calculator,
-    "Case Assessment": FileEdit, "Fiction Assessment": MessageSquare, "AI Chat": MessageSquare,
-    Translation: Languages, "Web Search/Rewrite": Search,
-  };
+  const destinations = [
+    { label: "Writing", icon: FileEdit },
+    { label: "Intelligence Analysis", icon: Brain, callback: onSendToIntelligence },
+    { label: "Humanizer", icon: Zap, callback: onSendToHumanizer },
+    { label: "Text Model Validator", icon: BookOpen, callback: onSendToValidator },
+    { label: "BOTTOMLINE", icon: Target },
+    { label: "Objections", icon: Shield },
+    { label: "Whole-Document Coherence", icon: ArrowRight },
+    { label: "Mathematical Analysis", icon: Calculator },
+    { label: "Case Assessment", icon: FileEdit },
+    { label: "Fiction Assessment", icon: MessageSquare },
+    { label: "AI Chat", icon: MessageSquare, callback: onSendToChat },
+  ];
 
   return (
     <DropdownMenu>
@@ -50,14 +64,14 @@ export const SendToButton: React.FC<SendToButtonProps> = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-         {OUTPUT_DESTINATIONS.map((label) => (
+        {destinations.map((dest) => (
           <DropdownMenuItem
-            key={label}
-            onClick={() => handleSendTo(label)}
+            key={dest.label}
+            onClick={() => handleSendTo(dest.label, dest.callback)}
             className="cursor-pointer"
           >
-             {React.createElement(icons[label], { className: "h-4 w-4 mr-2" })}
-             {label}
+            <dest.icon className="h-4 w-4 mr-2" />
+            {dest.label}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

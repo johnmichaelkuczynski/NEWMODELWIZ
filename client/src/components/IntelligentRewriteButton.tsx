@@ -8,7 +8,6 @@ import { Sparkles, Loader2, Copy, Check } from 'lucide-react';
 import { DocumentAnalysis } from '@/lib/types';
 import CopyButton from '@/components/CopyButton';
 import SendToButton from '@/components/SendToButton';
-import { readNdjsonResult } from '@/lib/streaming';
 
 interface IntelligentRewriteButtonProps {
   originalText: string;
@@ -41,13 +40,11 @@ const IntelligentRewriteButton: React.FC<IntelligentRewriteButtonProps> = ({
     improvement: string;
   } | null>(null);
   const [copied, setCopied] = useState(false);
-  const [streamingText, setStreamingText] = useState("");
 
   const handleRewrite = async () => {
     if (!originalText.trim()) return;
 
     setIsLoading(true);
-    setStreamingText("");
     try {
       const response = await fetch('/api/intelligent-rewrite', {
         method: 'POST',
@@ -66,11 +63,8 @@ const IntelligentRewriteButton: React.FC<IntelligentRewriteButtonProps> = ({
         throw new Error('Rewrite failed');
       }
 
-      const streamed = await readNdjsonResult<any>(response, chunk => {
-        setStreamingText(previous => previous + chunk);
-      });
-      const data = streamed;
-      if (data?.success && data.result) {
+      const data = await response.json();
+      if (data.success && data.result) {
         const newAnalysis = {
           id: Date.now(),
           formattedReport: data.result.newAnalysis.analysis,
@@ -109,7 +103,6 @@ const IntelligentRewriteButton: React.FC<IntelligentRewriteButtonProps> = ({
   const handleClose = () => {
     setIsOpen(false);
     setRewriteResult(null);
-    setStreamingText("");
     setCustomInstructions('');
     setUseExternalKnowledge(false);
   };
@@ -256,11 +249,6 @@ const IntelligentRewriteButton: React.FC<IntelligentRewriteButtonProps> = ({
                     Done
                   </Button>
                 </div>
-              </div>
-            )}
-            {isLoading && streamingText && (
-              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 whitespace-pre-wrap">
-                {streamingText}
               </div>
             )}
           </div>

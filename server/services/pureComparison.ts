@@ -59,16 +59,15 @@ export interface PureIntelligenceComparisonResult {
 export async function performPureIntelligenceComparison(
   documentA: string,
   documentB: string,
-  provider: LLMProvider,
-  onChunk?: (chunk: string) => void,
+  provider: LLMProvider
 ): Promise<PureIntelligenceComparisonResult> {
   
   console.log(`INTELLIGENCE COMPARISON WITH YOUR EXACT 4-PHASE PROTOCOL USING ${provider.toUpperCase()}`);
   
   // Perform exact 4-phase evaluation for both documents
   const [evaluationA, evaluationB] = await Promise.all([
-    executeFourPhaseProtocol(documentA, provider, "intelligence", "comprehensive", onChunk),
-    executeFourPhaseProtocol(documentB, provider, "intelligence", "comprehensive", onChunk)
+    executeFourPhaseProtocol(documentA, provider),
+    executeFourPhaseProtocol(documentB, provider)
   ]);
 
   // Create clean analysis structures for frontend (NO DIMENSION GARBAGE)

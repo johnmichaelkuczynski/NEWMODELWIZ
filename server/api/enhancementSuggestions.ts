@@ -1,4 +1,10 @@
-import { streamProviderText } from "../services/aiProviders";
+import OpenAI from "openai";
+import Anthropic from '@anthropic-ai/sdk';
+import fetch from 'node-fetch';
+
+// Initialize clients
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
 export interface EnhancementSuggestion {
   title: string;
@@ -13,23 +19,19 @@ export interface EnhancementSuggestion {
  * @param provider The AI provider to use ('openai', 'anthropic', 'perplexity')
  * @returns Array of enhancement suggestions
  */
-export async function getEnhancementSuggestions(
-  text: string,
-  provider: string,
-  onChunk?: (chunk: string) => void,
-): Promise<EnhancementSuggestion[]> {
+export async function getEnhancementSuggestions(text: string, provider: string): Promise<EnhancementSuggestion[]> {
   try {
     // Extract key topics and themes from the text to generate better suggestions
-    const summary = await getSummary(text, provider, onChunk);
+    const summary = await getSummary(text, provider);
     
     // Get suggestions based on the provider
     switch (provider.toLowerCase()) {
       case 'openai':
-        return await getOpenAISuggestions(text, summary, onChunk);
+        return await getOpenAISuggestions(text, summary);
       case 'anthropic':
-        return await getAnthropicSuggestions(text, summary, onChunk);
+        return await getAnthropicSuggestions(text, summary);
       case 'perplexity':
-        return await getPerplexitySuggestions(text, summary, onChunk);
+        return await getPerplexitySuggestions(text, summary);
       default:
         throw new Error(`Unknown provider: ${provider}`);
     }
@@ -42,7 +44,7 @@ export async function getEnhancementSuggestions(
 /**
  * Generate a summary of the text to help focus the enhancement suggestions
  */
-async function getSummary(text: string, provider: string, onChunk?: (chunk: string) => void): Promise<string> {
+async function getSummary(text: string, provider: string): Promise<string> {
   try {
     const prompt = `
     Please analyze the following text and provide a brief summary of the key topics, 
@@ -54,17 +56,66 @@ async function getSummary(text: string, provider: string, onChunk?: (chunk: stri
     ${text.slice(0, 3000)} ${text.length > 3000 ? '...' : ''}
     `;
 
-    return streamProviderText(provider, [{ role: "user", content: prompt }], onChunk || (() => undefined), {
-      temperature: 0.3,
-      maxTokens: 300,
-    });
+    switch (provider.toLowerCase()) {
+      case 'openai': {
+        const response = await openai.chat.completions.create({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.3,
+          max_tokens: 300
+        });
+        return response.choices[0].message.content || "";
+      }
+      case 'anthropic': {
+        const response = await anthropic.messages.create({
+          model: "claude-sonnet-4-5", // the newest Anthropic model is "claude-sonnet-4-5" which was released February 24, 2025
+          max_tokens: 300,
+          temperature: 0.3,
+          messages: [{ role: 'user', content: prompt }]
+        });
+        const content = response.content[0];
+        return content.type === 'text' ? content.text : "";
+      }
+      case 'perplexity': {
+        const apiKey = process.env.PERPLEXITY_API_KEY;
+        if (!apiKey) throw new Error("PERPLEXITY_API_KEY not found");
+
+        const response = await fetch("https://api.perplexity.ai/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: "sonar",
+            messages: [
+              {
+                role: "system",
+                content: "Be precise and concise."
+              },
+              {
+                role: "user",
+                content: prompt
+              }
+            ],
+            temperature: 0.3,
+            max_tokens: 300
+          })
+        });
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+      }
+      default:
+        throw new Error(`Unknown provider: ${provider}`);
+    }
   } catch (error) {
     console.error('Error generating summary:', error);
     return ""; // Return empty string on failure
   }
 }
 
-async function getOpenAISuggestions(text: string, summary: string, onChunk?: (chunk: string) => void): Promise<EnhancementSuggestion[]> {
+async function getOpenAISuggestions(text: string, summary: string): Promise<EnhancementSuggestion[]> {
   const prompt = `
   Based on the following text and its summary, generate 3-5 specific enhancement suggestions.
   Each suggestion should add intellectual value to the text without changing its style or voice.
@@ -85,10 +136,14 @@ async function getOpenAISuggestions(text: string, summary: string, onChunk?: (ch
   `;
 
   try {
-    const content = await streamProviderText("openai", [{ role: "user", content: prompt }], onChunk || (() => undefined), {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
       temperature: 0.5,
-      responseFormat: { type: "json_object" },
+      response_format: { type: "json_object" }
     });
+
+    const content = response.choices[0].message.content;
     if (!content) return [];
     
     const parsed = JSON.parse(content);
@@ -99,7 +154,7 @@ async function getOpenAISuggestions(text: string, summary: string, onChunk?: (ch
   }
 }
 
-async function getAnthropicSuggestions(text: string, summary: string, onChunk?: (chunk: string) => void): Promise<EnhancementSuggestion[]> {
+async function getAnthropicSuggestions(text: string, summary: string): Promise<EnhancementSuggestion[]> {
   const prompt = `
   Based on the following text and its summary, generate 3-5 specific enhancement suggestions.
   Each suggestion should add intellectual value to the text without changing its style or voice.
@@ -120,13 +175,15 @@ async function getAnthropicSuggestions(text: string, summary: string, onChunk?: 
   `;
 
   try {
-    const content = await streamProviderText("anthropic", [
-      {
-        role: "system",
-        content: "You are a helpful expert that generates precise, intellectually valuable enhancement suggestions for text. Respond only with valid JSON.",
-      },
-      { role: "user", content: prompt },
-    ], onChunk || (() => undefined), { maxTokens: 1000, temperature: 0.5 });
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-5",
+      system: "You are a helpful expert that generates precise, intellectually valuable enhancement suggestions for text. Respond only with valid JSON.",
+      max_tokens: 1000,
+      temperature: 0.5,
+      messages: [{ role: 'user', content: prompt }]
+    });
+
+    const content = response.content[0].text;
     // Strip any markdown code blocks that Claude might add
     const jsonStr = content.replace(/```json|```/g, '').trim();
     
@@ -143,7 +200,10 @@ async function getAnthropicSuggestions(text: string, summary: string, onChunk?: 
   }
 }
 
-async function getPerplexitySuggestions(text: string, summary: string, onChunk?: (chunk: string) => void): Promise<EnhancementSuggestion[]> {
+async function getPerplexitySuggestions(text: string, summary: string): Promise<EnhancementSuggestion[]> {
+  const apiKey = process.env.PERPLEXITY_API_KEY;
+  if (!apiKey) throw new Error("PERPLEXITY_API_KEY not found");
+
   const prompt = `
   Based on the following text and its summary, generate 3-5 specific enhancement suggestions.
   Each suggestion should add intellectual value to the text without changing its style or voice.
@@ -164,13 +224,31 @@ async function getPerplexitySuggestions(text: string, summary: string, onChunk?:
   `;
 
   try {
-    const content = await streamProviderText("perplexity", [
-      {
-        role: "system",
-        content: "You are a helpful expert that generates precise, intellectually valuable enhancement suggestions for text. Respond only with valid JSON.",
+    const response = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
       },
-      { role: "user", content: prompt },
-    ], onChunk || (() => undefined), { maxTokens: 1000, temperature: 0.5 });
+      body: JSON.stringify({
+        model: "sonar",
+        messages: [
+          {
+            role: "system",
+            content: "You are a helpful expert that generates precise, intellectually valuable enhancement suggestions for text. Respond only with valid JSON."
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.5,
+        max_tokens: 1000
+      })
+    });
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
     
     try {
       // Strip any potential markdown formatting if present

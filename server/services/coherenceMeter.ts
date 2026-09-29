@@ -1,5 +1,4 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { streamProviderText } from './aiProviders';
 
 export interface CoherenceAnalysisResult {
   score: number;
@@ -22,20 +21,7 @@ const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
 
-async function callClaude(
-  system: string | undefined,
-  user: string,
-  maxTokens: number,
-  temperature: number,
-  onChunk?: (chunk: string) => void,
-): Promise<string> {
-  return streamProviderText("anthropic", [
-    ...(system ? [{ role: "system" as const, content: system }] : []),
-    { role: "user" as const, content: user },
-  ], onChunk || (() => undefined), { maxTokens, temperature });
-}
-
-export async function analyzeCoherence(text: string, onChunk?: (chunk: string) => void): Promise<CoherenceAnalysisResult> {
+export async function analyzeCoherence(text: string): Promise<CoherenceAnalysisResult> {
   const systemPrompt = `You are a coherence analyzer specializing in evaluating INTERNAL LOGICAL CONSISTENCY, CLARITY, and STRUCTURAL UNITY.
 
 CRITICAL PRINCIPLES (NEVER VIOLATE):
@@ -88,7 +74,15 @@ CALIBRATION EXAMPLES:
 2. "Sense-perceptions are presentations not representations; regress arguments doom linguistic mediation theories" = Score 9.5 (Internal Logic: 10, Clarity: 10, Structural Unity: 9, Faux-Coherence: 10 - tight deduction, canonical philosophical terms, hierarchical)
 3. "This dissertation examines transcendental empiricism, discussing McDowell's minimal empiricism and Dreyfus's Myth of the Mental critique" = Score 2 (Internal Logic: 4, Clarity: 2, Structural Unity: 2, Faux-Coherence: 1 - buzzwords without grounding, sequential listing, vague jargon assuming meaning it lacks)`;
 
-  const output = await callClaude(systemPrompt, userPrompt, 4096, 0.3, onChunk);
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 4096,
+    temperature: 0.3,
+    system: systemPrompt,
+    messages: [{ role: "user", content: userPrompt }]
+  });
+
+  const output = message.content[0].type === 'text' ? message.content[0].text : '';
 
   const internalLogicMatch = output.match(/INTERNAL LOGIC SCORE:\s*(\d+(?:\.\d+)?)\/10/i);
   const clarityMatch = output.match(/CLARITY SCORE:\s*(\d+(?:\.\d+)?)\/10/i);
@@ -127,7 +121,7 @@ export interface MathProofValidityResult {
   counterexamples: string[];
 }
 
-export async function analyzeMathProofValidity(text: string, onChunk?: (chunk: string) => void): Promise<MathProofValidityResult> {
+export async function analyzeMathProofValidity(text: string): Promise<MathProofValidityResult> {
   const systemPrompt = `You are a rigorous mathematical proof validator. Your task is to verify MATHEMATICAL CORRECTNESS, not just logical flow.
 
 CRITICAL DISTINCTION:
@@ -194,7 +188,15 @@ VERDICT: [VALID if overall ≥ 8 and no fatal flaws / FLAWED if 4-7 or has repai
 DETAILED ANALYSIS:
 [Full mathematical critique with calculations shown]`;
 
-  const output = await callClaude(systemPrompt, userPrompt, 6000, 0.2, onChunk);
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 6000,
+    temperature: 0.2,
+    system: systemPrompt,
+    messages: [{ role: "user", content: userPrompt }]
+  });
+
+  const output = message.content[0].type === 'text' ? message.content[0].text : '';
 
   const claimTruthMatch = output.match(/CLAIM TRUTH SCORE:\s*(\d+(?:\.\d+)?)\/10/i);
   const inferenceMatch = output.match(/INFERENCE VALIDITY SCORE:\s*(\d+(?:\.\d+)?)\/10/i);
@@ -236,8 +238,7 @@ DETAILED ANALYSIS:
 
 export async function rewriteForCoherence(
   text: string, 
-  aggressiveness: "conservative" | "moderate" | "aggressive" = "moderate",
-  onChunk?: (chunk: string) => void,
+  aggressiveness: "conservative" | "moderate" | "aggressive" = "moderate"
 ): Promise<CoherenceRewriteResult> {
   
   let systemPrompt = "";
@@ -263,7 +264,15 @@ ${text}
 
 Output ONLY the rewritten text. No headers, no labels, no commentary.`;
 
-  const rewrittenText = await callClaude(systemPrompt, userPrompt, 4096, 0.7, onChunk);
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 4096,
+    temperature: 0.7,
+    system: systemPrompt,
+    messages: [{ role: "user", content: userPrompt }]
+  });
+
+  const rewrittenText = message.content[0].type === 'text' ? message.content[0].text : '';
 
   const changesAnalysisPrompt = `Compare these two versions and explain what coherence changes were made (focus on internal consistency, clarity, structural improvements only):
 
@@ -275,7 +284,14 @@ ${rewrittenText}
 
 Provide concise bullet points of changes made to improve internal coherence.`;
 
-  const changes = await callClaude(undefined, changesAnalysisPrompt, 1024, 0.3, onChunk);
+  const changesMessage = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 1024,
+    temperature: 0.3,
+    messages: [{ role: "user", content: changesAnalysisPrompt }]
+  });
+
+  const changes = changesMessage.content[0].type === 'text' ? changesMessage.content[0].text : '';
 
   return {
     rewrittenText,
@@ -300,7 +316,7 @@ export interface ScientificExplanatoryResult {
   fullAnalysis: string;
 }
 
-export async function analyzeScientificExplanatoryCoherence(text: string, onChunk?: (chunk: string) => void): Promise<ScientificExplanatoryResult> {
+export async function analyzeScientificExplanatoryCoherence(text: string): Promise<ScientificExplanatoryResult> {
   const systemPrompt = `You are a scientific coherence analyzer that evaluates text on TWO SEPARATE DIMENSIONS:
 
 1. LOGICAL CONSISTENCY: Does the text avoid internal contradictions? Do the claims follow from each other logically? Is the argument structurally sound?
@@ -366,7 +382,15 @@ OVERALL ASSESSMENT: [PASS if both dimensions ≥8 / WEAK if either is 5-7 / FAIL
 SUMMARY:
 [Brief summary of the text's strengths and weaknesses in both dimensions]`;
 
-  const output = await callClaude(systemPrompt, userPrompt, 6000, 0.3, onChunk);
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 6000,
+    temperature: 0.3,
+    system: systemPrompt,
+    messages: [{ role: "user", content: userPrompt }]
+  });
+
+  const output = message.content[0].type === 'text' ? message.content[0].text : '';
 
   // Helper function to derive assessment from score
   const deriveAssessment = (score: number): "PASS" | "WEAK" | "FAIL" => {
@@ -478,8 +502,7 @@ export interface ScientificRewriteResult {
 
 export async function rewriteScientificExplanatory(
   text: string,
-  aggressiveness: "conservative" | "moderate" | "aggressive" = "moderate",
-  onChunk?: (chunk: string) => void,
+  aggressiveness: "conservative" | "moderate" | "aggressive" = "moderate"
 ): Promise<ScientificRewriteResult> {
   
   let aggressivenessInstructions = "";
@@ -531,7 +554,15 @@ Then add a separator "---CORRECTIONS---" followed by a numbered list of the scie
 
 REWRITTEN TEXT:`;
 
-  const fullOutput = await callClaude(systemPrompt, userPrompt, 8192, 0.5, onChunk);
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 8192,
+    temperature: 0.5,
+    system: systemPrompt,
+    messages: [{ role: "user", content: userPrompt }]
+  });
+
+  const fullOutput = message.content[0].type === 'text' ? message.content[0].text : '';
   
   // Parse the output to separate rewritten text from corrections
   const separatorMatch = fullOutput.match(/---CORRECTIONS---/i);
@@ -575,7 +606,14 @@ List the key scientific corrections made, focusing on:
 
 Provide concise bullet points.`;
 
-  const changes = await callClaude(undefined, changesAnalysisPrompt, 2048, 0.3, onChunk);
+  const changesMessage = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 2048,
+    temperature: 0.3,
+    messages: [{ role: "user", content: changesAnalysisPrompt }]
+  });
+
+  const changes = changesMessage.content[0].type === 'text' ? changesMessage.content[0].text : '';
 
   // Quick validation pass to estimate accuracy score
   const validationPrompt = `Rate the scientific accuracy of this text on a scale of 1-10, where 10 means every claim is supported by established science.
@@ -585,7 +623,14 @@ ${rewrittenText}
 
 Respond with ONLY a number from 1-10.`;
 
-  const scoreText = await callClaude(undefined, validationPrompt, 10, 0, onChunk);
+  const validationMessage = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 10,
+    temperature: 0,
+    messages: [{ role: "user", content: validationPrompt }]
+  });
+
+  const scoreText = validationMessage.content[0].type === 'text' ? validationMessage.content[0].text : '5';
   const scientificAccuracyScore = parseFloat(scoreText.match(/\d+(?:\.\d+)?/)?.[0] || '5');
 
   return {
@@ -609,7 +654,7 @@ export interface MathCoherenceResult {
   };
 }
 
-export async function analyzeMathCoherence(text: string, onChunk?: (chunk: string) => void): Promise<MathCoherenceResult> {
+export async function analyzeMathCoherence(text: string): Promise<MathCoherenceResult> {
   const systemPrompt = `You are a mathematical proof STRUCTURAL COHERENCE analyzer.
 
 CRITICAL: You are evaluating INTERNAL STRUCTURAL COHERENCE only. NOT whether the proof is correct or the theorem is true.
@@ -660,7 +705,15 @@ ASSESSMENT: [PASS if ≥8 / WEAK if 5-7 / FAIL if ≤4]
 STRUCTURAL ANALYSIS:
 [Describe the structural strengths and weaknesses. Do NOT comment on mathematical correctness.]`;
 
-  const output = await callClaude(systemPrompt, userPrompt, 3000, 0.3, onChunk);
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 3000,
+    temperature: 0.3,
+    system: systemPrompt,
+    messages: [{ role: "user", content: userPrompt }]
+  });
+
+  const output = message.content[0].type === 'text' ? message.content[0].text : '';
 
   const logicalFlowMatch = output.match(/LOGICAL FLOW SCORE:\s*(\d+(?:\.\d+)?)\/10/i);
   const notationalMatch = output.match(/NOTATIONAL CONSISTENCY SCORE:\s*(\d+(?:\.\d+)?)\/10/i);
@@ -701,8 +754,7 @@ export interface MathMaxCoherenceRewriteResult {
 
 export async function rewriteMathMaxCoherence(
   text: string,
-  aggressiveness: "conservative" | "moderate" | "aggressive" = "moderate",
-  onChunk?: (chunk: string) => void,
+  aggressiveness: "conservative" | "moderate" | "aggressive" = "moderate"
 ): Promise<MathMaxCoherenceRewriteResult> {
   let intensityGuide = "";
   if (aggressiveness === "conservative") {
@@ -747,7 +799,15 @@ ${text}
 
 Output the structurally improved proof with NO commentary or headers - just the improved proof text.`;
 
-  const rewrittenProof = await callClaude(systemPrompt, userPrompt, 6000, 0.5, onChunk);
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 6000,
+    temperature: 0.5,
+    system: systemPrompt,
+    messages: [{ role: "user", content: userPrompt }]
+  });
+
+  const rewrittenProof = message.content[0].type === 'text' ? message.content[0].text : '';
 
   // Analyze what structural changes were made
   const changesPrompt = `Compare these two versions of a proof and describe the STRUCTURAL changes made (not mathematical changes).
@@ -762,7 +822,14 @@ ${rewrittenProof}
 
 List the structural improvements in bullet points.`;
 
-  const changes = await callClaude(undefined, changesPrompt, 1500, 0.3, onChunk);
+  const changesMessage = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 1500,
+    temperature: 0.3,
+    messages: [{ role: "user", content: changesPrompt }]
+  });
+
+  const changes = changesMessage.content[0].type === 'text' ? changesMessage.content[0].text : '';
 
   // Quick coherence score for the rewritten proof
   const scorePrompt = `Rate the structural coherence of this mathematical proof on a scale of 1-10.
@@ -774,7 +841,14 @@ ${rewrittenProof}
 
 Respond with ONLY a number from 1-10.`;
 
-  const scoreText = await callClaude(undefined, scorePrompt, 10, 0, onChunk);
+  const scoreMessage = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 10,
+    temperature: 0,
+    messages: [{ role: "user", content: scorePrompt }]
+  });
+
+  const scoreText = scoreMessage.content[0].type === 'text' ? scoreMessage.content[0].text : '7';
   const coherenceScore = parseFloat(scoreText.match(/\d+(?:\.\d+)?/)?.[0] || '7');
 
   return {
@@ -795,7 +869,7 @@ export interface MathProofRewriteResult {
   validityScore: number;
 }
 
-export async function rewriteMathMaximizeTruth(text: string, onChunk?: (chunk: string) => void): Promise<MathProofRewriteResult> {
+export async function rewriteMathMaximizeTruth(text: string): Promise<MathProofRewriteResult> {
   const systemPrompt = `You are a rigorous mathematician tasked with providing CORRECT mathematical proofs.
 
 YOUR MISSION:
@@ -879,7 +953,25 @@ KEY CORRECTIONS:
 VALIDITY VERIFICATION:
 [Confirm your proof is valid by checking key steps]`;
 
-  const output = await callClaude(systemPrompt, userPrompt, 10000, 1, onChunk);
+  const message = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 10000,
+    temperature: 1, // Must be 1 when extended thinking is enabled
+    thinking: {
+      type: "enabled",
+      budget_tokens: 8000
+    },
+    system: systemPrompt,
+    messages: [{ role: "user", content: userPrompt }]
+  });
+
+  let output = '';
+  for (const block of message.content) {
+    if (block.type === 'text') {
+      output = block.text;
+      break;
+    }
+  }
 
   // Enhanced parsing with multiple fallback patterns
   
@@ -995,7 +1087,14 @@ Consider:
 
 Respond with ONLY a number from 1-10.`;
 
-  const scoreText = await callClaude(undefined, validationPrompt, 10, 0, onChunk);
+  const validationMessage = await anthropic.messages.create({
+    model: "claude-sonnet-4-5",
+    max_tokens: 10,
+    temperature: 0,
+    messages: [{ role: "user", content: validationPrompt }]
+  });
+
+  const scoreText = validationMessage.content[0].type === 'text' ? validationMessage.content[0].text : '5';
   const parsedScore = parseFloat(scoreText.match(/\d+(?:\.\d+)?/)?.[0] || '');
   const validityScore = isNaN(parsedScore) ? 5 : Math.min(10, Math.max(1, parsedScore));
 

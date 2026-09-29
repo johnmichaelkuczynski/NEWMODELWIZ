@@ -75,12 +75,6 @@ export interface DocumentAnalysis {
   provider?: string;
   analysisType?: string; // To identify type of analysis (case_assessment, fiction_assessment, etc.)
   report?: string; // For backward compatibility
-  phases?: {
-    phase1: { prompt: string; score: number; response: string };
-    phase2: { applied: boolean; score: number; response: string };
-    phase3: { score: number; response: string };
-    phase4: { score: number; response: string };
-  };
   
   // Multiple provider results for simultaneous analysis
   analysisResults?: Array<{

@@ -1,7 +1,5 @@
 // EXACT USER-SPECIFIED 4-PHASE INTELLIGENCE EVALUATION PROTOCOL
 
-import { streamProviderText, type ProviderMessage } from "./aiProviders";
-
 const EXACT_COMPLETE_QUESTIONS = `IS IT INSIGHTFUL? 
 DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)? 
 IS THE ORGANIZATION MERELY SEQUENTIAL (JUST ONE POINT AFTER ANOTHER, LITTLE OR NO LOGICAL SCAFFOLDING)? OR ARE THE IDEAS ARRANGED, NOT JUST SEQUENTIALLY BUT HIERARCHICALLY? 
@@ -241,14 +239,83 @@ function chunkText(text: string, maxWordsPerChunk: number = 500): string[] {
 // Generic LLM caller
 async function callLLMProvider(
   provider: 'openai' | 'anthropic' | 'perplexity' | 'deepseek' | 'grok',
-  messages: ProviderMessage[],
-  onChunk?: (chunk: string) => void,
+  messages: Array<{role: string, content: string}>
 ): Promise<string> {
   try {
-    return await streamProviderText(provider, messages, onChunk || (() => undefined), {
-      temperature: 0.1,
-      maxTokens: 4000,
-    });
+    if (provider === 'openai') {
+      const OpenAI = (await import('openai')).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: messages as any,
+        temperature: 0.1
+      });
+      
+      return completion.choices[0]?.message?.content || '';
+    } else if (provider === 'anthropic') {
+      const Anthropic = (await import('@anthropic-ai/sdk')).default;
+      const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+      
+      const completion = await anthropic.messages.create({
+        model: "claude-sonnet-4-5",
+        max_tokens: 4000,
+        messages: messages as any,
+        temperature: 0.1
+      });
+      
+      return completion.content[0]?.type === 'text' ? completion.content[0].text : '';
+    } else if (provider === 'perplexity') {
+      const response = await fetch('https://api.perplexity.ai/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "sonar",
+          messages: messages,
+          temperature: 0.1
+        })
+      });
+      
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || '';
+    } else if (provider === 'deepseek') {
+      const response = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: messages,
+          temperature: 0.1
+        })
+      });
+      
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || '';
+    } else if (provider === 'grok') {
+      const response = await fetch('https://api.x.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.GROK_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "grok-3",
+          messages: messages,
+          temperature: 0.1
+        })
+      });
+      
+      const data = await response.json();
+      return data.choices?.[0]?.message?.content || '';
+    }
+    
+    return '';
   } catch (error) {
     console.error(`Error calling ${provider}:`, error);
     return '';
@@ -283,8 +350,7 @@ function extractScore(text: string): number {
 // NORMAL PROTOCOL - Phase 1 only
 export async function executeNormalProtocol(
   text: string,
-  provider: 'openai' | 'anthropic' | 'perplexity' | 'deepseek' | 'grok',
-  onChunk?: (chunk: string) => void,
+  provider: 'openai' | 'anthropic' | 'perplexity' | 'deepseek' | 'grok'
 ): Promise<any> {
   console.log(`NORMAL INTELLIGENCE ANALYSIS WITH ${provider.toUpperCase()} - PHASE 1 ONLY`);
   console.log(`EXECUTING PHASE 1 ONLY FOR INTELLIGENCE WITH ${provider.toUpperCase()}`);
@@ -295,7 +361,7 @@ export async function executeNormalProtocol(
   const phase1Prompt = createPhase1Prompt(text, questions);
   const phase1Response = await callLLMProvider(provider, [
     { role: 'user', content: phase1Prompt }
-  ], onChunk);
+  ]);
   let finalScore = extractScore(phase1Response);
   
   console.log(`PHASE 1 COMPLETE: Score ${finalScore}/100`);
@@ -317,8 +383,7 @@ export async function executeNormalProtocol(
 // COMPREHENSIVE PROTOCOL - All 4 phases with chunking for high quality
 export async function executeComprehensiveProtocol(
   text: string,
-  provider: 'openai' | 'anthropic' | 'deepseek' | 'perplexity' | 'grok',
-  onChunk?: (chunk: string) => void,
+  provider: 'openai' | 'anthropic' | 'deepseek' | 'perplexity' | 'grok'
 ): Promise<any> {
   console.log(`CHUNKED 4-PHASE INTELLIGENCE EVALUATION: Analyzing ${text.length} characters with protocol`);
   console.log(`EXECUTING CHUNKED 4-PHASE PROTOCOL FOR INTELLIGENCE WITH ${provider.toUpperCase()}`);
@@ -340,7 +405,7 @@ export async function executeComprehensiveProtocol(
     const chunkPrompt = createPhase1Prompt(chunk, questions);
     const chunkResponse = await callLLMProvider(provider, [
       { role: 'user', content: chunkPrompt }
-    ], onChunk);
+    ]);
     
     combinedAnalyses.push(chunkResponse);
     chunkScores.push(extractScore(chunkResponse));
@@ -364,7 +429,7 @@ export async function executeComprehensiveProtocol(
     const phase2Prompt = createPhase2Prompt(phase1Score, chunks[0], questions);
     phase2Response = await callLLMProvider(provider, [
       { role: 'user', content: phase2Prompt }
-    ], onChunk);
+    ]);
     phase2Score = extractScore(phase2Response);
   } else {
     console.log(`PHASE 2: Score ${phase1Score} >= 95, no pushback needed`);
@@ -376,7 +441,7 @@ export async function executeComprehensiveProtocol(
   const phase3Prompt = createPhase3Prompt(phase2Score);
   const phase3Response = await callLLMProvider(provider, [
     { role: 'user', content: phase3Prompt }
-  ], onChunk);
+  ]);
   let phase3Score = extractScore(phase3Response);
   
   // PHASE 4: Final validation and acceptance
@@ -384,7 +449,7 @@ export async function executeComprehensiveProtocol(
   const phase4Prompt = createPhase4Prompt();
   const phase4Response = await callLLMProvider(provider, [
     { role: 'user', content: phase4Prompt }
-  ], onChunk);
+  ]);
   let finalScore = extractScore(phase4Response);
   
   // Use Phase 4 score, or best previous score if Phase 4 fails
@@ -444,12 +509,11 @@ export async function executeFourPhaseProtocol(
   text: string,
   provider: 'openai' | 'anthropic' | 'perplexity' | 'deepseek' | 'grok',
   evaluationType: string = 'intelligence',
-  mode: 'normal' | 'comprehensive' = 'comprehensive',
-  onChunk?: (chunk: string) => void,
+  mode: 'normal' | 'comprehensive' = 'comprehensive'
 ): Promise<any> {
   if (mode === 'normal') {
-    return executeNormalProtocol(text, provider, onChunk);
+    return executeNormalProtocol(text, provider);
   } else {
-    return executeComprehensiveProtocol(text, provider, onChunk);
+    return executeComprehensiveProtocol(text, provider);
   }
 }

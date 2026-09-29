@@ -1,8 +1,6 @@
 // EXACT INTELLIGENCE PROTOCOL IMPLEMENTATION ACCORDING TO USER SPECIFICATION
 // This implements the comprehensive intelligence protocol exactly as specified
 
-import { streamProviderText, type ProviderMessage } from "./aiProviders";
-
 const EXACT_INTELLIGENCE_QUESTIONS = `IS IT INSIGHTFUL? 
 DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)? 
 IS THE ORGANIZATION MERELY SEQUENTIAL (JUST ONE POINT AFTER ANOTHER, LITTLE OR NO LOGICAL SCAFFOLDING)? OR ARE THE IDEAS ARRANGED, NOT JUST SEQUENTIALLY BUT HIERARCHICALLY? 
@@ -37,16 +35,76 @@ IF I WERE TO GIVE A LOW SCORE TO THIS PASSAGE, WOULD I BE PENALIZING ACTUAL INTE
 const PARADIGM_PSEUDO_INTELLECTUAL_PASSAGE = `In this dissertation, I critically examine the philosophy of transcendental empiricism. Transcendental empiricism is, among other things, a philosophy of mental content. It attempts to dissolve an epistemological dilemma of mental content by splitting the difference between two diametrically opposed accounts of content. John McDowell's minimal empiricism and Richard Gaskin's minimalist empiricism are two versions of transcendental empiricism. Transcendental empiricism itself originates with McDowell's work. This dissertation is divided into five parts. First, in the Introduction, I state the Wittgensteinian metaphilosophical orientation of transcendental empiricism. This metaphilosophical approach provides a plateau upon which much of the rest of this work may be examined. Second, I offer a detailed description of McDowell's minimal empiricism. Third, I critique Gaskin's critique and modification of McDowell's minimal empiricism. I argue that (1) Gaskin's critiques are faulty and that (2) Gaskin's minimalist empiricism is very dubious. Fourth, I scrutinize the alleged credentials of McDowell's minimal empiricism. I argue that McDowell's version of linguistic idealism is problematic. I then comment on a recent dialogue between transcendental empiricism and Hubert Dreyfus's phenomenology. The dialogue culminates with Dreyfus's accusation of the "Myth of the Mental." I argue that this accusation is correct in which case McDowell's direct realism is problematic. I conclude that minimal empiricism does not dissolve the dilemma of mental content. Finally, I argue that Tyler Burge successfully undermines the doctrine of disjunctivism, but disjunctivism is crucial for transcendental empiricism. Ultimately, however, I aim to show that transcendental empiricism is an attractive alternative to philosophies of mental content.`;
 
 // Direct AI API call function
-async function callLLMProvider(
-  provider: string,
-  messages: ProviderMessage[],
-  onChunk?: (chunk: string) => void,
-): Promise<string> {
+async function callLLMProvider(provider: string, messages: Array<{role: string, content: string}>): Promise<string> {
   const actualProvider = mapZhiToProvider(provider);
-  return streamProviderText(actualProvider, messages, onChunk || (() => undefined), {
-    maxTokens: 4000,
-    temperature: 0.7,
-  });
+  
+  if (actualProvider === 'openai') {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o',
+        messages: messages,
+        max_tokens: 4000,
+        temperature: 0.7,
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.choices[0].message.content;
+    
+  } else if (actualProvider === 'anthropic') {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'x-api-key': process.env.ANTHROPIC_API_KEY!,
+        'Content-Type': 'application/json',
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 4000,
+        messages: messages
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Anthropic API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.content[0].text;
+    
+  } else if (actualProvider === 'deepseek') {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'deepseek-chat',
+        messages: messages,
+        max_tokens: 4000,
+      }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`DeepSeek API error: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    return data.choices[0].message.content;
+  }
+  
+  throw new Error(`Unsupported provider: ${actualProvider}`);
 }
 
 function mapZhiToProvider(zhiName: string): string {
@@ -253,8 +311,7 @@ ${text}`;
 export async function performQuickAnalysis(
   text: string, 
   provider: string = 'deepseek',
-  evaluationType: 'intelligence' | 'originality' | 'cogency' | 'overall_quality' = 'intelligence',
-  onChunk?: (chunk: string) => void,
+  evaluationType: 'intelligence' | 'originality' | 'cogency' | 'overall_quality' = 'intelligence'
 ) {
   console.log(`EXACT PROTOCOL ${evaluationType.toUpperCase()} ANALYSIS WITH ${provider.toUpperCase()}`);
   
@@ -262,7 +319,7 @@ export async function performQuickAnalysis(
     const prompt = createIntelligenceAssessmentPrompt(text);
     const response = await callLLMProvider(provider, [
       { role: 'user', content: prompt }
-    ], onChunk);
+    ]);
     
     const score = extractScore(response);
     const cleanResponse = cleanMarkdownFormatting(response);
@@ -287,26 +344,15 @@ export async function performQuickComparison(
   documentA: string, 
   documentB: string, 
   provider: string = 'deepseek',
-  evaluationType: 'intelligence' | 'originality' | 'cogency' | 'overall_quality' = 'intelligence',
-  onChunk?: (document: 'A' | 'B', chunk: string) => void,
+  evaluationType: 'intelligence' | 'originality' | 'cogency' | 'overall_quality' = 'intelligence'
 ) {
   console.log(`EXACT PROTOCOL COMPARISON - ${evaluationType.toUpperCase()} WITH ${provider.toUpperCase()}`);
   
   try {
     // Analyze both documents using the exact protocol
     const [analysisA, analysisB] = await Promise.all([
-      performQuickAnalysis(
-        documentA,
-        provider,
-        evaluationType,
-        chunk => onChunk?.('A', chunk),
-      ),
-      performQuickAnalysis(
-        documentB,
-        provider,
-        evaluationType,
-        chunk => onChunk?.('B', chunk),
-      )
+      performQuickAnalysis(documentA, provider, evaluationType),
+      performQuickAnalysis(documentB, provider, evaluationType)
     ]);
     
     const scoreA = analysisA.intelligence_score;

@@ -8,7 +8,6 @@ import { Download, Loader2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import ProgressiveOutput from "./ProgressiveOutput";
 import SendToButton from "./SendToButton";
-import { readNdjsonResult } from "@/lib/streaming";
 
 interface FictionComparisonResult {
   winnerDocument: 'A' | 'B';
@@ -43,18 +42,8 @@ export function FictionComparisonModal({ isOpen, onClose, documentA, documentB }
         })
       });
       
-      let streamedText = "";
-      const data = await readNdjsonResult<any>(response, chunk => {
-        streamedText += chunk;
-        setResult(previous => ({
-          winnerDocument: previous?.winnerDocument || "A",
-          documentAScore: previous?.documentAScore || 0,
-          documentBScore: previous?.documentBScore || 0,
-          comparisonAnalysis: streamedText,
-          detailedBreakdown: previous?.detailedBreakdown || "",
-        }));
-      });
-      setResult((data?.result || data) as FictionComparisonResult);
+      const data = await response.json();
+      setResult(data);
     } catch (error) {
       console.error('Error performing fiction comparison:', error);
     } finally {

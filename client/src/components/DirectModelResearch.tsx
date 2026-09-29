@@ -6,8 +6,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Loader2, Bot, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { readNdjsonResult } from '@/lib/streaming';
-import SendToButton from '@/components/SendToButton';
 
 interface DirectModelResearchProps {
   defaultInstructions?: string;
@@ -74,30 +72,14 @@ const DirectModelResearch: React.FC<DirectModelResearchProps> = ({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            text: instructions.replace(/ask zhi \d|ask openai|ask gpt|ask claude|ask anthropic|ask perplexity|ask deepseek|ask grok/gi, "").trim(),
+            document: { content: instructions.replace(/ask zhi \d|ask openai|ask gpt|ask claude|ask anthropic|ask perplexity|ask deepseek|ask grok/gi, "").trim() },
             provider: model
           })
         }).then(response => {
           if (!response.ok) throw new Error(`${model} API error: ${response.status}`);
-          return readNdjsonResult<any>(response, chunk => {
-            setResults((previous: Record<string, any>) => ({
-              ...previous,
-              [model]: {
-                ...(previous[model] || {}),
-                content: `${previous[model]?.content || ""}${chunk}`,
-                provider: model,
-              },
-            }));
-          });
+          return response.json();
         }).then(data => {
-          const result = data?.result || data;
-          return {
-            model,
-            data: {
-              ...result,
-              analysis: result?.analysis?.content || result?.analysis?.formattedReport || result?.analysis || "",
-            },
-          };
+          return { model, data };
         }).catch(error => {
           console.error(`Error with ${model} research:`, error);
           return { 
@@ -220,7 +202,6 @@ const DirectModelResearch: React.FC<DirectModelResearchProps> = ({
                     ) : (
                       <div className="whitespace-pre-wrap">
                         {results[model]?.content || "No content available"}
-                        <div className="mt-3"><SendToButton text={results[model]?.content || ""} size="sm" /></div>
                       </div>
                     )}
                   </CardContent>

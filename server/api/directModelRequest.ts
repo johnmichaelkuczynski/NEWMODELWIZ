@@ -1,35 +1,32 @@
-import { streamProviderText } from "../services/aiProviders";
-
-const DIRECT_SYSTEM_PROMPT =
-  "You are a helpful assistant responding to user instructions. Provide direct, thorough and accurate responses.";
-
-async function directText(
-  provider: string,
-  instructions: string,
-  temperature = 0.3,
-  onChunk?: (chunk: string) => void,
-): Promise<string> {
-  return streamProviderText(provider, [
-    { role: "system", content: DIRECT_SYSTEM_PROMPT },
-    { role: "user", content: instructions },
-  ], onChunk || (() => undefined), { temperature, maxTokens: 4000 });
-}
+import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
+import fetch from 'node-fetch';
 
 /**
  * Direct request to OpenAI without any intermediary processing
  */
-export async function directOpenAIRequest(instructions: string, onChunk?: (chunk: string) => void): Promise<any> {
+export async function directOpenAIRequest(instructions: string): Promise<any> {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error("OPENAI_API_KEY is required but not provided");
   }
 
   console.log("Sending direct request to OpenAI");
   
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  
   try {
-    const content = await directText("openai", instructions, 0.3, onChunk);
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+      messages: [
+        { role: "system", content: "You are a helpful assistant responding to user instructions. Provide direct, thorough and accurate responses." },
+        { role: "user", content: instructions }
+      ],
+      temperature: 0.3,
+      max_tokens: 4000,
+    });
     
     return {
-      content,
+      content: response.choices[0].message.content,
       model: "gpt-4o",
       provider: "OpenAI"
     };
@@ -42,19 +39,29 @@ export async function directOpenAIRequest(instructions: string, onChunk?: (chunk
 /**
  * Direct request to Anthropic Claude without any intermediary processing
  */
-export async function directClaudeRequest(instructions: string, onChunk?: (chunk: string) => void): Promise<any> {
+export async function directClaudeRequest(instructions: string): Promise<any> {
   if (!process.env.ANTHROPIC_API_KEY) {
     throw new Error("ANTHROPIC_API_KEY is required but not provided");
   }
 
   console.log("Sending direct request to Claude");
   
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  
   try {
-    const content = await directText("anthropic", instructions, 0.3, onChunk);
-    if (content) {
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-5", // the newest Anthropic model is "claude-sonnet-4-5" which was released February 24, 2025
+      system: "You are a helpful assistant responding to user instructions. Provide direct, thorough and accurate responses.",
+      messages: [
+        { role: "user", content: instructions }
+      ],
+      max_tokens: 4000,
+    });
+    
+    if (response.content && response.content[0] && 'text' in response.content[0]) {
       return {
-        content,
-        model: "claude-sonnet-4-20250514",
+        content: response.content[0].text,
+        model: "claude-sonnet-4-5",
         provider: "Anthropic (Claude)"
       };
     } else {
@@ -69,7 +76,7 @@ export async function directClaudeRequest(instructions: string, onChunk?: (chunk
 /**
  * Direct request to Perplexity without any intermediary processing
  */
-export async function directPerplexityRequest(instructions: string, onChunk?: (chunk: string) => void): Promise<any> {
+export async function directPerplexityRequest(instructions: string): Promise<any> {
   if (!process.env.PERPLEXITY_API_KEY) {
     throw new Error("PERPLEXITY_API_KEY is required but not provided");
   }
@@ -77,23 +84,35 @@ export async function directPerplexityRequest(instructions: string, onChunk?: (c
   console.log("Sending direct request to Perplexity");
   
   try {
-    let citations: string[] = [];
-    const content = await streamProviderText("perplexity", [
-      { role: "system", content: DIRECT_SYSTEM_PROMPT },
-      { role: "user", content: instructions },
-    ], onChunk || (() => undefined), {
-      temperature: 0.4,
-      maxTokens: 4000,
-      onEvent: event => {
-        if (Array.isArray(event.citations)) citations = event.citations;
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.PERPLEXITY_API_KEY}`,
+        'Content-Type': 'application/json'
       },
+      body: JSON.stringify({
+        model: "sonar",
+        messages: [
+          { role: "system", content: "You are a helpful assistant responding to user instructions. Provide direct, thorough and accurate responses." },
+          { role: "user", content: instructions }
+        ],
+        temperature: 0.4,
+        max_tokens: 4000,
+      })
     });
-    if (content) {
+    
+    const data = await response.json() as any;
+    
+    if (!response.ok) {
+      throw new Error(data?.error?.message || "Perplexity API error");
+    }
+    
+    if (data && data.choices && data.choices[0] && data.choices[0].message) {
       return {
-        content,
+        content: data.choices[0].message.content,
         model: "sonar",
         provider: "Perplexity",
-        citations
+        citations: data.citations || []
       };
     } else {
       throw new Error("Unexpected response format from Perplexity API");
@@ -107,7 +126,7 @@ export async function directPerplexityRequest(instructions: string, onChunk?: (c
 /**
  * Direct request to DeepSeek without any intermediary processing
  */
-export async function directDeepSeekRequest(instructions: string, onChunk?: (chunk: string) => void): Promise<any> {
+export async function directDeepSeekRequest(instructions: string): Promise<any> {
   if (!process.env.DEEPSEEK_API_KEY) {
     throw new Error("DEEPSEEK_API_KEY is required but not provided");
   }
@@ -115,10 +134,32 @@ export async function directDeepSeekRequest(instructions: string, onChunk?: (chu
   console.log("Sending direct request to DeepSeek");
   
   try {
-    const content = await directText("deepseek", instructions, 0.3, onChunk);
-    if (content) {
+    const response = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          { role: "system", content: "You are a helpful assistant responding to user instructions. Provide direct, thorough and accurate responses." },
+          { role: "user", content: instructions }
+        ],
+        temperature: 0.3,
+        max_tokens: 4000,
+      })
+    });
+    
+    const data = await response.json() as any;
+    
+    if (!response.ok) {
+      throw new Error(data?.error?.message || "DeepSeek API error");
+    }
+    
+    if (data && data.choices && data.choices[0] && data.choices[0].message) {
       return {
-        content,
+        content: data.choices[0].message.content,
         model: "deepseek-chat",
         provider: "DeepSeek"
       };
@@ -136,8 +177,7 @@ export async function directDeepSeekRequest(instructions: string, onChunk?: (chu
  */
 export async function directMultiModelRequest(
   instructions: string, 
-  models: string[] = ['openai', 'claude', 'perplexity', 'deepseek'],
-  onChunk?: (model: string, chunk: string) => void,
+  models: string[] = ['openai', 'claude', 'perplexity', 'deepseek']
 ): Promise<Record<string, any>> {
   console.log(`Direct multi-model request to: ${models.join(', ')}`);
   console.log(`Instructions: ${instructions.substring(0, 100)}...`);
@@ -147,7 +187,7 @@ export async function directMultiModelRequest(
   
   // Process OpenAI request if included
   if (models.includes('openai')) {
-    const promise = directOpenAIRequest(instructions, chunk => onChunk?.("openai", chunk))
+    const promise = directOpenAIRequest(instructions)
       .then(result => { results.openai = result; })
       .catch(error => { 
         console.error("OpenAI request failed:", error);
@@ -158,7 +198,7 @@ export async function directMultiModelRequest(
   
   // Process Claude request if included
   if (models.includes('claude')) {
-    const promise = directClaudeRequest(instructions, chunk => onChunk?.("claude", chunk))
+    const promise = directClaudeRequest(instructions)
       .then(result => { results.claude = result; })
       .catch(error => {
         console.error("Claude request failed:", error);
@@ -169,7 +209,7 @@ export async function directMultiModelRequest(
   
   // Process Perplexity request if included
   if (models.includes('perplexity')) {
-    const promise = directPerplexityRequest(instructions, chunk => onChunk?.("perplexity", chunk))
+    const promise = directPerplexityRequest(instructions)
       .then(result => { results.perplexity = result; })
       .catch(error => {
         console.error("Perplexity request failed:", error);
@@ -180,7 +220,7 @@ export async function directMultiModelRequest(
   
   // Process DeepSeek request if included
   if (models.includes('deepseek')) {
-    const promise = directDeepSeekRequest(instructions, chunk => onChunk?.("deepseek", chunk))
+    const promise = directDeepSeekRequest(instructions)
       .then(result => { results.deepseek = result; })
       .catch(error => {
         console.error("DeepSeek request failed:", error);

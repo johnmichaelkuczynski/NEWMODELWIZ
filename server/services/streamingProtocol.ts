@@ -1,5 +1,4 @@
 import { Response } from 'express';
-import { streamProviderText, type ProviderMessage } from './aiProviders';
 
 const EXACT_COMPLETE_QUESTIONS = `IS IT INSIGHTFUL? 
 DOES IT DEVELOP POINTS? (OR, IF IT IS A SHORT EXCERPT, IS THERE EVIDENCE THAT IT WOULD DEVELOP POINTS IF EXTENDED)? 
@@ -34,19 +33,83 @@ IF I WERE TO GIVE A LOW SCORE TO THIS PASSAGE, WOULD I BE PENALIZING ACTUAL INTE
 
 // Generic LLM caller
 async function callLLMProvider(
-  provider: 'openai' | 'anthropic' | 'deepseek' | 'perplexity' | 'grok',
-  messages: ProviderMessage[],
-  onChunk: (chunk: string) => void = () => undefined,
+  provider: 'openai' | 'anthropic' | 'deepseek',
+  messages: Array<{role: string, content: string}>
 ): Promise<string> {
   try {
     console.log(`CALLING ${provider.toUpperCase()} with prompt length: ${messages[0]?.content?.length || 0}`);
-    const result = await streamProviderText(provider, messages, onChunk, {
-      temperature: 0.1,
-      maxTokens: 4000,
-    });
-    console.log(`${provider.toUpperCase()} RESPONSE LENGTH: ${result.length}`);
-    console.log(`${provider.toUpperCase()} RESPONSE PREVIEW: "${result.substring(0, 200)}..."`);
-    return result;
+    
+    if (provider === 'openai') {
+      const OpenAI = (await import('openai')).default;
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        messages: messages as any,
+        temperature: 0.1,
+        max_tokens: 4000
+      });
+      
+      const result = completion.choices?.[0]?.message?.content || '';
+      console.log(`${provider.toUpperCase()} RESPONSE LENGTH: ${result.length}`);
+      console.log(`${provider.toUpperCase()} RESPONSE PREVIEW: "${result.substring(0, 200)}..."`);
+      return result;
+    } else if (provider === 'anthropic') {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': process.env.ANTHROPIC_API_KEY!,
+          'Content-Type': 'application/json',
+          'anthropic-version': '2023-06-01'
+        },
+        body: JSON.stringify({
+          model: "claude-3-sonnet-20240229",
+          max_tokens: 4000,
+          temperature: 0.1,
+          messages: messages
+        })
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`ANTHROPIC API ERROR: ${response.status} - ${errorText}`);
+        return '';
+      }
+      
+      const data = await response.json();
+      const result = data.content?.[0]?.text || '';
+      console.log(`${provider.toUpperCase()} RESPONSE LENGTH: ${result.length}`);
+      console.log(`${provider.toUpperCase()} RESPONSE PREVIEW: "${result.substring(0, 200)}..."`);
+      return result;
+    } else if (provider === 'deepseek') {
+      const response = await fetch('https://api.deepseek.com/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.DEEPSEEK_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "deepseek-chat",
+          messages: messages,
+          temperature: 0.1,
+          max_tokens: 4000
+        })
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`DEEPSEEK API ERROR: ${response.status} - ${errorText}`);
+        return '';
+      }
+      
+      const data = await response.json();
+      const result = data.choices?.[0]?.message?.content || '';
+      console.log(`${provider.toUpperCase()} RESPONSE LENGTH: ${result.length}`);
+      console.log(`${provider.toUpperCase()} RESPONSE PREVIEW: "${result.substring(0, 200)}..."`);
+      return result;
+    }
+    
+    return '';
   } catch (error) {
     console.error(`ERROR CALLING ${provider.toUpperCase()}:`, error);
     return '';
@@ -79,7 +142,7 @@ function extractScore(text: string): number {
 
 export async function executeStreamingComprehensiveProtocol(
   text: string,
-  provider: 'openai' | 'anthropic' | 'deepseek' | 'perplexity' | 'grok',
+  provider: 'openai' | 'anthropic' | 'deepseek',
   res: Response
 ): Promise<void> {
   const questions = EXACT_COMPLETE_QUESTIONS;
@@ -120,14 +183,19 @@ ${text}`;
 
   const phase1Response = await callLLMProvider(provider, [
     { role: 'user', content: phase1Prompt }
-  ], chunk => {
-    res.write(chunk);
-    (res as any).flush?.();
-  });
+  ]);
   const phase1Score = extractScore(phase1Response);
   
+  // Clean up markdown formatting
+  const cleanedPhase1 = phase1Response
+    .replace(/\*{1,3}/g, '')
+    .replace(/#{1,6}\s*/g, '')
+    .replace(/\_{1,3}/g, '')
+    .replace(/\[NUMBER\]/g, phase1Score.toString())
+    .trim();
+  
   res.write(`✅ PHASE 1 COMPLETE: Score ${phase1Score}/100\n\n`);
-  res.write(`\n\n`);
+  res.write(`📄 PHASE 1 ANALYSIS:\n${cleanedPhase1}\n\n`);
   
   let finalScore = phase1Score;
   
@@ -149,15 +217,20 @@ ${text}`;
 
     const phase2Response = await callLLMProvider(provider, [
       { role: 'user', content: phase2Prompt }
-    ], chunk => {
-      res.write(chunk);
-      (res as any).flush?.();
-    });
+    ]);
     const phase2Score = extractScore(phase2Response);
     finalScore = phase2Score;
     
+    // Clean up markdown formatting
+    const cleanedPhase2 = phase2Response
+      .replace(/\*{1,3}/g, '')
+      .replace(/#{1,6}\s*/g, '')
+      .replace(/\_{1,3}/g, '')
+      .replace(/\[NUMBER\]/g, phase2Score.toString())
+      .trim();
+    
     res.write(`✅ PHASE 2 COMPLETE: Revised score ${phase2Score}/100\n\n`);
-    res.write(`\n\n`);
+    res.write(`📄 PHASE 2 ANALYSIS:\n${cleanedPhase2}\n\n`);
   } else {
     res.write(`⏭️ PHASE 2: Score ${phase1Score} >= 95, no pushback needed\n\n`);
   }
@@ -172,15 +245,20 @@ CRITICAL: Do not use markdown formatting. Write in plain text only. End with exa
 
   const phase3Response = await callLLMProvider(provider, [
     { role: 'user', content: phase3Prompt }
-  ], chunk => {
-    res.write(chunk);
-    (res as any).flush?.();
-  });
+  ]);
   const phase3Score = extractScore(phase3Response);
   if (phase3Score > 0) finalScore = phase3Score;
   
+  // Clean up markdown formatting
+  const cleanedPhase3 = phase3Response
+    .replace(/\*{1,3}/g, '')
+    .replace(/#{1,6}\s*/g, '')
+    .replace(/\_{1,3}/g, '')
+    .replace(/\[NUMBER\]/g, phase3Score.toString())
+    .trim();
+  
   res.write(`✅ PHASE 3 COMPLETE: Walmart-adjusted score ${finalScore}/100\n\n`);
-  res.write(`\n\n`);
+  res.write(`📄 PHASE 3 ANALYSIS:\n${cleanedPhase3}\n\n`);
   
   // PHASE 4: Accept and report
   res.write(`✨ PHASE 4: Final acceptance and reporting...\n\n`);
@@ -191,15 +269,20 @@ CRITICAL: Do not use markdown formatting. Write in plain text only. End with exa
 
   const phase4Response = await callLLMProvider(provider, [
     { role: 'user', content: phase4Prompt }
-  ], chunk => {
-    res.write(chunk);
-    (res as any).flush?.();
-  });
+  ]);
   const phase4Score = extractScore(phase4Response);
   if (phase4Score > 0) finalScore = phase4Score;
   
+  // Clean up markdown formatting
+  const cleanedPhase4 = phase4Response
+    .replace(/\*{1,3}/g, '')
+    .replace(/#{1,6}\s*/g, '')
+    .replace(/\_{1,3}/g, '')
+    .replace(/\[NUMBER\]/g, phase4Score.toString())
+    .trim();
+  
   res.write(`🎯 FINAL SCORE: ${finalScore}/100\n\n`);
-  res.write(`\n\n`);
+  res.write(`📄 PHASE 4 FINAL REPORT:\n${cleanedPhase4}\n\n`);
   
   res.write(`\n🏁 4-PHASE PROTOCOL COMPLETE\n`);
   res.write(`📊 Final Intelligence Score: ${finalScore}/100\n`);

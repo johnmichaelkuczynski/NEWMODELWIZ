@@ -6,10 +6,7 @@ import cognitiveProfiler from './cognitiveProfiler';
  * @param textToAnalyze The text to analyze
  * @returns Object containing verified analyses from all three providers
  */
-export async function analyzeWithAllProviders(
-  textToAnalyze: string,
-  onChunk?: (chunk: string) => void,
-): Promise<any[]> {
+export async function analyzeWithAllProviders(textToAnalyze: string): Promise<any[]> {
   const results = [];
   
   try {
@@ -26,7 +23,7 @@ export async function analyzeWithAllProviders(
     console.log("Adding OpenAI analysis...");
     let openaiReport;
     try {
-      openaiReport = await directOpenAIAnalyze(textToAnalyze, onChunk);
+      openaiReport = await directOpenAIAnalyze(textToAnalyze);
       // Add the score from our cognitive profiler
       openaiReport.formattedReport = `Intelligence Score: ${openaiScore}/100\n\n` + openaiReport.formattedReport;
       results.push(openaiReport);
@@ -42,7 +39,7 @@ export async function analyzeWithAllProviders(
     console.log("Adding Anthropic analysis...");
     let anthropicReport;
     try {
-      anthropicReport = await directAnthropicAnalyze(textToAnalyze, onChunk);
+      anthropicReport = await directAnthropicAnalyze(textToAnalyze);
       // Add the score from our cognitive profiler
       anthropicReport.formattedReport = `Intelligence Score: ${claudeScore}/100\n\n` + anthropicReport.formattedReport;
       results.push(anthropicReport);
@@ -58,7 +55,7 @@ export async function analyzeWithAllProviders(
     console.log("Adding Perplexity analysis...");
     let perplexityReport;
     try {
-      perplexityReport = await directPerplexityAnalyze(textToAnalyze, onChunk);
+      perplexityReport = await directPerplexityAnalyze(textToAnalyze);
       // Add the score from our cognitive profiler
       perplexityReport.formattedReport = `Intelligence Score: ${perplexityScore}/100\n\n` + perplexityReport.formattedReport;
       results.push(perplexityReport);

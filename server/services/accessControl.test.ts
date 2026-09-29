@@ -184,11 +184,10 @@ test("production subscribers retain the complete request and megaglobal eligibil
 
 test("quota exhaustion is returned as a sign-in continuation boundary, not a writing failure", async () => {
   queryResults = [
-    { rows: [{ actions_used: 5, words_reserved: 2000 }] },
+    { rows: [{ actions_used: 3, words_reserved: 1200 }] },
     { rows: [] },
   ];
-  const req = writingRequest({ requestedWordCount: 2000 });
-  req.body.instructions = "Write a 2,000-word document as one complete work.";
+  const req = writingRequest();
 
   const result = await enforce(req);
 
@@ -196,14 +195,13 @@ test("quota exhaustion is returned as a sign-in continuation boundary, not a wri
   assert.equal(result.state.status, 401);
   assert.equal(result.state.json?.code, "SIGN_IN_REQUIRED");
   assert.equal(result.state.json?.nextAction, "sign-in");
-  assert.equal((result.state.json?.usage as Record<string, unknown>)?.actionLimit, 5);
   assert.equal("error" in (result.state.json ?? {}), false);
   assert.match(String(result.state.json?.message), /Sign in with Google/i);
 });
 
 test("signed-in quota exhaustion is returned as a subscription continuation boundary", async () => {
   queryResults = [
-    { rows: [{ actions_used: 20, words_reserved: 8000 }] },
+    { rows: [{ actions_used: 10, words_reserved: 5000 }] },
     { rows: [] },
     { rows: [] },
   ];
@@ -215,7 +213,6 @@ test("signed-in quota exhaustion is returned as a subscription continuation boun
   assert.equal(result.state.status, 402);
   assert.equal(result.state.json?.code, "SUBSCRIPTION_REQUIRED");
   assert.equal(result.state.json?.nextAction, "subscribe");
-  assert.equal((result.state.json?.usage as Record<string, unknown>)?.actionLimit, 20);
   assert.equal("error" in (result.state.json ?? {}), false);
   assert.match(String(result.state.json?.message), /Subscribe/i);
 });
