@@ -138,6 +138,10 @@ function paragraphSimilarity(left: string, right: string): number {
   return intersection / Math.min(leftTerms.size, rightTerms.size);
 }
 
+function isPlanningArtifact(text: string): boolean {
+  return /(?:^|\n)\s*(?:paragraph\s+\d+\s*\([^\n)]*(?:step|derive|allocation)|(?:section|chapter)\s+\d+\s+must\s+now\b|(?:starting proposition inherited|spent claims not to explain again|paragraph-by-paragraph allocation|required new argument steps)\s*:)/im.test(text);
+}
+
 export function appendNovelContinuation(existing: string, continuation: string): string {
   const accepted = existing.split(/\n\s*\n/).map(paragraph => paragraph.trim()).filter(Boolean);
   const candidates = removeMarkdown(continuation)
@@ -146,6 +150,7 @@ export function appendNovelContinuation(existing: string, continuation: string):
     .filter(Boolean);
   for (const candidate of candidates) {
     if (/^(?:chapter|section)\s+\d+\s*:/i.test(candidate)) continue;
+    if (isPlanningArtifact(candidate)) continue;
     const duplicatesExisting = accepted.some(prior =>
       prior.toLowerCase().replace(/\s+/g, " ") === candidate.toLowerCase().replace(/\s+/g, " ")
       || paragraphSimilarity(prior, candidate) >= 0.72,
@@ -362,6 +367,7 @@ async function fillToTarget(
   const minimumWords = targetWords;
   const maximumWords = Math.floor(targetWords * 1.1);
   const maximumContinuationAttempts = Math.ceil(targetWords / 350) + 4;
+  let stalledAttempts = 0;
   for (let attempt = 0; countWords(text) < minimumWords && attempt < maximumContinuationAttempts; attempt++) {
     if (liveProgress && await liveProgress(text)) {
       throw new Error("WRITING_STOPPED_BY_USER");
@@ -397,7 +403,13 @@ ${text.split(/\s+/).slice(-500).join(" ")}`,
         },
       },
     );
-    text = appendNovelContinuation(text, streamedContinuation || continuation);
+    const next = appendNovelContinuation(text, streamedContinuation || continuation);
+    stalledAttempts = countWords(next) - countWords(text) < 60 ? stalledAttempts + 1 : 0;
+    text = next;
+    if (stalledAttempts >= 2) {
+      if (acceptNovelShortfall) break;
+      throw new Error("The model could not add substantive new prose toward the requested length; stopped before padding.");
+    }
   }
   if (liveProgress && await liveProgress(text)) {
     throw new Error("WRITING_STOPPED_BY_USER");
@@ -718,6 +730,7 @@ async function createSectionExecutionContract(
   directive: string,
   sectionIndex: number,
   sectionCount: number,
+  targetWords: number,
 ): Promise<string> {
   return removeMarkdown(await callProvider(
     provider,
@@ -733,7 +746,7 @@ PARAGRAPH-BY-PARAGRAPH ALLOCATION:
 ENDING HANDOFF:
 BANNED MINI-ESSAY MOVES:
 
-Assign at least four ordered new argument steps. Then allocate each planned paragraph to exactly one distinct operation: derive one new proposition, draw one new implication, state one objection, answer that objection, provide one uniquely assigned example, or execute the handoff. Give every paragraph a numbered slot and a one-sentence output claim. Do not allocate parallel examples of the same proposition. Do not allocate the same claim, criterion, or conclusion to more than one paragraph. Every paragraph after the first must take the preceding paragraph's result as an input and produce a further result. A later section may mention an earlier definition or conclusion only in one subordinate clause before deriving something new. Ban paragraphs whose main point is an already established definition, criterion, thesis, example, objection, or conclusion. Ban generic recap and fresh introductions. If the unique allocated work cannot honestly fill the target length, require a shorter section rather than repetition.
+This section has a target of approximately ${targetWords} words. Allocate roughly ${Math.ceil(targetWords / 120)} distinct substantive paragraphs when the source and assignment support them; each must advance a different inference or test. If there is insufficient substance, explicitly plan a shorter section rather than inventing or repeating claims. Then allocate each planned paragraph to exactly one distinct operation: derive one new proposition, draw one new implication, state one objection, answer that objection, provide one uniquely assigned example, or execute the handoff. Give every paragraph a numbered slot and a one-sentence output claim. Do not allocate parallel examples of the same proposition. Do not allocate the same claim, criterion, or conclusion to more than one paragraph. Every paragraph after the first must take the preceding paragraph's result as an input and produce a further result. A later section may mention an earlier definition or conclusion only in one subordinate clause before deriving something new. Ban paragraphs whose main point is an already established definition, criterion, thesis, example, objection, or conclusion. Ban generic recap and fresh introductions. If the unique allocated work cannot honestly fill the target length, require a shorter section rather than repetition.
 
 IMMUTABLE GLOBAL SKELETON:
 ${blueprint}
@@ -743,7 +756,7 @@ ${ledger}
 
 CURRENT DIRECTIVE:
 ${directive}`,
-    1100,
+    1800,
     0,
   ));
 }
@@ -1012,6 +1025,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
             guidedDirective,
             index,
             job.totalSections,
+            targetWords,
           )
         : guidedDirective;
       const workTitle = chapterNumber === 1 ? extractWorkTitle(job.instructions) : null;
@@ -1061,10 +1075,11 @@ export async function processWritingJob(jobId: number): Promise<void> {
        };
         const checkpoint = createThrottledCheckpoint(persistSectionProgress);
         const publishLiveProgress = async (currentSection: string): Promise<boolean> => {
+          if (isPlanningArtifact(currentSection)) return false;
           inProgressContent = currentSection;
           return checkpoint.update(currentSection);
         };
-       const draft = partial?.content || await callProvider(
+       let draft = partial?.content || await callProvider(
         provider,
         `Write polished prose in plain text only. Use readable paragraphs separated by blank lines. Do not use Markdown: no hashes, asterisks, code fences, blockquotes, link syntax, or bullet markers. LaTeX underscores inside mathematical expressions are allowed. Return only the requested prose section. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
         `${structuralInstruction} Write the first approximately ${initialChunkWords} words of this ${targetWords}-word section.${streamsInChunks && initialChunkWords < targetWords ? " Stop only after completing a numbered paragraph-allocation item; later calls will continue with the next unfinished item." : index === job.totalSections - 1 ? " Complete the whole work's assigned ending naturally." : " End with the assigned forward handoff, not a global conclusion."} Follow PARAGRAPH-BY-PARAGRAPH ALLOCATION literally and in order. Use at most one paragraph for each numbered allocation. Do not invent unallocated paragraphs to reach the target. If the unique allocated work is exhausted, stop short rather than pad. Use readable paragraphs of roughly 80 to 160 words each, separated by blank lines. Execute every requirement in the assigned directive. Every paragraph must add a new inference, distinction, example, objection, answer, implication, or connective step. No claim may be the main point of two paragraphs, and no parallel example may re-demonstrate an established point. Do not add conversational summaries, promises about later content, or meta-commentary.${index > 0 ? " Do not introduce the paper or explain its overall thesis again." : ""} Do not preview, summarize, name, or perform material assigned to another chapter.${theoremInstruction}${globalStandard ? ` Apply this global standard: ${globalStandard}` : ""}
@@ -1091,6 +1106,16 @@ ${executionContract}`,
          },
       );
        await checkpoint.flush();
+       if (isPlanningArtifact(draft)) {
+         draft = await callProvider(
+           provider,
+           "Write only finished manuscript prose. Never output planning labels, paragraph instructions, or commentary about what a section must do.",
+           `The following draft accidentally exposed its internal paragraph plan. Rewrite the same substantive material as finished prose for Section ${index + 1}. Preserve the author's argument and required examples. Do not write phrases such as "Paragraph 3 (Derive Step)" or "Section 2 must now".\n\nASSIGNMENT:\n${guidedDirective}\n\nDRAFT TO REWRITE:\n${draft}`,
+           Math.min(4000, Math.ceil((targetWords + 250) * 1.8)),
+           0.4,
+         );
+         if (isPlanningArtifact(draft)) throw new Error(`Section ${index + 1} still contains planning instructions after a repair attempt; manuscript withheld.`);
+       }
         const preparedDraft = removeRepetitiveSummaryParagraphs(draft, globalStandard);
        if (partial) inProgressContent = partial.content;
        let content = await fillToTarget(
@@ -1185,6 +1210,7 @@ ${executionContract}`,
           throw new Error(`Megaglobal coherence gate rejected ${chapterNumber ? `Chapter ${chapterNumber}` : `Section ${index + 1}`} after bounded repair: ${finalSectionCoherence}`);
         }
       }
+      if (isPlanningArtifact(content)) throw new Error(`Section ${index + 1} contains planning instructions; manuscript withheld.`);
       content = preserveRequestedMathNotation(normalizeMathNotation(content), assignedDirective);
       content = enforceAssignedPresentation(content, index, chapterNumber, workTitle);
       validateAssignedPresentation(content, index, chapterNumber);
@@ -1275,6 +1301,7 @@ ${executionContract}`,
           directive,
           sectionIndex,
           job.totalSections,
+          section.targetWordCount,
         );
         const title = chapterNumber === 1 ? extractWorkTitle(job.instructions) : null;
         let repaired = await repairCrossSectionRedundancy(
@@ -1404,6 +1431,7 @@ ${executionContract}`,
       .orderBy(asc(writingJobSections.sectionIndex));
     validateSectionCheckpoints(sections, job.totalSections, "Pre-delivery writing structure");
     for (const section of sections) {
+      if (isPlanningArtifact(section.content)) throw new Error(`Section ${section.sectionIndex + 1} contains planning instructions; manuscript withheld.`);
       validateAssignedPresentation(
         section.content,
         section.sectionIndex,
@@ -1448,7 +1476,7 @@ ${executionContract}`,
     const actualWords = countWords(output);
     const { minimum: minimumWords, maximum: maximumWords } = getWordCountRange(job.instructions, job.requestedWordCount);
     if (actualWords < minimumWords || actualWords > maximumWords) {
-      console.warn(`Final document delivered outside the requested word-count range: ${actualWords} words is outside ${minimumWords}-${maximumWords}.`);
+      throw new Error(`The manuscript reached ${actualWords} words, outside the requested ${minimumWords}-${maximumWords} range; the draft was saved but cannot be marked complete.`);
     }
     if (explicitChapterCount) {
       const headings = chapterHeadings(output);
@@ -1484,8 +1512,8 @@ ${executionContract}`,
     const savedSections = await db.select().from(writingJobSections)
       .where(eq(writingJobSections.jobId, jobId))
       .orderBy(asc(writingJobSections.sectionIndex));
-    const deliverableParts = savedSections.map(section => section.content);
-    if (inProgressContent.trim() && !savedSections.some(section => section.content === inProgressContent)) {
+    const deliverableParts = savedSections.map(section => section.content).filter(content => !isPlanningArtifact(content));
+    if (inProgressContent.trim() && !isPlanningArtifact(inProgressContent) && !savedSections.some(section => section.content === inProgressContent)) {
       deliverableParts.push(inProgressContent);
     }
     if (deliverableParts.length > 0) {
