@@ -33,10 +33,12 @@ export class GPTZeroService {
       }
 
       const data = await response.json();
-      
-      // Parse GPTZero response based on actual API format
-      const document = data.documents[0];
-      const aiProbability = document.class_probabilities?.ai || 0;
+
+      const document = data.documents?.[0];
+      const aiProbability = document?.class_probabilities?.ai ?? document?.completely_generated_prob;
+      if (typeof aiProbability !== "number" || !Number.isFinite(aiProbability) || aiProbability < 0 || aiProbability > 1) {
+        throw new Error("GPTZero returned a response without a valid AI probability.");
+      }
       const aiScore = Math.round(aiProbability * 100);
       const isHighConfidence = document.confidence_category === 'high';
       

@@ -2966,6 +2966,28 @@ PROVIDE A FINAL VALIDATED SCORE OUT OF 100 IN THE FORMAT: SCORE: X/100
     }
   });
 
+  // Compact automatic GPTZero detection for text-entry fields.
+  app.get("/api/gptzero/status", (_req, res) => {
+    res.json({ available: Boolean(process.env.GPTZERO_API_KEY) });
+  });
+
+  app.post("/api/gptzero/preview", async (req, res) => {
+    const text = req.body?.text;
+    if (typeof text !== "string" || text.trim().length < 250 || text.length > 100_000) {
+      return res.status(400).json({ message: "Detection requires 250 to 100,000 characters of text." });
+    }
+    if (!process.env.GPTZERO_API_KEY) {
+      return res.status(503).json({ message: "GPTZero is not configured." });
+    }
+    try {
+      const result = await gptZeroService.analyzeText(text);
+      res.json({ aiScore: result.aiScore });
+    } catch (error) {
+      console.error("Automatic GPTZero detection failed:", error);
+      res.status(502).json({ message: "GPTZero detection is temporarily unavailable." });
+    }
+  });
+
   // Text analysis endpoint (for direct text input)
   app.post("/api/analyze-text", async (req, res) => {
     try {
