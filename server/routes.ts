@@ -1850,9 +1850,18 @@ export async function registerRoutes(app: Express): Promise<Express> {
         extractRequestedWordCount,
       } = await import("./services/longFormWriting");
       const extractedCount = extractRequestedWordCount(instructions);
-      const wordCount = Number(requestedWordCount) || extractedCount || 1000;
-      if (!Number.isInteger(wordCount) || wordCount < 50 || wordCount > 100_000) {
+      const requestedWords = Number(requestedWordCount) || extractedCount || 1000;
+      if (!Number.isInteger(requestedWords) || requestedWords < 50 || requestedWords > 100_000) {
         return res.status(400).json({ message: "Requested word count must be between 50 and 100,000" });
+      }
+      const { expandedWordTarget } = await import("./services/sourceExpansion");
+      let wordCount: number;
+      try {
+        wordCount = forceSingleSectionPreview === true
+          ? requestedWords
+          : expandedWordTarget(requestedWords, sourceDocument);
+      } catch (error: any) {
+        return res.status(400).json({ message: error.message });
       }
 
       const job = await createWritingJob({
@@ -1906,9 +1915,18 @@ export async function registerRoutes(app: Express): Promise<Express> {
         processIndependentWritingJob,
         independentRequestedWords,
       } = await import("./services/independentWriting");
-      const wordCount = Number(requestedWordCount) || independentRequestedWords(instructions) || 1000;
-      if (!Number.isInteger(wordCount) || wordCount < 50 || wordCount > 100_000) {
+      const requestedWords = Number(requestedWordCount) || independentRequestedWords(instructions) || 1000;
+      if (!Number.isInteger(requestedWords) || requestedWords < 50 || requestedWords > 100_000) {
         return res.status(400).json({ message: "Requested word count must be between 50 and 100,000" });
+      }
+      const { expandedWordTarget } = await import("./services/sourceExpansion");
+      let wordCount: number;
+      try {
+        wordCount = forceSingleSectionPreview === true
+          ? requestedWords
+          : expandedWordTarget(requestedWords, sourceDocument);
+      } catch (error: any) {
+        return res.status(400).json({ message: error.message });
       }
       const job = await createIndependentWritingJob({
         userId: req.user?.id,
