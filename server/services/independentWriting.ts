@@ -1,6 +1,7 @@
 import { asc, eq } from "drizzle-orm";
 import { db } from "../db";
 import { writingJobs, writingJobSections } from "@shared/schema";
+import { isValidWritingWordCount } from "@shared/writingWordCount";
 import { normalizeMathNotation, preserveRequestedMathNotation } from "@shared/mathNotation";
 import {
   AdaptiveWritingPacer,
@@ -35,7 +36,7 @@ export function independentRequestedWords(instructions: string): number | null {
   const match = instructions.match(/(?:exactly|approximately|about|around|roughly|at least|minimum of|word count(?:\s+of)?|length(?:\s+of)?)?\s*(\d[\d,]*)\s*[- ]?words?\b/i);
   if (!match) return null;
   const count = Number(match[1].replace(/,/g, ""));
-  return Number.isInteger(count) && count >= 50 && count <= 100_000 ? count : null;
+  return isValidWritingWordCount(count) ? count : null;
 }
 
 function independentWritingContext(instructions: string, sourceDocument?: string | null): string {

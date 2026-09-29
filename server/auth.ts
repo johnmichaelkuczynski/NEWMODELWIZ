@@ -68,26 +68,31 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Give each anonymous writing session its own database owner. This permits
-  // long-running jobs without exposing one visitor's saved work to another.
+  // Associate writing jobs with the current browser session so public access
+  // does not expose one session's saved work to another.
   app.use(async (req, _res, next) => {
     if (req.user || !/^\/api\/(?:writing(?:-v2)?\/jobs|coherence-analysis-jobs)(?:\/|$)/.test(req.path)) {
       return next();
     }
     try {
-      const guestSession = req.session as session.Session & { guestUserId?: number };
-      let guest = guestSession.guestUserId
-        ? await storage.getUser(guestSession.guestUserId)
+      const writingSession = req.session as session.Session & {
+        writingOwnerId?: number;
+        guestUserId?: number;
+      };
+      // Existing sessions retain access to work saved under the previous key.
+      const savedOwnerId = writingSession.writingOwnerId ?? writingSession.guestUserId;
+      let writer = savedOwnerId
+        ? await storage.getUser(savedOwnerId)
         : undefined;
-      if (!guest) {
-        guest = await storage.createUser({
-          username: `guest_${randomUUID()}`,
+      if (!writer) {
+        writer = await storage.createUser({
+          username: `writer_session_${randomUUID()}`,
           password: randomBytes(32).toString("hex"),
           email: null,
         });
-        guestSession.guestUserId = guest.id;
       }
-      req.user = guest;
+      writingSession.writingOwnerId = writer.id;
+      req.user = writer;
       next();
     } catch (error) {
       next(error);

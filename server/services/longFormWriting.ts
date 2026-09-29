@@ -1,6 +1,7 @@
 import { and, asc, eq, gte } from "drizzle-orm";
 import { db } from "../db";
 import { writingJobs, writingJobSections } from "@shared/schema";
+import { isValidWritingWordCount } from "@shared/writingWordCount";
 import { normalizeMathNotation, preserveRequestedMathNotation } from "@shared/mathNotation";
 import {
   AdaptiveWritingPacer,
@@ -223,7 +224,7 @@ export function extractRequestedWordCount(instructions: string): number | null {
     const match = directive.match(pattern);
     if (match) {
       const value = Number(match[1].replace(/,/g, ""));
-      if (Number.isInteger(value) && value >= 50 && value <= 100_000) return value;
+      if (isValidWritingWordCount(value)) return value;
     }
   }
   return null;

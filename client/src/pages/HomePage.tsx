@@ -38,6 +38,7 @@ import unicodePdfFontUrl from "@/assets/DejaVuSans.ttf?url";
 import { normalizeMathNotation } from "@shared/mathNotation";
 import { readNdjsonResult, readNdjsonStream, readTextStream } from "@/lib/streaming";
 import { OUTPUT_EVENT, readPendingOutput, acceptPendingOutput, OutputPayload } from "@/lib/outputRouting";
+import { isValidWritingWordCount } from "@shared/writingWordCount";
 
 async function safeJson(response: Response): Promise<any> {
   try {
@@ -81,7 +82,11 @@ const HomePage: React.FC = () => {
   const [documentB, setDocumentB] = useState<DocumentInputType>({ content: "" });
   const [writingInstructions, setWritingInstructions] = useState("");
   const [writingSourceDocument, setWritingSourceDocument] = useState("");
-  const [writingDesiredWordCount, setWritingDesiredWordCount] = useState("");
+  const [writingWordCountOverride, setWritingWordCountOverride] = useState<string | null>(null);
+  const writingInputWordCount = [writingInstructions, writingSourceDocument]
+    .reduce((total, text) => total + (text.trim() ? text.trim().split(/\s+/).length : 0), 0);
+  const writingDesiredWordCount = writingWordCountOverride
+    ?? (writingInputWordCount ? String(writingInputWordCount * 2) : "");
   const [writingSourceName, setWritingSourceName] = useState("");
   const [isWritingSourceLoading, setIsWritingSourceLoading] = useState(false);
   const writingSourceInputRef = useRef<HTMLInputElement>(null);
@@ -688,11 +693,11 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       : undefined;
     if (
       explicitWordCount !== undefined &&
-      (!Number.isInteger(explicitWordCount) || explicitWordCount < 50 || explicitWordCount > 100_000)
+      !isValidWritingWordCount(explicitWordCount)
     ) {
       toast({
         title: "Invalid Word Count",
-        description: "Enter a whole number between 50 and 100,000, or leave the field blank.",
+        description: "Enter a whole number of at least 50 words that fits in the writing database.",
         variant: "destructive",
       });
       return;
@@ -3375,21 +3380,25 @@ Generated on: ${new Date().toLocaleString()}`;
           />
           <div className="w-full">
             <Label htmlFor="writing-desired-word-count" className="mb-2 block">
-              Desired Word Count <span className="font-normal text-gray-500">(optional)</span>
+              Desired Word Count
             </Label>
             <Input
               id="writing-desired-word-count"
               type="number"
               inputMode="numeric"
               min={50}
-              max={100000}
               step={1}
               value={writingDesiredWordCount}
-              onChange={(event) => setWritingDesiredWordCount(event.target.value)}
-              placeholder="e.g., 5,000"
+              onChange={(event) => setWritingWordCountOverride(event.target.value || null)}
+              placeholder="2× input text"
               disabled={isWriting || isRedoingWritingAudits}
               data-testid="input-writing-desired-word-count"
             />
+            <p className="mt-1 text-xs text-gray-500">
+              {writingWordCountOverride === null
+                ? "Automatically 2× the words in your writing instructions and source paper. Edit to override."
+                : "Custom word count. Clear this field to return to automatic 2× length."}
+            </p>
           </div>
           <Button
             onClick={handleWriteFromInstructions}

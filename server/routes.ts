@@ -10,6 +10,7 @@ import { textChunkerService } from "./services/textChunker";
 import { gptZeroService } from "./services/gptZero";
 import { aiProviderService, streamProviderText as streamAIProviderText } from "./services/aiProviders";
 import { appVisitors, type RewriteRequest, type RewriteResponse, writingJobs, writingJobSections } from "@shared/schema";
+import { isValidWritingWordCount } from "@shared/writingWordCount";
 import { db } from "./db";
 import { asc, count, eq } from "drizzle-orm";
 import { extractTextFromFile } from "./api/documentParser";
@@ -1843,9 +1844,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
         extractRequestedWordCount,
       } = await import("./services/longFormWriting");
       const extractedCount = extractRequestedWordCount(instructions);
-      const wordCount = Number(requestedWordCount) || extractedCount || 1000;
-      if (!Number.isInteger(wordCount) || wordCount < 50 || wordCount > 100_000) {
-        return res.status(400).json({ message: "Requested word count must be between 50 and 100,000" });
+      const wordCount = requestedWordCount === undefined || requestedWordCount === null || requestedWordCount === ""
+        ? extractedCount ?? 1000
+        : Number(requestedWordCount);
+      if (!isValidWritingWordCount(wordCount)) {
+        return res.status(400).json({ message: "Requested word count must be at least 50 and fit in the writing database." });
       }
 
       const job = await createWritingJob({
@@ -1893,9 +1896,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
         processIndependentWritingJob,
         independentRequestedWords,
       } = await import("./services/independentWriting");
-      const wordCount = Number(requestedWordCount) || independentRequestedWords(instructions) || 1000;
-      if (!Number.isInteger(wordCount) || wordCount < 50 || wordCount > 100_000) {
-        return res.status(400).json({ message: "Requested word count must be between 50 and 100,000" });
+      const wordCount = requestedWordCount === undefined || requestedWordCount === null || requestedWordCount === ""
+        ? independentRequestedWords(instructions) ?? 1000
+        : Number(requestedWordCount);
+      if (!isValidWritingWordCount(wordCount)) {
+        return res.status(400).json({ message: "Requested word count must be at least 50 and fit in the writing database." });
       }
       const job = await createIndependentWritingJob({
         userId: req.user?.id,
