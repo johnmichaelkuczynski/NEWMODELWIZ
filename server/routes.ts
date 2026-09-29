@@ -10,13 +10,13 @@ import { textChunkerService } from "./services/textChunker";
 import { gptZeroService } from "./services/gptZero";
 import { aiProviderService, streamProviderText as streamAIProviderText } from "./services/aiProviders";
 import { appVisitors, type RewriteRequest, type RewriteResponse, writingJobs, writingJobSections } from "@shared/schema";
-import { isValidWritingWordCount } from "@shared/writingWordCount";
 import { db } from "./db";
 import { asc, count, eq } from "drizzle-orm";
 import { extractTextFromFile } from "./api/documentParser";
 import { sendSimpleEmail } from "./api/simpleEmailService";
 import { upload as speechUpload, processSpeechToText } from "./api/simpleSpeechToText";
 import { createCoherenceAnalysisJob, getCoherenceAnalysisJob, runCoherenceAnalysisJob } from "./services/coherenceAnalysisJobs";
+import { enforcePaidAiAccess, getAccessStatus, initializeAccessControl } from "./services/accessControl";
 
 
 // Configure multer for file uploads
@@ -606,11 +606,9 @@ Provide detailed analysis of literary merit, character development, plot structu
 export async function registerRoutes(app: Express): Promise<Express> {
   setupAuth(app);
   
-  // Preserve billing management for existing customers, but do not start new charges.
-  app.post(["/api/payments/subscribe", "/api/payments/checkout"], (_req, res) => {
-    res.status(410).json({ message: "New purchases and subscriptions are unavailable." });
-  });
+  // Register payment routes
   registerPaymentRoutes(app);
+  await initializeAccessControl();
   app.post("/api/visitor-count", async (req: Request, res: Response) => {
     const visitorId = typeof req.body?.visitorId === "string" ? req.body.visitorId.trim() : "";
     if (!/^[a-f0-9-]{36}$/i.test(visitorId)) {
@@ -627,6 +625,10 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const [result] = await db.select({ total: count() }).from(appVisitors);
     res.json({ count: Number(result?.total || 0) });
   });
+  app.get("/api/access/status", async (req: Request, res: Response) => {
+    res.json(await getAccessStatus(req));
+  });
+  app.use("/api", enforcePaidAiAccess);
   
   // API health check endpoint
   app.get("/api/check-api", async (_req: Request, res: Response) => {
@@ -698,6 +700,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const optionalKeys: [string, string][] = [
       ["MATHPIX_APP_ID", "Mathpix OCR (optional)"],
       ["SENDGRID_API_KEY", "SendGrid email (optional)"],
+      ["STRIPE_SECRET_KEY", "Stripe payments (optional)"],
     ];
     for (const [key, label] of optionalKeys) {
       checks.push({
@@ -1826,6 +1829,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument,
         provider = "zhi1",
         requestedWordCount,
+        originalRequestedWordCount,
+        forceSingleSectionPreview,
+        previewNextAction,
       } = req.body;
       if (!instructions || typeof instructions !== "string") {
         return res.status(400).json({ message: "Writing instructions are required" });
@@ -1844,11 +1850,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
         extractRequestedWordCount,
       } = await import("./services/longFormWriting");
       const extractedCount = extractRequestedWordCount(instructions);
-      const wordCount = requestedWordCount === undefined || requestedWordCount === null || requestedWordCount === ""
-        ? extractedCount ?? 1000
-        : Number(requestedWordCount);
-      if (!isValidWritingWordCount(wordCount)) {
-        return res.status(400).json({ message: "Requested word count must be at least 50 and fit in the writing database." });
+      const wordCount = Number(requestedWordCount) || extractedCount || 1000;
+      if (!Number.isInteger(wordCount) || wordCount < 50 || wordCount > 100_000) {
+        return res.status(400).json({ message: "Requested word count must be between 50 and 100,000" });
       }
 
       const job = await createWritingJob({
@@ -1857,6 +1861,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument: sourceDocument?.trim() || undefined,
         provider,
         requestedWordCount: wordCount,
+        forceSingleSection: forceSingleSectionPreview === true,
       });
       void processWritingJob(job.id).catch(error => {
         console.error(`Writing job ${job.id} failed:`, error);
@@ -1865,9 +1870,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
         jobId: job.id,
         requestedWordCount: wordCount,
         usesLargeScaleCoherence: job.usesLargeScaleCoherence,
-        preview: false,
-        originalRequestedWordCount: wordCount,
-        previewNextAction: null,
+        preview: forceSingleSectionPreview === true,
+        originalRequestedWordCount: forceSingleSectionPreview === true
+          ? Number(originalRequestedWordCount) || wordCount
+          : wordCount,
+        previewNextAction: forceSingleSectionPreview === true ? previewNextAction : null,
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Unable to start writing job" });
@@ -1881,6 +1888,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument,
         provider = "zhi1",
         requestedWordCount,
+        originalRequestedWordCount,
+        forceSingleSectionPreview,
+        previewNextAction,
       } = req.body;
       if (!instructions || typeof instructions !== "string") {
         return res.status(400).json({ message: "Writing instructions are required" });
@@ -1896,11 +1906,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
         processIndependentWritingJob,
         independentRequestedWords,
       } = await import("./services/independentWriting");
-      const wordCount = requestedWordCount === undefined || requestedWordCount === null || requestedWordCount === ""
-        ? independentRequestedWords(instructions) ?? 1000
-        : Number(requestedWordCount);
-      if (!isValidWritingWordCount(wordCount)) {
-        return res.status(400).json({ message: "Requested word count must be at least 50 and fit in the writing database." });
+      const wordCount = Number(requestedWordCount) || independentRequestedWords(instructions) || 1000;
+      if (!Number.isInteger(wordCount) || wordCount < 50 || wordCount > 100_000) {
+        return res.status(400).json({ message: "Requested word count must be between 50 and 100,000" });
       }
       const job = await createIndependentWritingJob({
         userId: req.user?.id,
@@ -1908,6 +1916,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument: sourceDocument?.trim() || undefined,
         provider,
         requestedWordCount: wordCount,
+        forceSingleSection: forceSingleSectionPreview === true,
       });
       void processIndependentWritingJob(job.id).catch(error => {
         console.error(`Independent writing job ${job.id} failed:`, error);
@@ -1917,9 +1926,11 @@ export async function registerRoutes(app: Express): Promise<Express> {
         requestedWordCount: wordCount,
         usesLargeScaleCoherence: job.usesLargeScaleCoherence,
         engine: "independent",
-        preview: false,
-        originalRequestedWordCount: wordCount,
-        previewNextAction: null,
+        preview: forceSingleSectionPreview === true,
+        originalRequestedWordCount: forceSingleSectionPreview === true
+          ? Number(originalRequestedWordCount) || wordCount
+          : wordCount,
+        previewNextAction: forceSingleSectionPreview === true ? previewNextAction : null,
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Unable to start independent writing job" });
@@ -2952,28 +2963,6 @@ PROVIDE A FINAL VALIDATED SCORE OUT OF 100 IN THE FORMAT: SCORE: X/100
     } catch (error: any) {
       console.error('File upload error:', error);
       res.status(500).json({ message: error.message });
-    }
-  });
-
-  // Compact automatic GPTZero detection for text-entry fields.
-  app.get("/api/gptzero/status", (_req, res) => {
-    res.json({ available: Boolean(process.env.GPTZERO_API_KEY) });
-  });
-
-  app.post("/api/gptzero/preview", async (req, res) => {
-    const text = req.body?.text;
-    if (typeof text !== "string" || text.trim().length < 250 || text.length > 100_000) {
-      return res.status(400).json({ message: "Detection requires 250 to 100,000 characters of text." });
-    }
-    if (!process.env.GPTZERO_API_KEY) {
-      return res.status(503).json({ message: "GPTZero is not configured." });
-    }
-    try {
-      const result = await gptZeroService.analyzeText(text);
-      res.json({ aiScore: result.aiScore });
-    } catch (error) {
-      console.error("Automatic GPTZero detection failed:", error);
-      res.status(502).json({ message: "GPTZero detection is temporarily unavailable." });
     }
   });
 
@@ -5085,7 +5074,7 @@ Respond with ONLY the coherence type (e.g., "logical-consistency" or "scientific
       return res.status(400).json({ success: false, message: "Text is required" });
     }
     try {
-      const job = await createCoherenceAnalysisJob(text, coherenceType, req.user?.id);
+      const job = await createCoherenceAnalysisJob(text, coherenceType);
       res.status(202).json({ success: true, jobId: job.id, totalChunks: job.totalSections });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message || "Could not create coherence analysis job" });
@@ -5096,12 +5085,8 @@ Respond with ONLY the coherence type (e.g., "logical-consistency" or "scientific
     const jobId = Number(req.params.id);
     const job = await getCoherenceAnalysisJob(jobId);
     if (!job) return res.status(404).json({ success: false, message: "Coherence analysis job not found" });
-    if (job.userId && req.user?.id !== job.userId) {
-      return res.status(403).json({ success: false, message: "This analysis belongs to another visitor" });
-    }
-    const { userId: _ownerId, ...safeJob } = job;
     if (!["complete", "failed"].includes(job.status)) void runCoherenceAnalysisJob(jobId);
-    res.json({ success: true, ...safeJob });
+    res.json({ success: true, ...job });
   });
 
   app.post("/api/coherence-global-stream", async (req: Request, res: Response) => {

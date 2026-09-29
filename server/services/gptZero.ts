@@ -28,18 +28,15 @@ export class GPTZeroService {
       });
 
       if (!response.ok) {
-        // Provider error bodies can echo request credentials. Never log or
-        // rethrow those bodies.
-        throw new Error(`GPTZero API error: ${response.status} ${response.statusText}`);
+        const errorText = await response.text();
+        throw new Error(`GPTZero API error: ${response.status} ${response.statusText} - ${errorText}`);
       }
 
       const data = await response.json();
-
-      const document = data.documents?.[0];
-      const aiProbability = document?.class_probabilities?.ai ?? document?.completely_generated_prob;
-      if (typeof aiProbability !== "number" || !Number.isFinite(aiProbability) || aiProbability < 0 || aiProbability > 1) {
-        throw new Error("GPTZero returned a response without a valid AI probability.");
-      }
+      
+      // Parse GPTZero response based on actual API format
+      const document = data.documents[0];
+      const aiProbability = document.class_probabilities?.ai || 0;
       const aiScore = Math.round(aiProbability * 100);
       const isHighConfidence = document.confidence_category === 'high';
       

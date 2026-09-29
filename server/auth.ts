@@ -1,7 +1,8 @@
-import type { Express } from "express";
+import type { Express, Request } from "express";
 import session from "express-session";
 import passport from "passport";
-import { randomBytes, randomUUID } from "crypto";
+import { Strategy as GoogleStrategy, type Profile } from "passport-google-oauth20";
+import { randomBytes } from "crypto";
 import { storage } from "./storage";
 import type { User as SelectUser } from "@shared/schema";
 
@@ -9,6 +10,24 @@ declare global {
   namespace Express {
     interface User extends SelectUser {}
   }
+}
+
+function callbackUrl(req: Request) {
+  const forwardedProto = req.get("x-forwarded-proto")?.split(",")[0];
+  const protocol = forwardedProto || req.protocol;
+  return `${protocol}://${req.get("host")}/api/auth/google/callback`;
+}
+
+async function findOrCreateGoogleUser(profile: Profile) {
+  const username = `google_${profile.id}`;
+  const existingUser = await storage.getUserByUsername(username);
+  if (existingUser) return existingUser;
+
+  return storage.createUser({
+    username,
+    password: randomBytes(32).toString("hex"),
+    email: profile.emails?.[0]?.value || null,
+  });
 }
 
 async function findOrCreateDevelopmentUser() {
@@ -24,10 +43,12 @@ async function findOrCreateDevelopmentUser() {
 }
 
 export function setupAuth(app: Express) {
+  const clientID = process.env.GOOGLE_CLIENT_ID;
+  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const sessionSecret = process.env.SESSION_SECRET;
 
-  if (!sessionSecret) {
-    throw new Error("Sessions require SESSION_SECRET");
+  if (!clientID || !clientSecret || !sessionSecret) {
+    throw new Error("Google login requires GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and SESSION_SECRET");
   }
 
   app.set("trust proxy", 1);
@@ -59,6 +80,24 @@ export function setupAuth(app: Express) {
     });
   }
 
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID,
+        clientSecret,
+        callbackURL: "/api/auth/google/callback",
+        proxy: true,
+      },
+      async (_accessToken, _refreshToken, profile, done) => {
+        try {
+          done(null, await findOrCreateGoogleUser(profile));
+        } catch (error) {
+          done(error);
+        }
+      },
+    ),
+  );
+
   passport.serializeUser((user, done) => done(null, user.id));
   passport.deserializeUser(async (id: number, done) => {
     try {
@@ -68,39 +107,18 @@ export function setupAuth(app: Express) {
     }
   });
 
-  // Associate writing jobs with the current browser session so public access
-  // does not expose one session's saved work to another.
-  app.use(async (req, _res, next) => {
-    if (req.user || !/^\/api\/(?:writing(?:-v2)?\/jobs|coherence-analysis-jobs)(?:\/|$)/.test(req.path)) {
-      return next();
-    }
-    try {
-      const writingSession = req.session as session.Session & {
-        writingOwnerId?: number;
-        guestUserId?: number;
-      };
-      // Existing sessions retain access to work saved under the previous key.
-      const savedOwnerId = writingSession.writingOwnerId ?? writingSession.guestUserId;
-      let writer = savedOwnerId
-        ? await storage.getUser(savedOwnerId)
-        : undefined;
-      if (!writer) {
-        writer = await storage.createUser({
-          username: `writer_session_${randomUUID()}`,
-          password: randomBytes(32).toString("hex"),
-          email: null,
-        });
-      }
-      writingSession.writingOwnerId = writer.id;
-      req.user = writer;
-      next();
-    } catch (error) {
-      next(error);
-    }
+  app.get("/api/auth/google", (req, res, next) => {
+    passport.authenticate("google", {
+      scope: ["profile", "email"],
+      callbackURL: callbackUrl(req),
+    } as any)(req, res, next);
   });
 
-  app.get(["/api/auth/google", "/api/auth/google/callback"], (_req, res) => {
-    res.status(410).json({ message: "Google sign-in is no longer available." });
+  app.get("/api/auth/google/callback", (req, res, next) => {
+    passport.authenticate("google", {
+      failureRedirect: "/?auth=failed",
+      callbackURL: callbackUrl(req),
+    } as any)(req, res, () => res.redirect("/?auth=success"));
   });
 
   app.get("/api/auth/user", (req, res) => {

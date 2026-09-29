@@ -1,7 +1,6 @@
 import { asc, eq } from "drizzle-orm";
 import { db } from "../db";
 import { writingJobs, writingJobSections } from "@shared/schema";
-import { isValidWritingWordCount } from "@shared/writingWordCount";
 import { normalizeMathNotation, preserveRequestedMathNotation } from "@shared/mathNotation";
 import {
   AdaptiveWritingPacer,
@@ -36,7 +35,7 @@ export function independentRequestedWords(instructions: string): number | null {
   const match = instructions.match(/(?:exactly|approximately|about|around|roughly|at least|minimum of|word count(?:\s+of)?|length(?:\s+of)?)?\s*(\d[\d,]*)\s*[- ]?words?\b/i);
   if (!match) return null;
   const count = Number(match[1].replace(/,/g, ""));
-  return isValidWritingWordCount(count) ? count : null;
+  return Number.isInteger(count) && count >= 50 && count <= 100_000 ? count : null;
 }
 
 function independentWritingContext(instructions: string, sourceDocument?: string | null): string {
@@ -229,10 +228,10 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
       status: "paused",
       stopRequested: true,
       stoppedEarly: true,
-      error: "This older job has no saved owner session for database-backed writing.",
+      error: "Sign in with Google before continuing database-backed large-scale writing.",
       updatedAt: new Date(),
     }).where(eq(writingJobs.id, jobId));
-    throw new Error("Database-backed large-scale writing requires a saved job owner.");
+    throw new Error("Database-backed large-scale writing requires a signed-in user owner.");
   }
   const provider = job.provider as IndependentProvider;
   const chapters = chapterCount(job.instructions);

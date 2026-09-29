@@ -11,29 +11,66 @@ import WebSearchPage from "@/pages/WebSearchPage";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import NotFound from "@/pages/not-found";
 import DiagnosticPage from "@/pages/DiagnosticPage";
-import { BrainCircuit, Brain, Mail, Trash2, Activity, Users } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BrainCircuit, Brain, Mail, Trash2, Activity, LogIn, LogOut, Users } from "lucide-react";
+import { useEffect, useState, createContext, useContext } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { PENDING_OUTPUT_KEY } from "@/lib/outputRouting";
+import { CreditBalance } from "@/components/CreditBalance";
 import zhiLogo from "@assets/zhi_logoc_1788019705241.png";
 import { trackEvent } from "@/lib/analytics";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 
-function clearPage() {
-  const keysToRemove: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key?.startsWith("cap:")) keysToRemove.push(key);
+// Reset Context
+interface ResetContextType {
+  resetAll: () => void;
+}
+
+const ResetContext = createContext<ResetContextType | null>(null);
+
+export function useReset() {
+  const context = useContext(ResetContext);
+  if (!context) {
+    throw new Error("useReset must be used within a ResetProvider");
   }
-  keysToRemove.forEach(key => localStorage.removeItem(key));
-  localStorage.removeItem("activeCoherenceAnalysisJob");
-  localStorage.removeItem("textToDownload");
-  sessionStorage.removeItem(PENDING_OUTPUT_KEY);
-  trackEvent("app_reset_completed");
-  window.location.replace("/");
+  return context;
+}
+
+function ResetConfirmDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const { resetAll } = useReset();
+
+  const handleReset = () => {
+    resetAll();
+    trackEvent("app_reset_completed");
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Reset All Data</DialogTitle>
+          <DialogDescription>
+            This will clear all your current input and analysis results. You'll start completely fresh. This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex gap-3 justify-end">
+          <Button variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel-reset">
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={handleReset} data-testid="button-confirm-reset">
+            <Trash2 className="h-4 w-4 mr-2" />
+            Reset All
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 function Navigation() {
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
+  const { user, isLoading, logout, isLoggingOut } = useAuth();
 
   useEffect(() => {
     const storageKey = "neurotext-visitor-id";
@@ -55,6 +92,14 @@ function Navigation() {
       .then(data => setVisitorCount(Number(data.count)))
       .catch(() => setVisitorCount(null));
   }, []);
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("auth") !== "success") return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    url.searchParams.delete("auth");
+    window.history.replaceState({}, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [user]);
 
   return (
     <nav className="bg-primary text-primary-foreground py-4">
@@ -118,29 +163,76 @@ function Navigation() {
           </ul>
           
           <div className="flex items-center gap-3">
+            <div className="bg-primary-foreground/10 px-3 py-1.5 rounded-md">
+              <CreditBalance />
+            </div>
+            
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={clearPage}
+              onClick={() => setResetDialogOpen(true)}
               className="text-primary-foreground hover:bg-primary-foreground/10"
               data-testid="button-reset-all"
             >
               <Trash2 className="h-4 w-4 mr-1" />
-              Clear Page
+              Reset All
             </Button>
 
+            {!isLoading && (
+              user ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={logout}
+                  disabled={isLoggingOut}
+                  className="text-primary-foreground hover:bg-primary-foreground/10"
+                  data-testid="button-google-logout"
+                >
+                  <LogOut className="h-4 w-4 mr-1" />
+                  {isLoggingOut ? "Signing out..." : "Sign out"}
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  variant="secondary"
+                  size="sm"
+                  data-testid="button-google-login"
+                >
+                  <a
+                    href="/api/auth/google"
+                    onClick={() => trackEvent("google_login_started", { location: "header" })}
+                  >
+                    <LogIn className="h-4 w-4 mr-1" />
+                    Sign in with Google
+                  </a>
+                </Button>
+              )
+            )}
+            
           </div>
         </div>
       </div>
+        {!isLoading && user && (
+          <div className="container mx-auto mt-2 flex justify-end">
+            <div
+              className="rounded-md bg-primary-foreground/15 px-3 py-1 text-sm font-semibold"
+              data-testid="signed-in-user"
+            >
+              Signed in as {user.email || user.username}
+            </div>
+          </div>
+        )}
+      
+      <ResetConfirmDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen} />
     </nav>
   );
 }
 
-function Router() {
+function Router({ resetKey }: { resetKey: number }) {
   return (
     <>
       <Navigation />
-      <Switch>
+      <Switch key={resetKey}>
         <Route path="/" component={HomePage} />
         <Route path="/analytics" component={AnalyticsPage} />
         <Route path="/diagnostic" component={DiagnosticPage} />
@@ -154,12 +246,33 @@ function Router() {
 }
 
 function App() {
+  const [resetKey, setResetKey] = useState(0);
+
+  const resetAll = () => {
+    // Clear app-specific localStorage (preserve auth and theme)
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('cap:')) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+    
+    // Remount Router to reset all component state
+    setResetKey(prev => prev + 1);
+  };
+
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Router />
-      </TooltipProvider>
+      <AuthProvider>
+        <ResetContext.Provider value={{ resetAll }}>
+          <TooltipProvider>
+            <Toaster />
+            <Router resetKey={resetKey} />
+          </TooltipProvider>
+        </ResetContext.Provider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

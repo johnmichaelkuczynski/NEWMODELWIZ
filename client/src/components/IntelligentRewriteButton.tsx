@@ -1,4 +1,4 @@
-import React, { useId, useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,7 +31,6 @@ const IntelligentRewriteButton: React.FC<IntelligentRewriteButtonProps> = ({
   onSendToIntelligence,
   onSendToChat
 }) => {
-  const optionsId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [customInstructions, setCustomInstructions] = useState('');
@@ -47,8 +46,6 @@ const IntelligentRewriteButton: React.FC<IntelligentRewriteButtonProps> = ({
   const handleRewrite = async () => {
     if (!originalText.trim()) return;
 
-    setIsOpen(true);
-    setRewriteResult(null);
     setIsLoading(true);
     setStreamingText("");
     try {
@@ -111,28 +108,23 @@ const IntelligentRewriteButton: React.FC<IntelligentRewriteButtonProps> = ({
 
   const handleClose = () => {
     setIsOpen(false);
+    setRewriteResult(null);
     setStreamingText("");
+    setCustomInstructions('');
+    setUseExternalKnowledge(false);
   };
 
   return (
     <>
-      <div className={className}>
-        <Button size="sm" variant="outline" className="flex items-center gap-2" onClick={handleRewrite} disabled={isLoading || !originalText.trim()}>
-          {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-          {isLoading ? "Rewriting..." : "Intelligent Rewrite"}
-        </Button>
-        <details className="mt-2 text-sm">
-          <summary className="cursor-pointer">Optional rewrite settings</summary>
-          <div className="mt-2 space-y-2">
-            <div className="flex items-center gap-2">
-              <Switch id={`${optionsId}-knowledge`} checked={useExternalKnowledge} onCheckedChange={setUseExternalKnowledge} disabled={isLoading} data-testid="toggle-external-knowledge" />
-              <Label htmlFor={`${optionsId}-knowledge`}>Use ZHI database</Label>
-            </div>
-            <Label htmlFor={`${optionsId}-instructions`} className="block">Custom instructions</Label>
-            <Textarea id={`${optionsId}-instructions`} placeholder="Add optional rewrite instructions" value={customInstructions} onChange={(event) => setCustomInstructions(event.target.value)} rows={3} disabled={isLoading} />
-          </div>
-        </details>
-      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        className={`flex items-center gap-2 ${className}`}
+        onClick={() => setIsOpen(true)}
+      >
+        <Sparkles className="h-4 w-4" />
+        Intelligent Rewrite
+      </Button>
 
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -141,10 +133,44 @@ const IntelligentRewriteButton: React.FC<IntelligentRewriteButtonProps> = ({
               <Sparkles className="h-5 w-5 text-blue-600" />
               Intelligent Rewrite
             </DialogTitle>
-            <DialogDescription>Rewrite progress and results.</DialogDescription>
+            <DialogDescription>
+              Maximize intelligence scores using your exact protocol. Enter custom instructions (optional) like "quote Carl Hempel" or "add statistical data".
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
+            {/* External Knowledge Toggle */}
+            <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex-1">
+                <Label htmlFor="external-knowledge" className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                  USE ZHI DATABASE (AnalyticPhilosophy.net)
+                </Label>
+                <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                  When enabled, MAXINTEL fetches research passages and citations from the Zhi knowledge base
+                </p>
+              </div>
+              <Switch
+                id="external-knowledge"
+                checked={useExternalKnowledge}
+                onCheckedChange={setUseExternalKnowledge}
+                disabled={isLoading}
+                data-testid="toggle-external-knowledge"
+              />
+            </div>
+
+            {/* Custom Instructions */}
+            <div className="space-y-2">
+              <Label htmlFor="instructions">Custom Instructions (Optional)</Label>
+              <Textarea
+                id="instructions"
+                placeholder="e.g., Quote Carl Hempel, add statistical data, reference specific studies..."
+                value={customInstructions}
+                onChange={(e) => setCustomInstructions(e.target.value)}
+                rows={3}
+                disabled={isLoading}
+              />
+            </div>
+
             {/* Original Analysis Score */}
             {originalAnalysis && (
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -153,6 +179,27 @@ const IntelligentRewriteButton: React.FC<IntelligentRewriteButtonProps> = ({
                   {originalAnalysis.overallScore}/100
                 </div>
               </div>
+            )}
+
+            {/* Rewrite Button */}
+            {!rewriteResult && (
+              <Button
+                onClick={handleRewrite}
+                disabled={isLoading || !originalText.trim()}
+                className="w-full"
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Rewriting...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Maximize Intelligence
+                  </>
+                )}
+              </Button>
             )}
 
             {/* Results */}
@@ -192,7 +239,11 @@ const IntelligentRewriteButton: React.FC<IntelligentRewriteButtonProps> = ({
 
                 <div className="flex gap-2">
                   <Button
-                    onClick={handleRewrite}
+                    onClick={() => {
+                      setRewriteResult(null);
+                      setCustomInstructions('');
+                      setUseExternalKnowledge(false);
+                    }}
                     variant="outline"
                     className="flex-1"
                   >

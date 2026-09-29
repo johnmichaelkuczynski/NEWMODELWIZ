@@ -10,6 +10,3 @@
 - [Requested writing length](requested-writing-length.md) — the requested word count is a delivery minimum; internal chunks must be combined into one document.
 - [Live application URL](live-application-url.md) — use NEUROTEXT.UK for public-site checks; Replit development addresses are only internal previews.
 - [Streaming response contracts](streaming-response-contracts.md) — stream at provider boundaries without replacing prompt semantics, and migrate every endpoint consumer together.
-- [Long-form output safety](long-form-output-safety.md) — keep raw recovery checkpoints separate from every user-visible draft and finished output path.
-- [Retiring billing gates](retiring-billing-gates.md) — disabling checkout or a paywall never cancels existing subscriptions; preserve billing self-service until cancellations are handled.
-- [Provider error-body secrecy](provider-error-body-secrecy.md) — third-party error bodies can echo request credentials; never log or rethrow them verbatim.

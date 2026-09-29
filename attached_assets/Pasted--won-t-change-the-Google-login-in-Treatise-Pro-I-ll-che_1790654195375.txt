@@ -1,1 +1,0 @@
- won’t change the Google login in Treatise Pro. I’ll check whether this workspace has access to ModelWizXYZ’s source so I can remove it there.
