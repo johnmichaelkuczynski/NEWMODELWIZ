@@ -15,6 +15,7 @@ type WritingProvider = "zhi1" | "zhi2" | "zhi3" | "zhi4" | "zhi5";
 const UTILITARIAN_STYLE = `Use a succinct, utilitarian style to the fullest extent permitted by the user's instructions and subject matter. Begin with the first substantive claim, definition, event, or instruction. Never open with ceremonial framing, historical throat-clearing, or empty verbal gestures such as "In the realm of," "Throughout history," "It is important to note that," "It is worth noting that," "In today's world," "When it comes to," or claims that a topic "has long been a subject of inquiry." Prefer direct constructions and delete sentences that merely announce, praise, contextualize, or summarize the discussion without advancing it.`;
 const MATH_NOTATION_STYLE = `Preserve mathematical notation exactly. Do not flatten indexed variables such as E_1 into E1 or replace symbols with names. Use conventional LaTeX notation internally for Greek letters, subscripts, superscripts, relations, and operators; the final formatter will render it as proper mathematical typography. LaTeX math is permitted and is not Markdown.`;
 const ILLUSTRATIVE_STYLE = `Illustrate every substantive statement whose meaning is not genuinely self-evident. Place a concrete example, counterexample, named case, or brief application immediately after or within the same paragraph as the claim it explains. The example must instantiate the exact claim rather than merely restate it. Never leave vague umbrella phrases such as "modes of expression," "various contexts," "different forms," or "multiple situations" unexplained; name representative instances and show how the claim applies to them. Do not add examples to headings, elementary connective statements, or conclusions that have already been demonstrated.`;
+const EVIDENCE_DISCIPLINE = `Citations and numerical claims in an uploaded source are the author's claims, not independently verified findings. Never invent studies, rates, or citations. Distinguish predictions of a proposed model from observed evidence. Do not claim that no other treatment works merely because alternatives are not documented in the source. Qualify or omit unverified quantitative claims rather than presenting them as established scientific results. Where requested, address contrary evidence, competing treatments, and the model's possible failures as substantive arguments.`;
 const PHILOSOPHICAL_STYLE = `For philosophical or theoretical prose, always prefer a stark, precise, potentially refutable proposition to language that is vague, academic, flowery, or insulated from criticism. When asked to evaluate a claim, state the writer's own verdict in the first sentence; do not begin with the claim's origin, importance, or surrounding debate. Define disputed terms through explicit contrasts, necessary or sufficient conditions where appropriate, and ordinary cases. Reconstruct the opponent's actual inference before criticizing it; identify the exact premise, ambiguity, contradiction, or invalid step rather than gesturing at complexity. Use thought experiments, analogies, counterexamples, and reductio arguments when they expose logical structure. Answer the strongest natural objection directly. Do not organize the essay as alternating neutral summaries of what supporters and critics say. Do not use prestige phrases such as "offers a nuanced lens," "underscores the complex interplay," "invites us to reflect," "can be seen as," "it can be argued," or "arguably" in place of a claim. Do not end with "both sides," "the tension between these views," "highlights the complexity," "whether this is true may depend," or another refusal to decide. The conclusion must state the verdict and its decisive reason. If uncertainty is warranted, state exactly what evidence or inference is missing and what would settle it. Clarity takes priority even when it makes the claim easier to refute.`;
 const ASSIGNMENT_FIDELITY = `Execute the work the user requested. Treat the requested thesis, premises, definitions, stance, narrative facts, mathematical assumptions, and structural commitments as assignment constraints rather than invitations to substitute your own preferred argument. Criticize, reject, modify, or reverse them only when the user explicitly assigns that operation in the current section. Distinguish an opponent's assigned objection from the work's controlling position, and return to the controlling position when the requested structure requires a rebuttal.`;
 const MEGAGLOBAL_COHERENCE = `Treat the work as one continuously developing argument, never as a collection of independently adequate essays. The global skeleton and commitment ledger are authoritative. Every section has one unique argumentative function: inherit established premises, perform only its assigned new work, discharge specified obligations, and create the exact handoff needed by the next section. Except in the opening section, do not reintroduce the subject, restate the thesis as if newly proposed, recap the whole work, or supply a standalone introduction. Except in the final section, do not give a global conclusion. Never repeat an established claim merely to fill space; refer to it briefly and derive a new consequence. Preserve fixed definitions, entities, numerical facts, ASSERTS, REJECTS, and ASSUMES commitments. If a directive conflicts with an established commitment, flag the conflict rather than silently changing the work's position.`;
@@ -101,6 +102,40 @@ export function formatIntoParagraphs(text: string, targetParagraphWords = 130): 
   }
 
   return formatted.join("\n\n");
+}
+
+const DELIVERED_PROSE_FORMAT = "Write finished, unnumbered prose paragraphs separated by one blank line. Never print paragraph numbers, allocation slots, drafting commands, handoff instructions, or the planning contract. Include only the section or chapter heading required by the user's actual assignment.";
+
+export function hasPlanningLeak(text: string, sectionNumber?: number, chapterNumber?: number | null): boolean {
+  if (/\b(?:paragraph\s+\d+|derive\s+step\s+\d+)\b/i.test(text)) return true;
+  if (/\bsection\s+\d+\s+must\s+now\b/i.test(text)) return true;
+  if (/(?:^|\n)\s*(?:PARAGRAPH-BY-PARAGRAPH ALLOCATION|REQUIRED NEW ARGUMENT STEPS|ENDING HANDOFF|BANNED MINI-ESSAY MOVES)\s*:/im.test(text)) return true;
+  if (sectionNumber && sectionHeadings(text).some(number => number !== sectionNumber)) return true;
+  if (chapterNumber && chapterHeadings(text).some(number => number !== chapterNumber)) return true;
+  return false;
+}
+
+export function formatDeliveredProse(text: string, hideInternalSections: boolean): string {
+  const visible = hideInternalSections
+    ? text.replace(/(^|\n)\s*section\s+\d{1,3}\s*:[^\n]*(?=\n|$)/gi, "$1")
+    : text;
+  return formatIntoParagraphs(visible);
+}
+
+async function repairPlanningLeak(
+  provider: WritingProvider,
+  content: string,
+  directive: string,
+  sectionNumber: number,
+  chapterNumber: number | null,
+): Promise<string> {
+  const heading = chapterNumber ? `Chapter ${chapterNumber}:` : `Section ${sectionNumber}:`;
+  return removeMarkdown(await callProvider(
+    provider,
+    `You are a manuscript editor. Convert leaked planning text into finished prose without losing substantive argument. ${DELIVERED_PROSE_FORMAT} ${EVIDENCE_DISCIPLINE}`,
+    `Rewrite this entire section as publishable prose. Keep exactly one "${heading}" heading and no heading for any other section or chapter. Remove "Paragraph N" labels, "Derive Step" labels, and instructions such as "Section 2 must now"; turn any substantive content under those labels into genuine arguments in unnumbered paragraphs. Do not add padding, unsupported empirical figures, invented citations, or claims that the source document alone cannot establish. Preserve the user's requested thesis and distinct ideas, including contrary evidence and limitations where requested.\n\nUSER DIRECTIVE:\n${directive}\n\nDRAFT TO REWRITE:\n${content}`,
+    Math.min(6000, Math.ceil((countWords(content) + 350) * 1.8)),
+  ));
 }
 
 function trimToNaturalWordCount(text: string, minimumWords: number, maximumWords: number): string {
@@ -210,6 +245,15 @@ export function detectExplicitChapterCount(instructions: string): number | null 
   const maximumNumber = chapterNumbers.length ? Math.max(...chapterNumbers) : 0;
   const declaredCount = declared ? Number(declared[1]) : 0;
   return Math.max(maximumNumber, declaredCount) || null;
+}
+
+export function detectExplicitSectionCount(instructions: string): number | null {
+  const directive = isolateWritingDirective(instructions);
+  const declared = directive.match(/\b(\d{1,3})\s*[- ]section\b/i);
+  const numbers = [...directive.matchAll(/\bsection\s+(\d{1,3})\s*:/gi)]
+    .map(match => Number(match[1]))
+    .filter(number => number > 0 && number <= 100);
+  return Math.max(numbers.length ? Math.max(...numbers) : 0, declared ? Number(declared[1]) : 0) || null;
 }
 
 export function extractChapterDirective(instructions: string, chapterNumber: number): string {
@@ -372,8 +416,8 @@ async function fillToTarget(
     let streamedContinuation = "";
     const continuation = await callProvider(
       provider,
-      `Continue the same assigned section in plain text only. Never use Markdown symbols. Return only new continuation prose. Do not restart the section, introduce its subject again, restate its controlling thesis, repeat an example, summarize work already performed, announce a later section, or write a second local conclusion. The first sentence must attach directly to the current argument position. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
-      `Add approximately ${continuationWords} words to the SAME section. ${deficit <= 500 ? "Complete only this section's still-unfinished obligation and handoff." : "Advance the next still-unfinished obligation without concluding."} Before writing, silently compare the binding contract with CURRENT SECTION ALREADY WRITTEN and identify the first unfinished item in PARAGRAPH-BY-PARAGRAPH ALLOCATION. Continue from that item in order. Write no unallocated paragraph. Each paragraph must perform one reserved operation and establish a result not established by any earlier paragraph. Do not repeat any claim, distinction, example, objection, answer, or conclusion already present. Never add a second example merely to illustrate a point already illustrated. If all allocated work is complete, return no text rather than padding.
+      `Continue the same assigned section in plain text only. Never use Markdown symbols. Return only new continuation prose. ${DELIVERED_PROSE_FORMAT} ${EVIDENCE_DISCIPLINE} Do not restart the section, introduce its subject again, restate its controlling thesis, repeat an example, summarize work already performed, announce a later section, or write a second local conclusion. The first sentence must attach directly to the current argument position. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
+      `Add approximately ${continuationWords} words to the SAME section. ${deficit <= 500 ? "Complete only this section's still-unfinished obligation and handoff." : "Advance the next still-unfinished obligation without concluding."} Silently use the planning allocation to identify the first unfinished argument. Do not reproduce its numbered slots, labels, imperatives, or handoff text. Continue from that item in order. Write no unallocated paragraph. Each paragraph must perform one reserved operation and establish a result not established by any earlier paragraph. Do not repeat any claim, distinction, example, objection, answer, or conclusion already present. Never add a second example merely to illustrate a point already illustrated. If all allocated work is complete, return no text rather than padding.
 
 BINDING GLOBAL AND SECTION CONTEXT:
 ${context}
@@ -568,7 +612,7 @@ async function auditSection(
   const standard = extractGlobalStandard(instructions);
   return removeMarkdown(await callProvider(
     provider,
-    `Act as a strict read-only compliance auditor. Never rewrite the work. Check explicit requirements, mathematical fidelity, concrete explanatory coverage, and the mandatory standards for utilitarian and philosophical prose. Respond with PASS if every requirement assigned to this section is satisfied. Otherwise respond with FAIL followed by a concise list of concrete omissions or violations. The user's original assignment is authoritative; prior audit findings may never override it. Plain text only. ${MATH_NOTATION_STYLE}`,
+    `Act as a strict read-only compliance auditor. Never rewrite the work. Check explicit requirements, mathematical fidelity, concrete explanatory coverage, and the mandatory standards for utilitarian and philosophical prose. Respond with PASS if every requirement assigned to this section is satisfied. Otherwise respond with FAIL followed by a concise list of concrete omissions or violations. The user's original assignment is authoritative; prior audit findings may never override it. Plain text only. ${EVIDENCE_DISCIPLINE} ${MATH_NOTATION_STYLE}`,
     `Audit ${chapterNumber ? `Chapter ${chapterNumber}` : "the following section"}. Whole-work title, length, chapter-count, and completion requirements are validated separately and must not be evaluated here. Any requirement that the final theorem quote or link to the opening sentence of the complete work is also validated and inserted during final assembly, so do not fail this section for the absence or wording of that cross-document callback. Fail for another substantive explicit-constraint violation. Fail when a non-self-evident substantive claim lacks a nearby concrete example, case, counterexample, or application, or when a vague category phrase is used without naming representative instances. Do not demand examples for headings, elementary connective statements, or conclusions already demonstrated. For philosophical or theoretical prose, fail unnecessary hedging, undefined abstractions, prestige language substituted for reasoning, false balance, or criticism that does not identify the opponent's exact error. If the directive asks for an evaluation, fail unless the writer's verdict appears in the first sentence and the conclusion gives the verdict's decisive reason. Fail an essay that merely alternates summaries of proponents and critics. Do not fail uncertainty that is itself precisely stated and justified. Fail utilitarian style only when the opening delays substance through ceremonial framing or the text contains one of the empty verbal gestures explicitly named below; do not invent additional banned phrases or reject useful explanatory language merely because it could be shortened. Do not accept promises that an assigned task will be completed later. ${UTILITARIAN_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}${standard ? ` Apply this additional standard: ${standard}` : ""}\n\nASSIGNED DIRECTIVE:\n${assignedDirective}\n\nSECTION:\n${content}`,
     700,
   ));
@@ -648,7 +692,7 @@ async function polishSection(
 async function createBlueprint(provider: WritingProvider, instructions: string, sectionCount: number): Promise<string> {
   return removeMarkdown(await callProvider(
     provider,
-    `You design globally coherent long-form works. Plain text only. No Markdown symbols. ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
+    `You design globally coherent long-form works. Plain text only. No Markdown symbols. ${EVIDENCE_DISCIPLINE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
     `Create the immutable global skeleton for one continuously developing work, not ${sectionCount} separate essays. Use these exact labeled fields in plain text:
 
 CONTROLLING THESIS:
@@ -827,8 +871,8 @@ async function repairCrossSectionRedundancy(
 ): Promise<string> {
   return callProvider(
     provider,
-    `Revise one section of a globally coherent long work. Return only the complete replacement section in plain text. Follow the coordinator's paragraph allocation literally. Never create extra paragraphs to reach a word count. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE}`,
-    `Rebuild Section ${sectionIndex + 1} around PARAGRAPH-BY-PARAGRAPH ALLOCATION. Use at most one paragraph for each numbered allocation and preserve their order. Every paragraph must take a prior result as input and produce a distinct new result. Delete parallel examples, repeated definitions, repeated demonstrations, and repeated consequences. A claim may be the main point of only one paragraph. An example may appear only in its allocated paragraph and must support a new inferential step. Preserve the section's required heading and all genuinely new material. Aim for approximately ${targetWords} words only if the allocated work supports that length; otherwise return a shorter novel section. Do not alter the controlling thesis or any fixed commitment.
+    `Revise one section of a globally coherent long work. Return only the complete replacement section in plain text. Silently use the coordinator's paragraph allocation for reasoning, never copy its numbering or drafting language into the manuscript. ${DELIVERED_PROSE_FORMAT} Never create extra paragraphs to reach a word count. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE}`,
+    `Rebuild Section ${sectionIndex + 1} using the allocation as private guidance. Use at most one unnumbered prose paragraph for each allocated argument and preserve their logical order. Every paragraph must take a prior result as input and produce a distinct new result. Delete parallel examples, repeated definitions, repeated demonstrations, and repeated consequences. A claim may be the main point of only one paragraph. An example may appear only in its allocated paragraph and must support a new inferential step. Preserve the section's required heading and all genuinely new material. Aim for approximately ${targetWords} words only if the allocated work supports that length; otherwise return a shorter novel section. Do not alter the controlling thesis or any fixed commitment.
 
 GLOBAL SKELETON:
 ${blueprint}
@@ -887,6 +931,7 @@ export async function createWritingJob(input: {
   const explicitChapterCount = input.forceSingleSection ? null : detectExplicitChapterCount(input.instructions);
   const usesLargeScaleCoherence = isMegaglobalRequest(input.requestedWordCount, explicitChapterCount);
   const totalSections = explicitChapterCount
+    || (input.forceSingleSection ? null : detectExplicitSectionCount(input.instructions))
     || (input.requestedWordCount > 2000 ? Math.ceil(input.requestedWordCount / 1200) : 1);
   const [job] = await db.insert(writingJobs).values({
     userId: input.userId,
@@ -962,6 +1007,9 @@ export async function processWritingJob(jobId: number): Promise<void> {
     .where(eq(writingJobSections.jobId, jobId))
     .orderBy(asc(writingJobSections.sectionIndex));
   const isResume = job.stoppedEarly || existingSections.length > 0;
+  const explicitChapterCount = detectExplicitChapterCount(job.instructions);
+  const explicitSectionCount = detectExplicitSectionCount(job.instructions);
+  const hideInternalSections = !explicitChapterCount && !explicitSectionCount;
 
   try {
     const savedSections = isResume ? existingSections : [];
@@ -986,7 +1034,6 @@ export async function processWritingJob(jobId: number): Promise<void> {
     }
     await db.update(writingJobs).set({ blueprint, coherenceLedger: ledger, status: "writing", stopRequested: false, updatedAt: new Date() }).where(eq(writingJobs.id, jobId));
 
-    const explicitChapterCount = detectExplicitChapterCount(job.instructions);
     const hardMinimum = getWordCountRange(job.instructions, job.requestedWordCount).minimum === job.requestedWordCount;
     const sectionTargets = calculateSectionTargets(
       job.instructions,
@@ -996,7 +1043,9 @@ export async function processWritingJob(jobId: number): Promise<void> {
     );
 
     for (let index = completedCount; index < job.totalSections; index++) {
-      const targetWords = sectionTargets[index];
+      // Internal section headings are removed from the delivered manuscript.
+      // Reserve extra prose so their removal cannot push it below the requested minimum.
+      const targetWords = sectionTargets[index] + (hideInternalSections ? 4 : 0);
       const chapterNumber = explicitChapterCount ? index + 1 : null;
       const assignedDirective = chapterNumber
         ? writingContext(extractChapterDirective(job.instructions, chapterNumber) || job.instructions, job.sourceDocument)
@@ -1046,8 +1095,11 @@ export async function processWritingJob(jobId: number): Promise<void> {
              continuitySummary: null,
            });
          }
-         const liveOutput = preserveRequestedMathNotation(
-           normalizeMathNotation(removeMarkdown([...completedOutputParts, currentSection].filter(Boolean).join("\n\n"))),
+          const safeVisibleParts = hasPlanningLeak(currentSection, index + 1, chapterNumber)
+            ? completedOutputParts
+            : [...completedOutputParts, currentSection];
+          const liveOutput = preserveRequestedMathNotation(
+            normalizeMathNotation(formatDeliveredProse(removeMarkdown(safeVisibleParts.filter(Boolean).join("\n\n")), hideInternalSections)),
            job.instructions,
          );
          await db.update(writingJobs).set({
@@ -1062,12 +1114,13 @@ export async function processWritingJob(jobId: number): Promise<void> {
         const checkpoint = createThrottledCheckpoint(persistSectionProgress);
         const publishLiveProgress = async (currentSection: string): Promise<boolean> => {
           inProgressContent = currentSection;
+          // Persist even rejected drafts for resume, but never display their planning text.
           return checkpoint.update(currentSection);
         };
        const draft = partial?.content || await callProvider(
         provider,
-        `Write polished prose in plain text only. Use readable paragraphs separated by blank lines. Do not use Markdown: no hashes, asterisks, code fences, blockquotes, link syntax, or bullet markers. LaTeX underscores inside mathematical expressions are allowed. Return only the requested prose section. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
-        `${structuralInstruction} Write the first approximately ${initialChunkWords} words of this ${targetWords}-word section.${streamsInChunks && initialChunkWords < targetWords ? " Stop only after completing a numbered paragraph-allocation item; later calls will continue with the next unfinished item." : index === job.totalSections - 1 ? " Complete the whole work's assigned ending naturally." : " End with the assigned forward handoff, not a global conclusion."} Follow PARAGRAPH-BY-PARAGRAPH ALLOCATION literally and in order. Use at most one paragraph for each numbered allocation. Do not invent unallocated paragraphs to reach the target. If the unique allocated work is exhausted, stop short rather than pad. Use readable paragraphs of roughly 80 to 160 words each, separated by blank lines. Execute every requirement in the assigned directive. Every paragraph must add a new inference, distinction, example, objection, answer, implication, or connective step. No claim may be the main point of two paragraphs, and no parallel example may re-demonstrate an established point. Do not add conversational summaries, promises about later content, or meta-commentary.${index > 0 ? " Do not introduce the paper or explain its overall thesis again." : ""} Do not preview, summarize, name, or perform material assigned to another chapter.${theoremInstruction}${globalStandard ? ` Apply this global standard: ${globalStandard}` : ""}
+        `Write polished prose in plain text only. ${DELIVERED_PROSE_FORMAT} ${EVIDENCE_DISCIPLINE} Do not use Markdown: no hashes, asterisks, code fences, blockquotes, link syntax, or bullet markers. LaTeX underscores inside mathematical expressions are allowed. Return only the requested prose section. ${ASSIGNMENT_FIDELITY} ${MEGAGLOBAL_COHERENCE} ${UTILITARIAN_STYLE} ${MATH_NOTATION_STYLE} ${ILLUSTRATIVE_STYLE} ${PHILOSOPHICAL_STYLE}`,
+        `${structuralInstruction} Write the first approximately ${initialChunkWords} words of this ${targetWords}-word section.${streamsInChunks && initialChunkWords < targetWords ? " Stop after finishing a complete argument; later calls will continue with the next unfinished one." : index === job.totalSections - 1 ? " Complete the whole work's assigned ending naturally." : " End at a natural transition, not a global conclusion."} Silently use the paragraph allocation for reasoning, but never print its numbering, labels, instructions, or future-section plans. Use at most one unnumbered paragraph for each allocated argument. Do not invent unallocated paragraphs to reach the target. If the unique allocated work is exhausted, stop short rather than pad. Use readable paragraphs of roughly 80 to 160 words each, separated by blank lines. Execute every requirement in the assigned directive. Every paragraph must add a new inference, distinction, example, objection, answer, implication, or connective step. No claim may be the main point of two paragraphs, and no parallel example may re-demonstrate an established point. Do not add conversational summaries, promises about later content, or meta-commentary.${index > 0 ? " Do not introduce the paper or explain its overall thesis again." : ""} Do not preview, summarize, name, or perform material assigned to another chapter.${theoremInstruction}${globalStandard ? ` Apply this global standard: ${globalStandard}` : ""}
 
 IMMUTABLE GLOBAL SKELETON:
 ${blueprint}
@@ -1105,6 +1158,20 @@ ${executionContract}`,
           countWords(completedOutputParts.join("\n\n")),
       );
        await checkpoint.flush();
+      for (let formattingAttempt = 0; formattingAttempt < 2 && hasPlanningLeak(content, index + 1, chapterNumber); formattingAttempt++) {
+        content = await repairPlanningLeak(provider, content, assignedDirective, index + 1, chapterNumber);
+        if (countWords(content) < sectionMinimum) {
+          content = await fillToTarget(
+            provider, content, targetWords, fillContext, hardMinimum,
+            publishLiveProgress, pacing, job.usesLargeScaleCoherence,
+            countWords(completedOutputParts.join("\n\n")),
+          );
+          await checkpoint.flush();
+        }
+      }
+      if (hasPlanningLeak(content, index + 1, chapterNumber)) {
+        throw new Error(`Section ${index + 1} still contains planning text or a later heading; the draft was saved for recovery.`);
+      }
       if (chapterNumber) {
         content = enforceAssignedPresentation(content, index, chapterNumber, workTitle);
         content = removeUnassignedChapterReferences(content, chapterNumber, assignedDirective);
@@ -1186,7 +1253,11 @@ ${executionContract}`,
         }
       }
       content = preserveRequestedMathNotation(normalizeMathNotation(content), assignedDirective);
+      if (hasPlanningLeak(content, index + 1, chapterNumber)) {
+        throw new Error(`Section ${index + 1} still contains internal planning labels or an unassigned heading; the recoverable draft was saved, not delivered as finished prose.`);
+      }
       content = enforceAssignedPresentation(content, index, chapterNumber, workTitle);
+      content = formatIntoParagraphs(content);
       validateAssignedPresentation(content, index, chapterNumber);
       content = removeMarkdown(content);
       if (containsEmptyVerbalGestures(content)) {
@@ -1409,10 +1480,13 @@ ${executionContract}`,
         section.sectionIndex,
         explicitChapterCount ? section.sectionIndex + 1 : null,
       );
+      if (hasPlanningLeak(section.content, section.sectionIndex + 1, explicitChapterCount ? section.sectionIndex + 1 : null)) {
+        throw new Error(`Section ${section.sectionIndex + 1} contains drafting labels or an unassigned heading.`);
+      }
     }
 
     const output = preserveRequestedMathNotation(
-      normalizeMathNotation(removeMarkdown(sections.map(section => section.content).join("\n\n"))),
+      normalizeMathNotation(formatDeliveredProse(removeMarkdown(sections.map(section => section.content).join("\n\n")), hideInternalSections)),
       job.instructions,
     );
     await db.update(writingJobs).set({
@@ -1447,14 +1521,21 @@ ${executionContract}`,
     }
     const actualWords = countWords(output);
     const { minimum: minimumWords, maximum: maximumWords } = getWordCountRange(job.instructions, job.requestedWordCount);
-    if (actualWords < minimumWords || actualWords > maximumWords) {
-      console.warn(`Final document delivered outside the requested word-count range: ${actualWords} words is outside ${minimumWords}-${maximumWords}.`);
+    if (actualWords < minimumWords) {
+      throw new Error(`The manuscript has ${actualWords} words after formatting; ${minimumWords} are required. The draft was saved, not marked complete.`);
+    }
+    if (actualWords > maximumWords) {
+      console.warn(`Final document exceeds the preferred maximum: ${actualWords} words; requested range is ${minimumWords}-${maximumWords}.`);
     }
     if (explicitChapterCount) {
       const headings = chapterHeadings(output);
       const expected = Array.from({ length: explicitChapterCount }, (_, index) => index + 1);
       if (headings.length !== expected.length || headings.some((heading, index) => heading !== expected[index])) {
         throw new Error(`Final chapter structure failed: expected ${expected.join(", ")}; received ${headings.join(", ") || "none"}.`);
+      }
+    } else if (hideInternalSections) {
+      if (sectionHeadings(output).length) {
+        throw new Error("Internal section headings leaked into the finished manuscript.");
       }
     } else {
       const headings = sectionHeadings(output);
@@ -1489,11 +1570,14 @@ ${executionContract}`,
       deliverableParts.push(inProgressContent);
     }
     if (deliverableParts.length > 0) {
-      const recoverableOutput = preserveRequestedMathNotation(
-        normalizeMathNotation(removeMarkdown(deliverableParts.join("\n\n"))),
+      const stoppedByUser = error.message === "WRITING_STOPPED_BY_USER";
+      const unsafeDraft = !stoppedByUser || deliverableParts.some((part, index) =>
+        hasPlanningLeak(part, index + 1, explicitChapterCount ? index + 1 : null),
+      );
+      const recoverableOutput = unsafeDraft ? null : preserveRequestedMathNotation(
+        normalizeMathNotation(formatDeliveredProse(removeMarkdown(deliverableParts.join("\n\n")), hideInternalSections)),
         job.instructions,
       );
-      const stoppedByUser = error.message === "WRITING_STOPPED_BY_USER";
       console.error(`Writing job ${jobId} encountered an error after producing text; preserving the recoverable draft without marking it complete:`, error);
       const [freshJobState] = await db.select({ completedSections: writingJobs.completedSections })
         .from(writingJobs).where(eq(writingJobs.id, jobId));

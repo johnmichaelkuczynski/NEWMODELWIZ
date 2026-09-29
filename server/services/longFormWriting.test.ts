@@ -133,3 +133,61 @@ test("an exception after a section draft exists delivers the in-progress text", 
   assert.equal(completed.error, null);
   assert.equal(completed.completedSections, 1);
 });
+
+test("planning labels and future-section headings are rewritten before delivery", async () => {
+  const job = await createWritingJob({
+    instructions: "Write at least 700 words as a single unnumbered essay.",
+    provider: "zhi1",
+    requestedWordCount: 700,
+  });
+  createdJobIds.push(job.id);
+  let repairCount = 0;
+
+  globalThis.fetch = async (_input, init) => {
+    const body = JSON.parse(String(init?.body));
+    const system = String(body.messages[0].content);
+    const prompt = String(body.messages[1].content);
+    if (system.startsWith("Act as a strict compliance auditor")) return providerResponse("PASS");
+    if (system.includes("manuscript editor")) {
+      repairCount++;
+      return providerResponse(`Section 1:\n\n${prose("Finished argument", 730)}`);
+    }
+    if (prompt.includes("Write the first approximately")) {
+      return providerResponse(
+        "Section 1:\n\nParagraph 1 (Derive Step 1): Establish the argument.\n\nSection 2: Premature section.\n\nSection 2 must now discuss its own topic.",
+      );
+    }
+    return providerResponse(prose("Continuation evidence", 720));
+  };
+
+  await processWritingJob(job.id);
+  const completed = await getWritingJob(job.id);
+
+  assert.equal(completed.status, "complete");
+  assert.ok(repairCount > 0, "the leaked plan must be rewritten, not silently stripped");
+  assert.doesNotMatch(completed.output || "", /Paragraph \d|Derive Step|Section \d/i);
+  assert.match(completed.output || "", /reasoning\.\n\nFinished argument/);
+  assert.ok((completed.output || "").trim().split(/\s+/).length >= 700);
+});
+
+test("unrepairable planning text remains in a checkpoint but is not displayed as output", async () => {
+  const job = await createWritingJob({
+    instructions: "Write 700 words of unnumbered prose.",
+    provider: "zhi1",
+    requestedWordCount: 700,
+  });
+  createdJobIds.push(job.id);
+  globalThis.fetch = async (_input, init) => {
+    const body = JSON.parse(String(init?.body));
+    const system = String(body.messages[0].content);
+    if (system.startsWith("Act as a strict compliance auditor")) return providerResponse("PASS");
+    return providerResponse(`Section 1:\n\nParagraph 4 (Derive Step 4): ${prose("Unusable draft", 730)}`);
+  };
+
+  await processWritingJob(job.id);
+  const result = await getWritingJob(job.id);
+  const saved = await db.select().from(writingJobSections).where(eq(writingJobSections.jobId, job.id));
+  assert.equal(result.status, "failed");
+  assert.equal(result.output, null);
+  assert.ok(saved.some(section => section.content.includes("Paragraph 4")), "the original remains available to resume");
+});
