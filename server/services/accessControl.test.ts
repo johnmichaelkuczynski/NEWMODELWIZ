@@ -106,116 +106,33 @@ after(() => {
   storage.getUserSubscription = originalGetUserSubscription;
 });
 
-test("production logged-out oversized multi-section writing starts a 2,000-word sign-in preview", async () => {
-  queryResults = [
-    { rows: [] },
-    { rows: [{ actions_used: 1, words_reserved: 2000 }] },
-  ];
-  const req = writingRequest();
-
-  const result = await enforce(req);
-
-  assert.equal(result.continued, true, "the preview must reach writing job creation");
-  assert.equal(req.body.requestedWordCount, 2000);
-  assert.equal(req.body.originalRequestedWordCount, 6999);
-  assert.equal(req.body.forceSingleSectionPreview, true);
-  assert.equal(req.body.previewNextAction, "sign-in");
-  assert.equal(result.state.headers["X-Treatise-Preview"], "true");
-});
-
-test("production signed-in unpaid oversized writing starts a 2,000-word subscription preview", async () => {
-  queryResults = [
-    { rows: [] },
-    { rows: [{ actions_used: 1, words_reserved: 2000 }] },
-  ];
-  const req = writingRequest({ user: { id: 41, username: "free-user" } });
-
-  const result = await enforce(req);
-
-  assert.equal(result.continued, true, "the signed-in preview must reach writing job creation");
-  assert.equal(req.body.requestedWordCount, 2000);
-  assert.equal(req.body.originalRequestedWordCount, 6999);
-  assert.equal(req.body.forceSingleSectionPreview, true);
-  assert.equal(req.body.previewNextAction, "subscribe");
-  assert.equal(result.state.headers["X-Treatise-Preview"], "true");
-});
-
-test("production logged-out 2,000-word writing remains a complete request", async () => {
-  queryResults = [
-    { rows: [] },
-    { rows: [{ actions_used: 1, words_reserved: 2000 }] },
-  ];
-  const req = writingRequest({ requestedWordCount: 2000 });
-  req.body.instructions = "Write a 2,000-word document as one complete work.";
-
+test("guest writing keeps the complete requested length without a preview or quota reservation", async () => {
+  const req = writingRequest({ requestedWordCount: 18_000 });
   const result = await enforce(req);
 
   assert.equal(result.continued, true);
-  assert.equal(req.body.requestedWordCount, 2000);
-  assert.equal(req.body.originalRequestedWordCount, undefined);
+  assert.equal(req.body.requestedWordCount, 18_000);
   assert.equal(req.body.forceSingleSectionPreview, undefined);
-  assert.equal(req.body.previewNextAction, undefined);
+  assert.equal(req.body.originalRequestedWordCount, undefined);
   assert.equal(result.state.headers["X-Treatise-Preview"], undefined);
+  assert.equal(queryResults.length, 0);
 });
 
-test("production subscribers retain the complete request and megaglobal eligibility", async () => {
-  storage.getUser = async id => ({
-    id,
-    username: "subscriber",
-    password: "not-used",
-    email: null,
-    stripeCustomerId: null,
-    stripeSubscriptionId: null,
-    subscriptionStatus: "active",
-    subscriptionCurrentPeriodEnd: new Date(Date.now() + 60_000),
-    createdAt: new Date(),
-  });
-  const req = writingRequest({ user: { id: 42, username: "subscriber" } });
+test("the independent writer also keeps the full guest request", async () => {
+  const req = writingRequest({ requestedWordCount: 75_000 });
+  req.path = "/writing-v2/jobs";
+  const result = await enforce(req);
 
+  assert.equal(result.continued, true);
+  assert.equal(req.body.requestedWordCount, 75_000);
+  assert.equal(req.body.forceSingleSectionPreview, undefined);
+});
+
+test("a free signed-in writer is not reduced to a subscription preview", async () => {
+  const req = writingRequest({ user: { id: 41, username: "free-user" } });
   const result = await enforce(req);
 
   assert.equal(result.continued, true);
   assert.equal(req.body.requestedWordCount, 6999);
-  assert.equal(req.body.originalRequestedWordCount, undefined);
-  assert.equal(req.body.forceSingleSectionPreview, undefined);
   assert.equal(req.body.previewNextAction, undefined);
-  assert.match(req.body.instructions, /Section 3:/);
-});
-
-test("quota exhaustion is returned as a sign-in continuation boundary, not a writing failure", async () => {
-  queryResults = [
-    { rows: [{ actions_used: 5, words_reserved: 2000 }] },
-    { rows: [] },
-  ];
-  const req = writingRequest({ requestedWordCount: 2000 });
-  req.body.instructions = "Write a 2,000-word document as one complete work.";
-
-  const result = await enforce(req);
-
-  assert.equal(result.continued, false);
-  assert.equal(result.state.status, 401);
-  assert.equal(result.state.json?.code, "SIGN_IN_REQUIRED");
-  assert.equal(result.state.json?.nextAction, "sign-in");
-  assert.equal((result.state.json?.usage as Record<string, unknown>)?.actionLimit, 5);
-  assert.equal("error" in (result.state.json ?? {}), false);
-  assert.match(String(result.state.json?.message), /Sign in with Google/i);
-});
-
-test("signed-in quota exhaustion is returned as a subscription continuation boundary", async () => {
-  queryResults = [
-    { rows: [{ actions_used: 20, words_reserved: 8000 }] },
-    { rows: [] },
-    { rows: [] },
-  ];
-  const req = writingRequest({ user: { id: 43, username: "free-user" } });
-
-  const result = await enforce(req);
-
-  assert.equal(result.continued, false);
-  assert.equal(result.state.status, 402);
-  assert.equal(result.state.json?.code, "SUBSCRIPTION_REQUIRED");
-  assert.equal(result.state.json?.nextAction, "subscribe");
-  assert.equal((result.state.json?.usage as Record<string, unknown>)?.actionLimit, 20);
-  assert.equal("error" in (result.state.json ?? {}), false);
-  assert.match(String(result.state.json?.message), /Subscribe/i);
 });

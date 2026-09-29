@@ -603,6 +603,19 @@ Provide detailed analysis of literary merit, character development, plot structu
   res.end();
 }
 
+type WritingSession = Request["session"] & { anonymousWritingJobIds?: number[] };
+
+function rememberWritingJob(req: Request, jobId: number): void {
+  if (req.user) return;
+  const session = req.session as WritingSession;
+  session.anonymousWritingJobIds = [...(session.anonymousWritingJobIds || []), jobId].slice(-100);
+}
+
+function canAccessWritingJob(req: Request, job: { id: number; userId: number | null }): boolean {
+  if (job.userId) return req.user?.id === job.userId;
+  return ((req.session as WritingSession).anonymousWritingJobIds || []).includes(job.id);
+}
+
 export async function registerRoutes(app: Express): Promise<Express> {
   setupAuth(app);
   
@@ -1829,9 +1842,6 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument,
         provider = "zhi1",
         requestedWordCount,
-        originalRequestedWordCount,
-        forceSingleSectionPreview,
-        previewNextAction,
       } = req.body;
       if (!instructions || typeof instructions !== "string") {
         return res.status(400).json({ message: "Writing instructions are required" });
@@ -1857,9 +1867,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const { expandedWordTarget } = await import("./services/sourceExpansion");
       let wordCount: number;
       try {
-        wordCount = forceSingleSectionPreview === true
-          ? requestedWords
-          : expandedWordTarget(requestedWords, sourceDocument);
+        wordCount = expandedWordTarget(requestedWords, sourceDocument);
       } catch (error: any) {
         return res.status(400).json({ message: error.message });
       }
@@ -1870,8 +1878,8 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument: sourceDocument?.trim() || undefined,
         provider,
         requestedWordCount: wordCount,
-        forceSingleSection: forceSingleSectionPreview === true,
       });
+      rememberWritingJob(req, job.id);
       void processWritingJob(job.id).catch(error => {
         console.error(`Writing job ${job.id} failed:`, error);
       });
@@ -1879,11 +1887,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
         jobId: job.id,
         requestedWordCount: wordCount,
         usesLargeScaleCoherence: job.usesLargeScaleCoherence,
-        preview: forceSingleSectionPreview === true,
-        originalRequestedWordCount: forceSingleSectionPreview === true
-          ? Number(originalRequestedWordCount) || wordCount
-          : wordCount,
-        previewNextAction: forceSingleSectionPreview === true ? previewNextAction : null,
+        preview: false,
+        originalRequestedWordCount: wordCount,
+        previewNextAction: null,
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Unable to start writing job" });
@@ -1897,9 +1903,6 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument,
         provider = "zhi1",
         requestedWordCount,
-        originalRequestedWordCount,
-        forceSingleSectionPreview,
-        previewNextAction,
       } = req.body;
       if (!instructions || typeof instructions !== "string") {
         return res.status(400).json({ message: "Writing instructions are required" });
@@ -1922,9 +1925,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const { expandedWordTarget } = await import("./services/sourceExpansion");
       let wordCount: number;
       try {
-        wordCount = forceSingleSectionPreview === true
-          ? requestedWords
-          : expandedWordTarget(requestedWords, sourceDocument);
+        wordCount = expandedWordTarget(requestedWords, sourceDocument);
       } catch (error: any) {
         return res.status(400).json({ message: error.message });
       }
@@ -1934,8 +1935,8 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument: sourceDocument?.trim() || undefined,
         provider,
         requestedWordCount: wordCount,
-        forceSingleSection: forceSingleSectionPreview === true,
       });
+      rememberWritingJob(req, job.id);
       void processIndependentWritingJob(job.id).catch(error => {
         console.error(`Independent writing job ${job.id} failed:`, error);
       });
@@ -1944,11 +1945,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
         requestedWordCount: wordCount,
         usesLargeScaleCoherence: job.usesLargeScaleCoherence,
         engine: "independent",
-        preview: forceSingleSectionPreview === true,
-        originalRequestedWordCount: forceSingleSectionPreview === true
-          ? Number(originalRequestedWordCount) || wordCount
-          : wordCount,
-        previewNextAction: forceSingleSectionPreview === true ? previewNextAction : null,
+        preview: false,
+        originalRequestedWordCount: wordCount,
+        previewNextAction: null,
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Unable to start independent writing job" });
@@ -1959,7 +1958,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const { getIndependentWritingJob, countIndependentWords } = await import("./services/independentWriting");
     const job = await getIndependentWritingJob(Number(req.params.id));
     if (!job) return res.status(404).json({ message: "Writing job not found" });
-    if (job.userId && req.user?.id !== job.userId) {
+    if (!canAccessWritingJob(req, job)) {
       return res.status(403).json({ message: "This writing job belongs to another user" });
     }
     return res.json({
@@ -1989,7 +1988,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const { getIndependentWritingJob, requestIndependentWritingStop } = await import("./services/independentWriting");
     const job = await getIndependentWritingJob(Number(req.params.id));
     if (!job) return res.status(404).json({ message: "Writing job not found" });
-    if (job.userId && req.user?.id !== job.userId) {
+    if (!canAccessWritingJob(req, job)) {
       return res.status(403).json({ message: "This writing job belongs to another user" });
     }
     if (job.status === "complete" || job.status === "failed") {
@@ -2003,7 +2002,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const { getIndependentWritingJob, resumeIndependentWritingJob, processIndependentWritingJob } = await import("./services/independentWriting");
     const job = await getIndependentWritingJob(Number(req.params.id));
     if (!job) return res.status(404).json({ message: "Writing job not found" });
-    if (job.userId && req.user?.id !== job.userId) return res.status(403).json({ message: "This writing job belongs to another user" });
+    if (!canAccessWritingJob(req, job)) return res.status(403).json({ message: "This writing job belongs to another user" });
     if (!job.stoppedEarly || job.status !== "paused") return res.status(409).json({ message: "This writing job is not resumable" });
     await resumeIndependentWritingJob(job.id);
     void processIndependentWritingJob(job.id).catch(error => console.error(`Independent writing resume ${job.id} failed:`, error));
@@ -2014,7 +2013,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const { getWritingJob, countWords } = await import("./services/longFormWriting");
     const job = await getWritingJob(Number(req.params.id));
     if (!job) return res.status(404).json({ message: "Writing job not found" });
-    if (job.userId && req.user?.id !== job.userId) {
+    if (!canAccessWritingJob(req, job)) {
       return res.status(403).json({ message: "This writing job belongs to another user" });
     }
     return res.json({
@@ -2044,7 +2043,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const { getWritingJob, createWritingJob, processWritingJob } = await import("./services/longFormWriting");
       const original = await getWritingJob(Number(req.params.id));
       if (!original) return res.status(404).json({ message: "Writing job not found" });
-      if (original.userId && req.user?.id !== original.userId) {
+      if (!canAccessWritingJob(req, original)) {
         return res.status(403).json({ message: "This writing job belongs to another user" });
       }
       let audits: Array<{ section?: string; report?: string }> = [];
@@ -2067,6 +2066,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         requestedWordCount: original.requestedWordCount,
         auditGuidance,
       });
+      rememberWritingJob(req, redo.id);
       void processWritingJob(redo.id).catch(error => {
         console.error(`Writing redo job ${redo.id} failed:`, error);
       });
@@ -2086,7 +2086,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
       const { createIndependentWritingJob, processIndependentWritingJob } = await import("./services/independentWriting");
       const original = await getWritingJob(Number(req.params.id));
       if (!original) return res.status(404).json({ message: "Writing job not found" });
-      if (original.userId && req.user?.id !== original.userId) {
+      if (!canAccessWritingJob(req, original)) {
         return res.status(403).json({ message: "This writing job belongs to another user" });
       }
       let audits: Array<{ section?: string; report?: string }> = [];
@@ -2107,6 +2107,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
         requestedWordCount: original.requestedWordCount,
         auditGuidance,
       });
+      rememberWritingJob(req, redo.id);
       void processIndependentWritingJob(redo.id).catch(error => {
         console.error(`Independent writing redo ${redo.id} failed:`, error);
       });
@@ -2125,7 +2126,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const { getWritingJob, requestWritingStop } = await import("./services/longFormWriting");
     const job = await getWritingJob(Number(req.params.id));
     if (!job) return res.status(404).json({ message: "Writing job not found" });
-    if (job.userId && req.user?.id !== job.userId) {
+    if (!canAccessWritingJob(req, job)) {
       return res.status(403).json({ message: "This writing job belongs to another user" });
     }
     if (job.status === "complete" || job.status === "failed") {
@@ -2139,7 +2140,7 @@ export async function registerRoutes(app: Express): Promise<Express> {
     const { getWritingJob, resumeWritingJob, processWritingJob } = await import("./services/longFormWriting");
     const job = await getWritingJob(Number(req.params.id));
     if (!job) return res.status(404).json({ message: "Writing job not found" });
-    if (job.userId && req.user?.id !== job.userId) return res.status(403).json({ message: "This writing job belongs to another user" });
+    if (!canAccessWritingJob(req, job)) return res.status(403).json({ message: "This writing job belongs to another user" });
     const resumable = (job.stoppedEarly && job.status === "paused") || (job.status === "failed" && Boolean(job.output));
     if (!resumable) return res.status(409).json({ message: "This writing job is not resumable" });
     await resumeWritingJob(job.id);

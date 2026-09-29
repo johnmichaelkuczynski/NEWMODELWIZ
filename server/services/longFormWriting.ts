@@ -984,16 +984,6 @@ export async function resumeWritingJob(jobId: number): Promise<void> {
 export async function processWritingJob(jobId: number): Promise<void> {
   const [job] = await db.select().from(writingJobs).where(eq(writingJobs.id, jobId));
   if (!job) throw new Error("Writing job not found");
-  if (job.usesLargeScaleCoherence && !job.userId) {
-    await db.update(writingJobs).set({
-      status: "paused",
-      stopRequested: true,
-      stoppedEarly: true,
-      error: "Sign in with Google before continuing database-backed megaglobal coherence.",
-      updatedAt: new Date(),
-    }).where(eq(writingJobs.id, jobId));
-    throw new Error("Database-backed megaglobal coherence requires a signed-in user owner.");
-  }
   const provider = job.provider as WritingProvider;
   const coordinator = job.usesLargeScaleCoherence ? selectCoherenceCoordinator(provider) : provider;
   const repairEditor = job.usesLargeScaleCoherence

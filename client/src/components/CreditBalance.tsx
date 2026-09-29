@@ -101,7 +101,7 @@ export function CreditBalance() {
   return (
     <>
       <div className="flex items-center gap-3" data-testid="credit-balance-container">
-        {access && !access.unlimited && (
+        {access && !access.unlimited && window.location.pathname !== "/" && (
           <div className="text-sm font-medium whitespace-nowrap" data-testid="free-access-remaining">
             {access.tier === "anonymous" ? "Preview" : "Free"}: {access.actionsRemaining} actions · {formatCredits(access.wordsRemaining || 0)} words
           </div>

@@ -6,10 +6,8 @@ import { isPermanentOwnerEmail } from "../lib/stripe-config";
 
 const ANONYMOUS_ACTION_LIMIT = 5;
 const ANONYMOUS_WORD_LIMIT = 6000;
-const ANONYMOUS_WRITING_PREVIEW_WORDS = 2000;
 const SIGNED_IN_ACTION_LIMIT = 20;
 const SIGNED_IN_WORD_LIMIT = 20000;
-const SIGNED_IN_WRITING_PREVIEW_WORDS = 2000;
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
 
 type AccessTier = "anonymous" | "free" | "subscriber";
@@ -269,33 +267,14 @@ export async function getAccessStatus(req: Request) {
 export async function enforcePaidAiAccess(req: Request, res: Response, next: NextFunction) {
   try {
     const requestPath = `${req.baseUrl || ""}${req.path}`;
+    // Writing jobs are complete requests, including for guests. Never replace
+    // a requested manuscript with a short preview or charge the guest quota.
+    if (/^\/api\/writing(?:-v2)?\/jobs(?:\/|$)/.test(requestPath)) return next();
     if (req.method !== "POST" || !isMeteredPath(requestPath)) return next();
-    const isWritingCreation = requestPath === "/api/writing/jobs" || requestPath === "/api/writing-v2/jobs";
     const access = await accessTier(req);
     const usage = access.subscribed
       ? { actionsUsed: 0, wordsReserved: 0 }
       : await currentUsage(access.identityKey);
-
-    if (!access.subscribed && isWritingCreation) {
-      const anonymous = access.tier === "anonymous";
-      const actionLimit = anonymous ? ANONYMOUS_ACTION_LIMIT : SIGNED_IN_ACTION_LIMIT;
-      const wordLimit = anonymous ? ANONYMOUS_WORD_LIMIT : SIGNED_IN_WORD_LIMIT;
-      const previewLimit = anonymous
-        ? ANONYMOUS_WRITING_PREVIEW_WORDS
-        : SIGNED_IN_WRITING_PREVIEW_WORDS;
-      const actionsRemaining = actionLimit - usage.actionsUsed;
-      const wordsRemaining = wordLimit - usage.wordsReserved;
-      if (actionsRemaining > 0 && wordsRemaining >= 50) {
-        const originallyRequestedWords = requestedWritingWords(req);
-        const previewWords = Math.min(originallyRequestedWords, wordsRemaining, previewLimit);
-        if (previewWords < originallyRequestedWords) {
-          req.body.originalRequestedWordCount = originallyRequestedWords;
-          req.body.requestedWordCount = previewWords;
-          req.body.forceSingleSectionPreview = true;
-          req.body.previewNextAction = anonymous ? "sign-in" : "subscribe";
-        }
-      }
-    }
 
     if (!req.user && await requiresSignedInDatabaseOwner(req, requestPath)) {
       return res.status(401).json({
