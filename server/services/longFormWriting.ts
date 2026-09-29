@@ -10,6 +10,7 @@ import {
   type ProviderStreamOptions,
 } from "./providerStreaming";
 import { expandedWordTarget, sourceBlocks, sourcePassage, sourceWordCount } from "./sourceExpansion";
+import { requestsResearch, researchDossier, searchResearch } from "./researchEvidence";
 
 type WritingProvider = "zhi1" | "zhi2" | "zhi3" | "zhi4" | "zhi5";
 
@@ -673,6 +674,18 @@ async function buildSourceMap(provider: WritingProvider, source: string): Promis
   return summaries.join("\n\n");
 }
 
+async function prepareResearch(provider: WritingProvider, instructions: string, sourceMap: string): Promise<string> {
+  if (!requestsResearch(instructions)) return "";
+  const queryText = await callProvider(provider,
+    "Create narrow, factual literature searches. Return exactly four plain lines, one search query per line. No numbering or explanation.",
+    `Form four different searches for primary studies, systematic reviews, and relevant scientific evidence needed to execute the user's particular instructions. Cover effectiveness and failure cases when requested. Use the source's actual thesis and terms, not generic subject keywords.\nUSER INSTRUCTIONS:\n${instructions}\nSOURCE ARGUMENT MAP:\n${sourceMap.slice(0, 16_000)}`,
+    350, 0);
+  const queries = queryText.split("\n").map(line => line.replace(/^\s*(?:\d+[.)]|[-*])\s*/, "").trim()).filter(Boolean).slice(0, 4);
+  if (!queries.length) throw new Error("Could not formulate research searches for the requested empirical expansion.");
+  const results = (await Promise.all(queries.map(searchResearch))).flat();
+  return researchDossier(results);
+}
+
 async function createBlueprint(provider: WritingProvider, instructions: string, sectionCount: number): Promise<string> {
   return removeMarkdown(await callProvider(
     provider,
@@ -1008,7 +1021,8 @@ export async function processWritingJob(jobId: number): Promise<void> {
     const sourceMap = job.sourceDocument?.trim()
       ? await buildSourceMap(coordinator, job.sourceDocument)
       : "";
-    const completeContext = writingContext(job.instructions, sourceMap);
+    const evidence = await prepareResearch(coordinator, job.instructions, sourceMap);
+    const completeContext = `${writingContext(job.instructions, sourceMap)}${evidence ? `\n\n${evidence}` : ""}`;
     const blueprint = job.blueprint || (job.usesLargeScaleCoherence
       ? await createBlueprint(coordinator, completeContext, job.totalSections)
       : removeMarkdown(job.instructions));
@@ -1041,7 +1055,7 @@ export async function processWritingJob(jobId: number): Promise<void> {
         : chapterNumber
           ? writingContext(extractChapterDirective(job.instructions, chapterNumber) || job.instructions)
           : completeContext;
-      const guidedDirective = `${job.auditGuidance
+      const guidedDirective = `${evidence ? `RELEVANT ATTRIBUTED RESEARCH:\n${evidence}\n\n` : ""}${job.auditGuidance
         ? `${assignedDirective}\n\nPRIOR AUDIT FINDINGS. IMPROVE THE NEW DRAFT WHERE COMPATIBLE, BUT NEVER CHANGE OR OVERRIDE THE USER'S ORIGINAL THESIS, PREMISES, DEFINITIONS, STANCE, STRUCTURE, OR OTHER EXPLICIT REQUIREMENTS:\n${job.auditGuidance}`
         : assignedDirective}${job.sourceDocument?.trim() ? `\n\nEXPANSION METHOD:\n${DERIVATIONAL_EXPANSION}` : ""}`;
       const executionContract = job.usesLargeScaleCoherence
