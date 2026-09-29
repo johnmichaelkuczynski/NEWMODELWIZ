@@ -13,6 +13,7 @@ The application employs a monorepo structure, separating client and server compo
 
 **UI/UX Decisions:**
 - Frontend uses React with TypeScript, TailwindCSS, and shadcn/ui for a modern and responsive user interface.
+- Do not use confirmation-only dialogs. Action buttons run on the first click; optional settings for an action that can use defaults belong beside the button, not in a second-submit dialog. Keep dialogs that collect required information or display results. Clear Page reloads immediately and clears transient inputs and outputs without deleting saved server-side jobs.
 - Data visualization is handled by Chart.js.
 - Detailed card-based layouts are used for analysis reports.
 - Supports PDF/text downloads, document upload, and output downloads.

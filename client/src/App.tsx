@@ -12,63 +12,29 @@ import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import NotFound from "@/pages/not-found";
 import DiagnosticPage from "@/pages/DiagnosticPage";
 import { BrainCircuit, Brain, Mail, Trash2, Activity, LogIn, LogOut, Users } from "lucide-react";
-import { useEffect, useState, createContext, useContext } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CreditBalance } from "@/components/CreditBalance";
+import { PENDING_OUTPUT_KEY } from "@/lib/outputRouting";
 import zhiLogo from "@assets/zhi_logoc_1788019705241.png";
 import { trackEvent } from "@/lib/analytics";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 
-// Reset Context
-interface ResetContextType {
-  resetAll: () => void;
-}
-
-const ResetContext = createContext<ResetContextType | null>(null);
-
-export function useReset() {
-  const context = useContext(ResetContext);
-  if (!context) {
-    throw new Error("useReset must be used within a ResetProvider");
+function clearPage() {
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key?.startsWith("cap:")) keysToRemove.push(key);
   }
-  return context;
-}
-
-function ResetConfirmDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const { resetAll } = useReset();
-
-  const handleReset = () => {
-    resetAll();
-    trackEvent("app_reset_completed");
-    onOpenChange(false);
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Reset All Data</DialogTitle>
-          <DialogDescription>
-            This will clear all your current input and analysis results. You'll start completely fresh. This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="flex gap-3 justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel-reset">
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={handleReset} data-testid="button-confirm-reset">
-            <Trash2 className="h-4 w-4 mr-2" />
-            Reset All
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
+  keysToRemove.forEach(key => localStorage.removeItem(key));
+  localStorage.removeItem("activeCoherenceAnalysisJob");
+  localStorage.removeItem("textToDownload");
+  sessionStorage.removeItem(PENDING_OUTPUT_KEY);
+  trackEvent("app_reset_completed");
+  window.location.replace("/");
 }
 
 function Navigation() {
-  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const [visitorCount, setVisitorCount] = useState<number | null>(null);
   const { user, isLoading, logout, isLoggingOut } = useAuth();
 
@@ -170,12 +136,12 @@ function Navigation() {
             <Button 
               variant="ghost" 
               size="sm"
-              onClick={() => setResetDialogOpen(true)}
+              onClick={clearPage}
               className="text-primary-foreground hover:bg-primary-foreground/10"
               data-testid="button-reset-all"
             >
               <Trash2 className="h-4 w-4 mr-1" />
-              Reset All
+              Clear Page
             </Button>
 
             {!isLoading && (
@@ -223,16 +189,15 @@ function Navigation() {
           </div>
         )}
       
-      <ResetConfirmDialog open={resetDialogOpen} onOpenChange={setResetDialogOpen} />
     </nav>
   );
 }
 
-function Router({ resetKey }: { resetKey: number }) {
+function Router() {
   return (
     <>
       <Navigation />
-      <Switch key={resetKey}>
+      <Switch>
         <Route path="/" component={HomePage} />
         <Route path="/analytics" component={AnalyticsPage} />
         <Route path="/diagnostic" component={DiagnosticPage} />
@@ -246,32 +211,13 @@ function Router({ resetKey }: { resetKey: number }) {
 }
 
 function App() {
-  const [resetKey, setResetKey] = useState(0);
-
-  const resetAll = () => {
-    // Clear app-specific localStorage (preserve auth and theme)
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith('cap:')) {
-        keysToRemove.push(key);
-      }
-    }
-    keysToRemove.forEach(key => localStorage.removeItem(key));
-    
-    // Remount Router to reset all component state
-    setResetKey(prev => prev + 1);
-  };
-
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <ResetContext.Provider value={{ resetAll }}>
-          <TooltipProvider>
-            <Toaster />
-            <Router resetKey={resetKey} />
-          </TooltipProvider>
-        </ResetContext.Provider>
+        <TooltipProvider>
+          <Toaster />
+          <Router />
+        </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

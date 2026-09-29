@@ -136,7 +136,6 @@ const HomePage: React.FC = () => {
   const [fictionPopupOpen, setFictionPopupOpen] = useState(false);
 
   // State for maximize intelligence feature
-  const [maximizeIntelligenceModalOpen, setMaximizeIntelligenceModalOpen] = useState(false);
   const [customInstructions, setCustomInstructions] = useState("");
   const [useExternalKnowledge, setUseExternalKnowledge] = useState(false);
   const [isMaximizeIntelligenceLoading, setIsMaximizeIntelligenceLoading] = useState(false);
@@ -212,7 +211,6 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
   const [validatorRigorLevel, setValidatorRigorLevel] = useState<"sketch" | "semi-formal" | "proof-ready">("semi-formal");
   const [showValidatorCustomization, setShowValidatorCustomization] = useState(false);
   const [validatorCustomInstructions, setValidatorCustomInstructions] = useState("");
-  const [showRedoModal, setShowRedoModal] = useState(false);
   const [redoCustomInstructions, setRedoCustomInstructions] = useState("");
   const [validatorTruthMapping, setValidatorTruthMapping] = useState<"false-to-true" | "true-to-true" | "true-to-false">("false-to-true");
   const [validatorMathTruthMapping, setValidatorMathTruthMapping] = useState<"make-true" | "keep-true" | "make-false">("make-true");
@@ -1227,6 +1225,47 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     setValidatorCustomInstructions("");
     setValidatorBatchResults([]);
     setValidatorSelectedModes([]);
+    setRedoCustomInstructions("");
+  };
+
+  const handleRedoValidator = async () => {
+    setValidatorCustomInstructions(redoCustomInstructions);
+    setValidatorLoading(true);
+    try {
+      const response = await fetch("/api/text-model-validator", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: validatorInputText,
+          mode: validatorMode,
+          targetDomain: validatorTargetDomain,
+          fidelityLevel: validatorFidelityLevel,
+          mathFramework: validatorMathFramework,
+          constraintType: validatorConstraintType,
+          rigorLevel: validatorRigorLevel,
+          customInstructions: redoCustomInstructions,
+          truthMapping: validatorTruthMapping,
+          mathTruthMapping: validatorMathTruthMapping,
+          literalTruth: validatorLiteralTruth,
+          llmProvider: validatorLLMProvider,
+        }),
+      });
+      setValidatorOutput("");
+      const data = await readGeneratedResponse(response, setValidatorOutput);
+      if (data.success) {
+        setValidatorOutput(data.output);
+        toast({
+          title: "Reconstruction Complete",
+          description: redoCustomInstructions ? "Regenerated with your custom instructions" : "Regenerated with default settings",
+        });
+      } else {
+        toast({ title: "Error", description: data.message || "Failed to process", variant: "destructive" });
+      }
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to process", variant: "destructive" });
+    } finally {
+      setValidatorLoading(false);
+    }
   };
 
   // Toggle mode selection for batch processing
@@ -2911,7 +2950,6 @@ ${objectionsData.output}`;
       alert(error instanceof Error ? error.message : "Failed to maximize intelligence. Please try again.");
     } finally {
       setIsMaximizeIntelligenceLoading(false);
-      setMaximizeIntelligenceModalOpen(false);
     }
   };
 
@@ -3720,15 +3758,28 @@ Generated on: ${new Date().toLocaleString()}`;
               {/* Maximize Intelligence */}
               <div className="text-center">
                 <Button
-                  onClick={() => setMaximizeIntelligenceModalOpen(true)}
+                  onClick={handleMaximizeIntelligence}
                   className="w-full px-4 py-6 bg-emerald-600 text-white rounded-md font-semibold hover:bg-emerald-700 flex flex-col items-center min-h-[100px]"
-                  disabled={!documentA.content.trim()}
+                  disabled={!documentA.content.trim() || isMaximizeIntelligenceLoading}
                   data-testid="button-maximize-intelligence"
                 >
-                  <Sparkles className="h-6 w-6 mb-2" />
-                  <span className="text-sm">Maximize Intelligence</span>
+                  {isMaximizeIntelligenceLoading ? <Loader2 className="h-6 w-6 mb-2 animate-spin" /> : <Sparkles className="h-6 w-6 mb-2" />}
+                  <span className="text-sm">{isMaximizeIntelligenceLoading ? "Rewriting..." : "Maximize Intelligence"}</span>
                 </Button>
                 <p className="text-xs text-gray-500 mt-2">Rewrite to boost intelligence score</p>
+                <details className="mt-2 text-left text-sm">
+                  <summary className="cursor-pointer">Optional rewrite settings</summary>
+                  <div className="mt-2 space-y-2">
+                    <Label htmlFor="external-knowledge-main">Use ZHI database</Label>
+                    <Switch id="external-knowledge-main" checked={useExternalKnowledge} onCheckedChange={setUseExternalKnowledge} disabled={isMaximizeIntelligenceLoading} data-testid="toggle-external-knowledge-main" />
+                    <Label htmlFor="maximize-custom-instructions" className="block">Custom instructions</Label>
+                    <Textarea id="maximize-custom-instructions" value={customInstructions} onChange={(event) => setCustomInstructions(event.target.value)} placeholder="Leave blank to use the default optimization criteria" disabled={isMaximizeIntelligenceLoading} data-testid="textarea-custom-instructions" />
+                    <details>
+                      <summary className="cursor-pointer">Default criteria</summary>
+                      <p className="max-h-40 overflow-auto whitespace-pre-wrap text-xs">{defaultInstructions}</p>
+                    </details>
+                  </div>
+                </details>
               </div>
             </div>
             
@@ -3918,90 +3969,6 @@ Generated on: ${new Date().toLocaleString()}`;
           </div>
         </div>
       )}
-
-      {/* Maximize Intelligence Modal */}
-      <Dialog open={maximizeIntelligenceModalOpen} onOpenChange={setMaximizeIntelligenceModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-emerald-600" />
-              Maximize Intelligence
-            </DialogTitle>
-            <DialogDescription>
-              Customize rewrite instructions to maximize intelligence scores, or use our default optimization criteria.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {/* External Knowledge Toggle */}
-            <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950 rounded-lg border border-blue-200 dark:border-blue-800">
-              <div className="flex-1">
-                <Label htmlFor="external-knowledge-main" className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                  USE ZHI DATABASE (AnalyticPhilosophy.net)
-                </Label>
-                <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                  When enabled, MAXINTEL fetches research passages and citations from the Zhi knowledge base
-                </p>
-              </div>
-              <Switch
-                id="external-knowledge-main"
-                checked={useExternalKnowledge}
-                onCheckedChange={setUseExternalKnowledge}
-                disabled={isMaximizeIntelligenceLoading}
-                data-testid="toggle-external-knowledge-main"
-              />
-            </div>
-
-            <div>
-              <label className="text-sm font-medium text-gray-700 mb-2 block">
-                Custom Instructions (optional)
-              </label>
-              <Textarea
-                value={customInstructions}
-                onChange={(e) => setCustomInstructions(e.target.value)}
-                placeholder="Enter custom rewrite instructions here. If left empty, default optimization criteria will be used."
-                className="min-h-[120px]"
-                data-testid="textarea-custom-instructions"
-              />
-            </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="text-sm font-medium text-gray-700 mb-2">Default Instructions (used if custom field is empty):</h4>
-              <div className="text-xs text-gray-600 max-h-40 overflow-y-auto whitespace-pre-wrap">
-                {defaultInstructions}
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setMaximizeIntelligenceModalOpen(false)}
-              data-testid="button-cancel-maximize"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleMaximizeIntelligence}
-              disabled={isMaximizeIntelligenceLoading}
-              className="bg-emerald-600 hover:bg-emerald-700"
-              data-testid="button-confirm-maximize"
-            >
-              {isMaximizeIntelligenceLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Rewriting...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Maximize Intelligence
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Intelligent Rewrite Results Modal */}
       <Dialog open={rewriteResultsModalOpen} onOpenChange={setRewriteResultsModalOpen}>
@@ -5193,17 +5160,15 @@ Generated on: ${new Date().toLocaleString()}`;
                   />
                   <CopyButton text={validatorOutput} />
                   <Button
-                    onClick={() => {
-                      setRedoCustomInstructions("");
-                      setShowRedoModal(true);
-                    }}
+                    onClick={handleRedoValidator}
                     variant="outline"
                     size="sm"
+                    disabled={validatorLoading}
                     className="bg-amber-50 hover:bg-amber-100 border-amber-300 text-amber-800 dark:bg-amber-900/20 dark:hover:bg-amber-900/30 dark:border-amber-700 dark:text-amber-300"
                     data-testid="button-redo-validator"
                   >
                     <RefreshCw className="w-4 h-4 mr-1" />
-                    Redo
+                    {validatorLoading ? "Regenerating..." : "Redo"}
                   </Button>
                   <Button
                     onClick={handleValidatorClear}
@@ -5216,6 +5181,16 @@ Generated on: ${new Date().toLocaleString()}`;
                   </Button>
                 </div>
               </div>
+              <Label htmlFor="redo-custom-instructions" className="mb-2 block">Optional redo instructions</Label>
+              <Textarea
+                id="redo-custom-instructions"
+                value={redoCustomInstructions}
+                onChange={(event) => setRedoCustomInstructions(event.target.value)}
+                placeholder="Leave blank to redo with the current settings"
+                className="mb-4 min-h-[70px]"
+                disabled={validatorLoading}
+                data-testid="textarea-redo-custom-instructions"
+              />
                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded border border-gray-200 dark:border-gray-700 max-h-[600px] overflow-y-auto">
                  <ProgressiveOutput
                    text={validatorOutput}
@@ -5889,96 +5864,6 @@ Generated on: ${new Date().toLocaleString()}`;
             </div>
           </div>
 
-          {/* Redo Modal with Custom Instructions */}
-          <Dialog open={showRedoModal} onOpenChange={setShowRedoModal}>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <RefreshCw className="w-5 h-5 text-amber-600" />
-                  Redo with Custom Instructions
-                </DialogTitle>
-                <DialogDescription>
-                  Enter specific instructions to guide the reconstruction. Leave blank for default behavior.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="py-4">
-                <Textarea
-                  value={redoCustomInstructions}
-                  onChange={(e) => setRedoCustomInstructions(e.target.value)}
-                  placeholder="e.g., 'Focus on the economic arguments' or 'Make the thesis about evolutionary biology' or 'Add specific scientific studies as evidence' or 'Make it more concise - half the length'"
-                  className="min-h-[150px] text-sm"
-                  data-testid="textarea-redo-custom-instructions"
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                  Examples: "Add real statistics" / "Focus only on the strongest argument" / "Make it half as long" / "Frame it as a philosophical argument"
-                </p>
-              </div>
-              <DialogFooter className="gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowRedoModal(false)}
-                  data-testid="button-cancel-redo"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={async () => {
-                    setShowRedoModal(false);
-                    setValidatorCustomInstructions(redoCustomInstructions);
-                    setValidatorLoading(true);
-                    try {
-                      const response = await fetch("/api/text-model-validator", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                          text: validatorInputText,
-                          mode: validatorMode,
-                          targetDomain: validatorTargetDomain,
-                          fidelityLevel: validatorFidelityLevel,
-                          mathFramework: validatorMathFramework,
-                          constraintType: validatorConstraintType,
-                          rigorLevel: validatorRigorLevel,
-                          customInstructions: redoCustomInstructions,
-                          truthMapping: validatorTruthMapping,
-                          mathTruthMapping: validatorMathTruthMapping,
-                          literalTruth: validatorLiteralTruth,
-                          llmProvider: validatorLLMProvider,
-                        }),
-                      });
-                      setValidatorOutput("");
-                      const data = await readGeneratedResponse(response, setValidatorOutput);
-                      if (data.success) {
-                        setValidatorOutput(data.output);
-                        toast({
-                          title: "Reconstruction Complete",
-                          description: redoCustomInstructions ? "Regenerated with your custom instructions" : "Regenerated with default settings",
-                        });
-                      } else {
-                        toast({
-                          title: "Error",
-                          description: data.message || "Failed to process",
-                          variant: "destructive",
-                        });
-                      }
-                    } catch (error: any) {
-                      toast({
-                        title: "Error",
-                        description: error.message || "Failed to process",
-                        variant: "destructive",
-                      });
-                    } finally {
-                      setValidatorLoading(false);
-                    }
-                  }}
-                  className="bg-amber-600 hover:bg-amber-700 text-white"
-                  data-testid="button-confirm-redo"
-                >
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Regenerate
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
         </div>
       </div>
 
