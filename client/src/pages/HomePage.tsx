@@ -629,7 +629,6 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       active: boolean;
       targetWords: number;
       originalRequestedWords: number;
-      nextAction: "subscribe" | null;
     },
   ) => {
     let completed: any = null;
@@ -651,8 +650,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       }
       setWritingProgress(preview?.active
         ? status.status === "auditing"
-          ? "Free sample drafted. Running optional read-only audits..."
-          : `Generating a ${preview.targetWords.toLocaleString()}-word free sample of the requested ${preview.originalRequestedWords.toLocaleString()}-word work...`
+          ? "Partial draft complete. Running optional read-only audits..."
+          : `An outdated server reduced this request to ${preview.targetWords.toLocaleString()} of ${preview.originalRequestedWords.toLocaleString()} words. Saving the partial draft...`
         : status.status === "auditing"
           ? "Writing complete. Running optional read-only audits..."
           : status.usesLargeScaleCoherence
@@ -665,12 +664,9 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
     setGeneratedWriting(completed.output);
     setWritingAudits(Array.isArray(completed.audits) ? completed.audits : []);
     setIsStoppingWriting(false);
-    const continuation = preview?.nextAction === "subscribe"
-      ? "The full request is temporarily unavailable on the current server."
-      : "The remaining length exceeds the guest allowance.";
     setWritingProgress(
       preview?.active
-        ? `Free sample: ${completed.actualWordCount.toLocaleString()} words of the requested ${preview.originalRequestedWords.toLocaleString()}-word work. ${continuation}`
+        ? `Partial draft: ${completed.actualWordCount.toLocaleString()} of the requested ${preview.originalRequestedWords.toLocaleString()} words. The server shortened this job; the full request was not fulfilled.`
         : completed.stoppedEarly
         ? `Stopped and saved: ${completed.actualWordCount.toLocaleString()} words`
         : `Complete: ${completed.actualWordCount.toLocaleString()} words, plain text, ${completed.usesLargeScaleCoherence ? "large-scale coherence used" : "standard generation used"}`,
@@ -723,10 +719,10 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       const data = await safeJson(response);
       if (!response.ok || !data?.jobId) {
         if (data?.code === "SIGN_IN_REQUIRED" || data?.code === "GUEST_LIMIT_REACHED") {
-          const message = "This request exceeds the available guest allowance.";
+          const message = "The current server is still enforcing an outdated usage restriction.";
           setWritingProgress(message);
           toast({
-            title: "Guest limit reached",
+            title: "Writing request blocked",
             description: message,
           });
           return;
@@ -744,11 +740,8 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       }
 
       if (data.preview) {
-        const continuation = data.previewNextAction === "subscribe"
-          ? "The full request is temporarily unavailable on the current server."
-          : "The remaining length exceeds the guest allowance.";
         setWritingProgress(
-          `Generating a ${data.requestedWordCount.toLocaleString()}-word preview now. ${continuation}`,
+          `The current server shortened this request to ${data.requestedWordCount.toLocaleString()} of ${data.originalRequestedWordCount.toLocaleString()} words. Saving the partial draft.`,
         );
       } else if (data.usesLargeScaleCoherence) {
         setWritingProgress(`Large-scale coherence active: 0 sections completed`);
@@ -759,7 +752,6 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
         active: data.preview === true,
         targetWords: data.requestedWordCount,
         originalRequestedWords: data.originalRequestedWordCount,
-        nextAction: data.previewNextAction,
       });
       trackEvent("writing_generated", {
         provider: selectedProvider,
@@ -770,14 +762,12 @@ DOES THE AUTHOR USE OTHER AUTHORS TO DEVELOP HIS IDEAS OR TO CLOAK HIS OWN LACK 
       });
       toast({
         title: data.preview
-          ? "Free Preview Ready"
+          ? "Partial Draft Ready"
           : completed.stoppedEarly
             ? "Writing Stopped and Saved"
             : "Writing Complete",
         description: data.preview
-          ? data.previewNextAction === "subscribe"
-            ? `Your ${completed.requestedWordCount.toLocaleString()}-word preview appears below. The full ${data.originalRequestedWordCount.toLocaleString()}-word request is temporarily unavailable on the current server.`
-            : `Your ${completed.requestedWordCount.toLocaleString()}-word preview appears below. The complete ${data.originalRequestedWordCount.toLocaleString()}-word work exceeds the guest allowance.`
+          ? `The server produced only a partial draft. The requested ${data.originalRequestedWordCount.toLocaleString()}-word work was not completed.`
           : completed.stoppedEarly
           ? "Everything generated before you stopped has been saved below."
           : "The requested work appears directly below your instructions.",

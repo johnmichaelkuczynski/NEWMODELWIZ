@@ -1825,9 +1825,6 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument,
         provider = "zhi1",
         requestedWordCount,
-        originalRequestedWordCount,
-        forceSingleSectionPreview,
-        previewNextAction,
       } = req.body;
       if (!instructions || typeof instructions !== "string") {
         return res.status(400).json({ message: "Writing instructions are required" });
@@ -1857,7 +1854,6 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument: sourceDocument?.trim() || undefined,
         provider,
         requestedWordCount: wordCount,
-        forceSingleSection: forceSingleSectionPreview === true,
       });
       void processWritingJob(job.id).catch(error => {
         console.error(`Writing job ${job.id} failed:`, error);
@@ -1866,11 +1862,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
         jobId: job.id,
         requestedWordCount: wordCount,
         usesLargeScaleCoherence: job.usesLargeScaleCoherence,
-        preview: forceSingleSectionPreview === true,
-        originalRequestedWordCount: forceSingleSectionPreview === true
-          ? Number(originalRequestedWordCount) || wordCount
-          : wordCount,
-        previewNextAction: forceSingleSectionPreview === true ? previewNextAction : null,
+        preview: false,
+        originalRequestedWordCount: wordCount,
+        previewNextAction: null,
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Unable to start writing job" });
@@ -1884,9 +1878,6 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument,
         provider = "zhi1",
         requestedWordCount,
-        originalRequestedWordCount,
-        forceSingleSectionPreview,
-        previewNextAction,
       } = req.body;
       if (!instructions || typeof instructions !== "string") {
         return res.status(400).json({ message: "Writing instructions are required" });
@@ -1912,7 +1903,6 @@ export async function registerRoutes(app: Express): Promise<Express> {
         sourceDocument: sourceDocument?.trim() || undefined,
         provider,
         requestedWordCount: wordCount,
-        forceSingleSection: forceSingleSectionPreview === true,
       });
       void processIndependentWritingJob(job.id).catch(error => {
         console.error(`Independent writing job ${job.id} failed:`, error);
@@ -1922,11 +1912,9 @@ export async function registerRoutes(app: Express): Promise<Express> {
         requestedWordCount: wordCount,
         usesLargeScaleCoherence: job.usesLargeScaleCoherence,
         engine: "independent",
-        preview: forceSingleSectionPreview === true,
-        originalRequestedWordCount: forceSingleSectionPreview === true
-          ? Number(originalRequestedWordCount) || wordCount
-          : wordCount,
-        previewNextAction: forceSingleSectionPreview === true ? previewNextAction : null,
+        preview: false,
+        originalRequestedWordCount: wordCount,
+        previewNextAction: null,
       });
     } catch (error: any) {
       return res.status(500).json({ message: error.message || "Unable to start independent writing job" });

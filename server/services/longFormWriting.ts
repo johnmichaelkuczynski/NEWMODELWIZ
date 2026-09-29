@@ -989,10 +989,10 @@ export async function processWritingJob(jobId: number): Promise<void> {
       status: "paused",
       stopRequested: true,
       stoppedEarly: true,
-      error: "Database-backed megaglobal coherence is unavailable for guest jobs.",
+      error: "This older job has no saved owner session for database-backed coherence.",
       updatedAt: new Date(),
     }).where(eq(writingJobs.id, jobId));
-    throw new Error("Database-backed megaglobal coherence requires a signed-in user owner.");
+    throw new Error("Database-backed megaglobal coherence requires a saved job owner.");
   }
   const provider = job.provider as WritingProvider;
   const coordinator = job.usesLargeScaleCoherence ? selectCoherenceCoordinator(provider) : provider;

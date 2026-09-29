@@ -228,10 +228,10 @@ export async function processIndependentWritingJob(jobId: number): Promise<void>
       status: "paused",
       stopRequested: true,
       stoppedEarly: true,
-      error: "Database-backed large-scale writing is unavailable for guest jobs.",
+      error: "This older job has no saved owner session for database-backed writing.",
       updatedAt: new Date(),
     }).where(eq(writingJobs.id, jobId));
-    throw new Error("Database-backed large-scale writing requires a signed-in user owner.");
+    throw new Error("Database-backed large-scale writing requires a saved job owner.");
   }
   const provider = job.provider as IndependentProvider;
   const chapters = chapterCount(job.instructions);
