@@ -9,6 +9,7 @@ import {
   streamOpenAICompatible,
   type ProviderStreamOptions,
 } from "./providerStreaming";
+import { expandedWordTarget, sourceBlocks, sourcePassage, sourceWordCount } from "./sourceExpansion";
 
 type WritingProvider = "zhi1" | "zhi2" | "zhi3" | "zhi4" | "zhi5";
 
@@ -658,6 +659,20 @@ async function polishSection(
   );
 }
 
+async function buildSourceMap(provider: WritingProvider, source: string): Promise<string> {
+  const blocks = sourceBlocks(source);
+  if (blocks.length <= 1 && sourceWordCount(source) <= 6_000) return source;
+  const summaries: string[] = [];
+  for (let index = 0; index < blocks.length; index++) {
+    const summary = await callProvider(provider,
+      "Map the source author's argument faithfully. Do not write new manuscript prose or infer facts absent from the source.",
+      `Summarize source block ${index + 1} of ${blocks.length} in at most 250 words. Preserve its thesis, argument order, definitions, empirical claims with exact numbers and citations, objections, unresolved questions, and handoff. State the source word range. Never present an unverified citation as verified.\n\n${blocks[index]}`,
+      550, 0);
+    summaries.push(`BLOCK ${index + 1} OF ${blocks.length}:\n${removeMarkdown(summary)}`);
+  }
+  return summaries.join("\n\n");
+}
+
 async function createBlueprint(provider: WritingProvider, instructions: string, sectionCount: number): Promise<string> {
   return removeMarkdown(await callProvider(
     provider,
@@ -686,7 +701,7 @@ Give each substantive claim to one primary section. Later sections may invoke an
 
 INSTRUCTIONS:
 ${instructions}`,
-    3500,
+    Math.min(16_000, Math.max(3500, sectionCount * 210)),
   ));
 }
 
@@ -898,16 +913,19 @@ export async function createWritingJob(input: {
   auditGuidance?: string;
   forceSingleSection?: boolean;
 }) {
+  const requestedWordCount = input.forceSingleSection
+    ? input.requestedWordCount
+    : expandedWordTarget(input.requestedWordCount, input.sourceDocument);
   const explicitChapterCount = input.forceSingleSection ? null : detectExplicitChapterCount(input.instructions);
-  const usesLargeScaleCoherence = isMegaglobalRequest(input.requestedWordCount, explicitChapterCount);
+  const usesLargeScaleCoherence = isMegaglobalRequest(requestedWordCount, explicitChapterCount);
   const totalSections = explicitChapterCount
-    || (input.requestedWordCount > 2000 ? Math.ceil(input.requestedWordCount / 1200) : 1);
+    || (requestedWordCount > 2000 ? Math.ceil(requestedWordCount / 1200) : 1);
   const [job] = await db.insert(writingJobs).values({
     userId: input.userId,
     instructions: input.instructions,
     sourceDocument: input.sourceDocument || null,
     provider: input.provider,
-    requestedWordCount: input.requestedWordCount,
+    requestedWordCount,
     auditGuidance: input.auditGuidance || null,
     usesLargeScaleCoherence,
     totalSections,
@@ -987,7 +1005,10 @@ export async function processWritingJob(jobId: number): Promise<void> {
     const completedDeltas = savedSections
       .filter(section => section.sectionIndex < job.completedSections && section.continuitySummary)
       .map(section => section.continuitySummary as string);
-    const completeContext = writingContext(job.instructions, job.sourceDocument);
+    const sourceMap = job.sourceDocument?.trim()
+      ? await buildSourceMap(coordinator, job.sourceDocument)
+      : "";
+    const completeContext = writingContext(job.instructions, sourceMap);
     const blueprint = job.blueprint || (job.usesLargeScaleCoherence
       ? await createBlueprint(coordinator, completeContext, job.totalSections)
       : removeMarkdown(job.instructions));
@@ -1012,9 +1033,14 @@ export async function processWritingJob(jobId: number): Promise<void> {
     for (let index = completedCount; index < job.totalSections; index++) {
       const targetWords = sectionTargets[index];
       const chapterNumber = explicitChapterCount ? index + 1 : null;
-      const assignedDirective = chapterNumber
-        ? writingContext(extractChapterDirective(job.instructions, chapterNumber) || job.instructions, job.sourceDocument)
-        : completeContext;
+      const assignedDirective = job.sourceDocument?.trim()
+        ? writingContext(
+            chapterNumber ? (extractChapterDirective(job.instructions, chapterNumber) || job.instructions) : job.instructions,
+            sourcePassage(job.sourceDocument, index, job.totalSections),
+          )
+        : chapterNumber
+          ? writingContext(extractChapterDirective(job.instructions, chapterNumber) || job.instructions)
+          : completeContext;
       const guidedDirective = `${job.auditGuidance
         ? `${assignedDirective}\n\nPRIOR AUDIT FINDINGS. IMPROVE THE NEW DRAFT WHERE COMPATIBLE, BUT NEVER CHANGE OR OVERRIDE THE USER'S ORIGINAL THESIS, PREMISES, DEFINITIONS, STANCE, STRUCTURE, OR OTHER EXPLICIT REQUIREMENTS:\n${job.auditGuidance}`
         : assignedDirective}${job.sourceDocument?.trim() ? `\n\nEXPANSION METHOD:\n${DERIVATIONAL_EXPANSION}` : ""}`;
@@ -1475,7 +1501,8 @@ ${executionContract}`,
       }
     }
     const actualWords = countWords(output);
-    const { minimum: minimumWords, maximum: maximumWords } = getWordCountRange(job.instructions, job.requestedWordCount);
+    const { minimum, maximum: maximumWords } = getWordCountRange(job.instructions, job.requestedWordCount);
+    const minimumWords = Math.max(minimum, Math.ceil(sourceWordCount(job.sourceDocument) * 1.5));
     if (actualWords < minimumWords || actualWords > maximumWords) {
       throw new Error(`The manuscript reached ${actualWords} words, outside the requested ${minimumWords}-${maximumWords} range; the draft was saved but cannot be marked complete.`);
     }
