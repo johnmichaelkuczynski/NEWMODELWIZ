@@ -1018,8 +1018,14 @@ export async function processWritingJob(jobId: number): Promise<void> {
     const completedDeltas = savedSections
       .filter(section => section.sectionIndex < job.completedSections && section.continuitySummary)
       .map(section => section.continuitySummary as string);
+    if (!isResume) {
+      await db.update(writingJobs).set({
+        status: "planning", error: null, output: null, stopRequested: false,
+        stoppedEarly: false, completedSections: 0, updatedAt: new Date(),
+      }).where(eq(writingJobs.id, jobId));
+    }
     const sourceMap = job.sourceDocument?.trim()
-      ? await buildSourceMap(coordinator, job.sourceDocument)
+      ? (job.blueprint || await buildSourceMap(coordinator, job.sourceDocument))
       : "";
     const evidence = await prepareResearch(coordinator, job.instructions, sourceMap);
     const completeContext = `${writingContext(job.instructions, sourceMap)}${evidence ? `\n\n${evidence}` : ""}`;
@@ -1027,12 +1033,6 @@ export async function processWritingJob(jobId: number): Promise<void> {
       ? await createBlueprint(coordinator, completeContext, job.totalSections)
       : removeMarkdown(job.instructions));
     let ledger = job.coherenceLedger || blueprint;
-    if (!isResume) {
-      await db.update(writingJobs).set({
-        status: "planning", error: null, output: null, stopRequested: false,
-        stoppedEarly: false, completedSections: 0, updatedAt: new Date(),
-      }).where(eq(writingJobs.id, jobId));
-    }
     await db.update(writingJobs).set({ blueprint, coherenceLedger: ledger, status: "writing", stopRequested: false, updatedAt: new Date() }).where(eq(writingJobs.id, jobId));
 
     const explicitChapterCount = detectExplicitChapterCount(job.instructions);
